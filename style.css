@@ -1,0 +1,597 @@
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071a38;color:#fff;font-family:Arial,sans-serif}button{cursor:pointer;font:inherit}button:focus-visible{outline:3px solid #ffdd64}.screen{position:absolute;inset:0;overflow:hidden}.hidden{display:none!important}.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;pointer-events:none}.hit{position:absolute;border:2px solid transparent;border-radius:18px;background:transparent}.hit:hover,.hit:focus-visible{border-color:#fff;box-shadow:0 0 20px #53d8ff}#map-count{position:absolute;top:5%;left:73%;width:5%;text-align:center;font-size:clamp(12px,1.5vw,24px);font-weight:bold;background:#092a5b;border-radius:8px}.door{position:absolute;width:10%;height:15%;transform:translate(-50%,-50%);border:2px solid transparent;border-radius:15px;background:transparent}.door:not(:disabled):hover{border-color:#caff84;box-shadow:0 0 25px #46ffc0}.door:disabled{cursor:not-allowed}#scene{width:100%;height:100%;display:block}header{position:absolute;top:0;left:0;right:0;height:8%;min-height:48px;background:#061b44f2;border-bottom:3px solid #38bfff;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 1.6%}header strong{white-space:nowrap;font-size:clamp(13px,1.7vw,27px)}header em{font-style:normal;color:#ffc64a}header small{font-size:.6em}nav{display:flex;gap:3px}nav button{border:0;background:transparent;color:white;font-weight:bold;padding:8px;font-size:clamp(10px,1vw,16px)}nav button:hover{color:#72efff}.hud{position:absolute;top:9%;left:1%;right:1%;display:flex;gap:10px;align-items:flex-start;pointer-events:none}.box{border:3px solid #38bfff;background:#08245be8;border-radius:13px;padding:10px 15px;font-size:clamp(12px,1.25vw,20px);font-weight:bold;text-align:center}.title{margin-right:auto}.title span{color:#7defff;margin-left:8px}#clues{font-size:clamp(16px,2vw,26px);margin-top:6px}#nearby{position:absolute;left:50%;top:76%;transform:translateX(-50%);background:#092d66ed;border:2px solid #68eaff;border-radius:12px;padding:12px 22px;font-weight:bold;white-space:nowrap;box-shadow:0 0 20px #2acaff}#modal{position:absolute;inset:0;z-index:10;display:grid;place-items:center;background:#02112ac9;padding:15px}article{position:relative;width:min(560px,96vw);max-height:88vh;overflow:auto;border:4px solid #50cfff;border-radius:24px;background:linear-gradient(140deg,#174784,#071e4b);padding:30px;text-align:center;box-shadow:0 10px 45px #0009}article h2{color:#ffdb66;margin-top:0}article p{line-height:1.65}article button.action,article button.answer{display:block;width:100%;padding:13px;margin:12px 0;border:2px solid #9de8ff;border-radius:13px;background:#176dc3;color:white;font-weight:bold}article button:hover{filter:brightness(1.2)}#close{position:absolute;right:10px;top:8px;border:0;background:transparent;color:white;font-size:30px}.code{width:160px;text-align:center;font-size:34px;letter-spacing:8px;border:3px solid #47caff;border-radius:12px;padding:10px}.wrong{color:#ffaaaa}.right{color:#aaffbb}@media(max-width:750px){header small{display:none}nav button{font-size:10px;padding:4px}.title span{display:block;margin:2px}.box{padding:6px}}
+
+.reward{font-size:23px;color:#ffe579;font-weight:bold}.collection{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:18px 0}.collect-item{display:flex;align-items:center;gap:9px;text-align:left;border:2px solid #3cbef9;border-radius:12px;padding:12px;background:#0b3777}.collect-item span{font-size:28px}.collect-item small{display:block;color:#bbdefb;font-size:11px;margin-top:4px}.secret-hud{white-space:nowrap}@media(max-width:620px){.collection{grid-template-columns:1fr}.secret-hud{font-size:11px}}
+
+/* Màn hình chọn khối lớp – giao diện đồng bộ phong cách game khoa học viễn tưởng */
+#grades{background:#08285a;color:white}.grade-bg{position:absolute;inset:0;background:linear-gradient(180deg,#061a40cc,#092b63b8),url('assets/welcome.png') center/100% 100% no-repeat;filter:saturate(.85)}.grade-top{position:absolute;top:0;left:0;right:0;height:9%;min-height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 3%;background:#041b42eb;border-bottom:3px solid #2bc9ff;font-size:clamp(14px,2vw,26px);font-weight:900}.grade-top b{color:#ffcc55}.grade-back{border:2px solid #58dfff;background:#1265b8;color:#fff;border-radius:28px;padding:9px 20px;font-weight:bold}.grade-main{position:absolute;inset:11% 2% 2%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}.grade-kicker{font-size:clamp(12px,1.5vw,19px);font-weight:bold;letter-spacing:3px;color:#80eaff;margin:0 0 1%}.grade-main h1{font-size:clamp(25px,3.8vw,55px);margin:0;color:#ffe16c;text-shadow:0 5px 0 #193c7c,0 0 18px #1d9bff;-webkit-text-stroke:.5px #12376d}.grade-sub{font-size:clamp(12px,1.5vw,20px);margin:1% 0 2.4%;font-weight:700}.grade-cards{display:flex;justify-content:center;gap:2%;width:min(1170px,96%);height:min(49vh,385px);min-height:245px}.grade-card{position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:space-evenly;border-radius:26px;border:4px solid #8ceaff;color:#fff;background:linear-gradient(160deg,#1369c5ee,#06366de9);box-shadow:0 12px 0 #052353,0 16px 30px #0009,inset 0 0 20px #36ddff77;padding:15px 10px;transition:transform .15s,filter .15s}.grade-card:hover,.grade-card:focus-visible{transform:translateY(-9px);filter:brightness(1.2)}.grade-card.violet{border-color:#e3a8ff;background:linear-gradient(160deg,#7a45d7ee,#36236ee9);box-shadow:0 12px 0 #251454,0 16px 30px #0009,inset 0 0 20px #e1a5ff77}.grade-card.orange{border-color:#ffda76;background:linear-gradient(160deg,#dd7826ee,#8d3518e9);box-shadow:0 12px 0 #5e280b,0 16px 30px #0009,inset 0 0 20px #ffcc5c77}.grade-icon{font-size:clamp(38px,5vw,70px);filter:drop-shadow(0 5px 6px #0018)}.grade-name{font-weight:1000;font-size:clamp(15px,2vw,28px);white-space:nowrap;text-shadow:0 3px 3px #0019}.grade-name strong{font-size:1.65em;color:#ffe36e}.grade-caption{font-size:clamp(12px,1.3vw,17px);font-weight:900;color:#ffe884}.grade-desc{max-width:260px;font-size:clamp(11px,1.15vw,15px);line-height:1.35}.grade-go{background:#ffce45;border:3px solid #fff0b0;border-radius:40px;color:#143361;padding:10px 14px;font-weight:900;font-size:clamp(11px,1.3vw,17px);box-shadow:0 5px 0 #a76108}.grade-note{margin:2.5% 0 0;font-size:clamp(11px,1.2vw,17px);color:#a8eaff;font-weight:bold}#map-grade-label{position:absolute;top:12%;left:50%;transform:translateX(-50%);background:#092b66e9;border:2px solid #62dfff;border-radius:25px;padding:5px 20px;font-weight:900;font-size:clamp(12px,1.5vw,21px);white-space:nowrap;pointer-events:none}#room-grade-label{color:#ffe76e}.grade-card:focus-visible{outline:4px solid white}@media(max-width:700px){.grade-cards{gap:7px;width:99%;min-height:220px}.grade-card{padding:7px 3px;border-width:2px;border-radius:14px}.grade-desc{display:none}.grade-name{font-size:12px}.grade-caption{font-size:10px}.grade-go{font-size:10px;padding:7px 3px}.grade-note{margin-top:20px}.grade-top{font-size:14px}.grade-back{padding:6px 9px;font-size:11px}}
+
+/* Thử thách tương tác Phòng 01 */
+article{width:min(740px,96vw);max-height:91vh;padding:25px 30px}article h2{padding-right:12px;font-size:clamp(19px,2.3vw,29px)}.story{background:#103d7b;border-left:5px solid #ffe073;border-radius:10px;padding:12px;text-align:left}.activity-help{font-size:14px;color:#c1eaff}.step-label{color:#ffe073;font-weight:900}.question-line{font-size:18px;font-weight:bold}.tile-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:12px 0}.tile,.dropzone{border:2px solid #72d5ff;border-radius:13px;background:#13549b;color:white;padding:13px 9px;font-weight:bold;min-height:56px;line-height:1.4;cursor:pointer}.tile:hover,.dropzone:hover{background:#2478c3}.tile.selected,article .answer.selected{background:#247e69;border-color:#b3ffc9;box-shadow:0 0 0 2px #c7ffd433}.sort-groups{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:13px}.dropzone{background:#164b72;border:2px dashed #a8eaff;min-height:80px}.match-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left}.match-column{display:flex;flex-direction:column;gap:8px}.match-results{margin:12px;color:#ffe073;font-weight:bold}.pair-row{display:grid;grid-template-columns:1.1fr 1fr 1.2fr;align-items:center;gap:8px;margin:10px 0;background:#10396d;border:1px solid #62bce5;border-radius:12px;padding:10px;text-align:left}.pair-row select{width:100%;min-width:0;padding:9px 4px;border-radius:8px;background:#effaff;color:#16375c}.check-button{background:#11846d!important;border-color:#b1ffca!important}.wrong-count{white-space:nowrap}#topic-label{display:block;font-size:11px;color:#d4faff;font-weight:normal;margin-top:3px}.title small{margin-left:0!important}@media(max-width:700px){article{padding:16px}.tile-grid{grid-template-columns:1fr}.pair-row{grid-template-columns:1fr}.match-grid{gap:5px}.tile{font-size:12px;padding:8px 5px}.wrong-count{display:none}}
+
+/* Nút trợ giúp tìm vật phẩm và danh sách vật phẩm chưa hoàn thành */
+#find-item{background:#176b8e;border:1px solid #81e7ff;border-radius:10px;color:#fff;padding:9px 12px;white-space:nowrap}#find-item:hover{background:#268ba9}.find-list{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0}.find-choice{border:2px solid #67d9ff;background:#114c89;color:#fff;border-radius:12px;padding:12px;text-align:left;font-weight:bold;line-height:1.45}.find-choice:hover{background:#1e75ad}@media(max-width:700px){.find-list{grid-template-columns:1fr}#find-item{font-size:10px;padding:5px}header{padding:0 5px;gap:4px}nav{flex-wrap:wrap;justify-content:flex-end}}
+
+#room-theme{display:block;color:var(--grade-accent,#8de);font-weight:800}#find-item.hidden{display:none!important}
+
+/* Phòng 02 – mini-game khôi phục hệ thống */
+#room2{background:radial-gradient(ellipse at 20% 25%,#205b91 0%,#071a38 70%);overflow-y:auto}#room2 .r2-top{height:66px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:#051b3c;border-bottom:3px solid #5ad9ff;padding:8px 3%;font-weight:900;letter-spacing:.5px}#room2 button{color:#fff}#room2 .r2-top button{background:#12588e;border:2px solid #78d9ff;border-radius:12px;padding:10px 14px}#room2 .r2-layout{max-width:1400px;margin:auto;padding:16px 22px 45px}#room2 .r2-head{text-align:center}.r2-head #r2-grade{color:#9cf0ff;font-weight:900;letter-spacing:2px}.r2-head h1{color:#ffdf77;margin:10px 0;font-size:clamp(22px,3vw,39px)}.r2-head p{margin:9px auto;max-width:850px;line-height:1.45}.r2-meter{height:17px;background:#10284d;border:2px solid #67ceff;border-radius:30px;max-width:650px;margin:15px auto 5px;overflow:hidden}#r2-fill{height:100%;width:0;background:linear-gradient(90deg,#18bb9c,#d4ff69);transition:width .5s}.r2-main{display:grid;grid-template-columns:minmax(290px,.85fr) minmax(390px,1.15fr);gap:22px;margin-top:16px}.r2-visual,.r2-panel{background:linear-gradient(155deg,#143e72,#0b2553);border:3px solid #53c8fa;border-radius:22px;padding:22px;box-shadow:0 12px 30px #0005}.r2-visual{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:380px}.r2-big-icon{font-size:clamp(100px,13vw,190px);filter:drop-shadow(0 0 30px #00a5ff77)}.r2-visual h2{font-size:18px;color:#b2f4ff}.r2-nodes{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;width:100%}.r2-node{background:#1c2b49;border:2px solid #687f9c;border-radius:14px;padding:12px;min-height:82px;display:flex;align-items:center;gap:8px;opacity:.6}.r2-node span{font-size:28px;font-weight:900}.r2-node small{font-size:12px;font-weight:bold}.r2-node.current{border-color:#ffe174;opacity:1;box-shadow:0 0 16px #ffc63866}.r2-node.fixed{background:#176d62;border-color:#80ffbc;opacity:1}.r2-panel{min-height:380px}.r2-panel h2{color:#ffe27d;margin-top:0;font-size:clamp(18px,2vw,24px)}.r2-panel p{line-height:1.55}.r2-btn{display:block;width:100%;padding:13px 15px;margin:10px 0;background:#1766ad;border:2px solid #8bd8ff;border-radius:13px;text-align:left;font-weight:800;line-height:1.35;transition:background .15s}.r2-btn:hover,.r2-btn:focus-visible{background:#2385c5}.r2-btn.picked{background:#177a70;border-color:#b3ffc2}.r2-btn.r2-primary{text-align:center;background:#13856e;border-color:#aaffc4}.r2-cardgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.r2-cardgrid .r2-btn{margin:2px 0}.r2-slot{border:2px dashed #83b9d8;background:#0d315e;border-radius:10px;margin:7px 0;padding:11px}.r2-input{width:100%;border:3px solid #72d6ff;background:#f5fbff;color:#122c52;font-size:24px;border-radius:12px;padding:12px}.r2-typing{font-family:monospace;font-size:clamp(28px,3vw,40px);letter-spacing:3px;color:#fff19c;text-align:center;background:#061b3e;padding:18px;border-radius:14px;margin:14px 0}.r2-address{padding:12px;background:#071a35;border-radius:10px;border:1px solid #8adfff;font-weight:800}.r2-article{background:#eaf8ff;color:#163858;border-radius:13px;padding:14px;margin:12px 0}.r2-win{text-align:center}.r2-win h2{color:#b6ffbf}.r2-error{background:#6a2739;color:#fff1f1;border-radius:10px;padding:12px;margin-top:12px}.r2-good{background:#13634c;border-radius:10px;padding:12px;margin-top:12px}@media(max-width:800px){.r2-main{grid-template-columns:1fr}.r2-visual{min-height:180px}.r2-big-icon{font-size:75px}.r2-visual h2{margin:4px}.r2-nodes{grid-template-columns:repeat(4,1fr)}.r2-node{flex-direction:column;padding:6px;min-height:75px}.r2-node small{font-size:10px}.r2-layout{padding:10px}.r2-top{font-size:12px}.r2-cardgrid{grid-template-columns:1fr}}
+
+/* v29: bản đồ thể hiện Phòng 02 đã mở khóa; che hình khóa in sẵn trong ảnh nền */
+.door02-unlocked{position:absolute;left:41.8%;top:26.2%;transform:translate(-50%,-50%);width:3.7vw;height:4.4vw;min-width:27px;min-height:30px;max-width:65px;max-height:61px;border-radius:35%;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse,#ffe6a1 0%,#f19a2c 65%,#ac4b08 100%);border:2px solid #ffdb79;box-shadow:0 0 14px 5px #ffe678aa;color:white;font-size:clamp(18px,2.7vw,38px);pointer-events:none;z-index:2}
+#map-play.map-play-next{background:linear-gradient(110deg,#ffe36c,#f9a51b);border:3px solid #fff3a0;color:#4c2b00;font-size:clamp(12px,1.5vw,23px);font-weight:1000;box-shadow:0 5px 15px #251b0099;z-index:3}
+
+/* v30 – Cảnh Phòng 02 và lời dẫn nhân vật */
+.r2-intro{max-width:1260px;margin:20px auto 40px;padding:0 22px}.r2-intro-scene{height:min(49vh,450px);min-height:280px;position:relative;overflow:hidden;border:5px solid #75dfff;border-radius:24px;background:linear-gradient(#14345e 0 68%,#243b63 68% 100%);box-shadow:0 14px 38px #0008}.r2-scene-grade-3{background:linear-gradient(#285e65 0 68%,#284a55 68%)}.r2-scene-grade-4{background:linear-gradient(#183b78 0 68%,#233c65 68%)}.r2-scene-grade-5{background:linear-gradient(#40336e 0 68%,#28345e 68%)}.r2-scene-sign{position:absolute;top:15px;left:50%;transform:translateX(-50%);white-space:nowrap;max-width:95%;font-size:clamp(13px,2vw,25px);font-weight:900;color:#ffe89c;background:#071d3dc9;border:2px solid #9bdcff;border-radius:12px;padding:10px 20px;z-index:2}.r2-scene-windows{position:absolute;top:22%;left:6%;display:flex;gap:20px;color:#9cdefb;font-size:70px;opacity:.6}.r2-scene-desk{position:absolute;right:7%;bottom:23%;width:31%;height:34%;background:linear-gradient(130deg,#547b9c,#183b59);border:5px solid #8cceea;border-radius:18px 18px 6px 6px;display:flex;justify-content:space-around;align-items:center;font-size:clamp(28px,5vw,65px);box-shadow:0 18px 0 #112941}.r2-scene-machine{position:absolute;left:20%;bottom:20%;font-size:clamp(80px,13vw,170px);filter:drop-shadow(0 12px 6px #0005);display:flex;flex-direction:column;align-items:center;animation:r2float 3s ease-in-out infinite}.r2-scene-machine small{font-size:clamp(10px,1.3vw,16px);color:#fff5a5;background:#8c283f;border:2px solid #ffb5a4;padding:8px 14px;border-radius:9px;font-weight:900;filter:none}.r2-scene-floor{position:absolute;bottom:0;width:100%;height:14%;background:repeating-linear-gradient(90deg,#193b60 0 95px,#2c4c72 95px 99px)}@keyframes r2float{50%{transform:translateY(-7px)}}.r2-dialogue{display:flex;gap:22px;align-items:center;background:linear-gradient(135deg,#0d3567,#102347);border:3px solid #6bd7f8;border-radius:22px;padding:24px;margin-top:16px;box-shadow:0 8px 24px #0005}.r2-avatar{font-size:clamp(65px,10vw,130px);flex-shrink:0}.r2-speaker{color:#8de9ff;font-size:12px;font-weight:900;letter-spacing:1px}.r2-dialogue h2{color:#ffe29a;margin:8px 0}.r2-dialogue p{line-height:1.7;font-size:clamp(15px,1.5vw,19px)}.r2-intro-actions{display:flex;gap:14px;flex-wrap:wrap}.r2-intro-actions button{padding:13px 22px;border:2px solid #98e7ff;border-radius:12px;background:#1163a2;font-weight:900}.r2-intro-actions #r2-intro-start{background:#16856d;border-color:#aaffcf}.reset-game{position:absolute;z-index:15;right:2%;top:2%;padding:10px 16px;background:#6b2543;color:#fff;border:2px solid #ffb9c9;border-radius:12px;font-weight:900;cursor:pointer}.reset-map{top:11%;right:2%}.reset-inline{background:#702d4c;color:white;border:2px solid #ffb8c6;border-radius:10px;padding:9px}.hidden{display:none!important}@media(max-width:700px){.r2-dialogue{padding:13px;gap:10px}.r2-avatar{font-size:55px}.r2-scene-desk{right:3%;width:42%}.r2-scene-machine{left:9%}.r2-intro{padding:0 10px}}
+/* v31 - Room 02: explorable illustrated rooms */
+#room2{overflow:hidden;background:#071c3b}#room2 .r2-world{width:100%;height:100%;position:relative;overflow:hidden;background:#11284b}#r2-bg{width:100%;height:100%;object-fit:fill;position:absolute;inset:0;user-select:none;pointer-events:none}#r2-hud{position:absolute;top:1.2%;left:1%;right:1%;z-index:8;display:flex;justify-content:space-between;pointer-events:none}.r2-nav{display:flex;gap:7px;pointer-events:auto}.r2-nav button{border:2px solid #87dfff;background:#075cb6;color:white;padding:8px 13px;border-radius:14px;box-shadow:0 3px 0 #00366e;font-weight:900;font-size:clamp(10px,1.2vw,15px);cursor:pointer}.r2-nav button:hover{background:#0c87e6}#room2 .r2-sign{position:absolute;top:7%;left:50%;transform:translateX(-50%);background:linear-gradient(#0a4d9a,#092b68);border:3px solid #8deaff;box-shadow:0 5px 0 #0c2346;border-radius:14px;color:#fff;text-align:center;padding:8px 20px;min-width:30%;z-index:4;pointer-events:none}.r2-sign small{display:block;color:#ffe38a;font-weight:900}.r2-sign b{font-size:clamp(13px,1.8vw,24px);white-space:nowrap}#r2-avatar{position:absolute;width:clamp(32px,5vw,72px);height:clamp(48px,7vw,98px);transform:translate(-50%,-85%);background:url('assets/down0.png') center/contain no-repeat;z-index:5;filter:drop-shadow(0 7px 4px #0009);pointer-events:none}#r2-hotspots{position:absolute;inset:0;z-index:3;pointer-events:none}.r2-hotspot{position:absolute;transform:translate(-50%,-50%);border:3px solid #ffe49b;background:#084d9c;color:#fff;border-radius:50%;width:clamp(29px,3.6vw,54px);height:clamp(29px,3.6vw,54px);font-size:clamp(17px,2.3vw,29px);font-weight:900;box-shadow:0 0 0 5px #004a9780,0 5px 10px #0009;pointer-events:auto;cursor:pointer}.r2-hotspot.r2-central{background:#c16b13;border-color:#ffdc71}#r2-prompt{position:absolute;bottom:12%;left:50%;transform:translateX(-50%);background:#061f4de8;border:2px solid #b4edff;border-radius:12px;padding:9px 17px;z-index:7;font-weight:900;text-align:center;max-width:80%;font-size:clamp(12px,1.3vw,17px)}#r2-meter{position:absolute;right:1.5%;bottom:2%;width:min(260px,26%);background:#092b66ec;border:2px solid #78e7ff;border-radius:14px;padding:10px;color:#fff;font-weight:900;z-index:6;font-size:clamp(10px,1.3vw,16px)}#r2-meter b{float:right;color:#ffe187}.r2-track{height:11px;background:#07182f;border-radius:10px;margin:7px 0;overflow:hidden}#r2-fill{height:100%;background:linear-gradient(90deg,#0ed6d1,#b6ff81);width:0;transition:width .3s}#r2-explore{font-size:12px;color:#b8eaff}#r2-dialog{position:absolute;inset:0;background:#03162bb9;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px}.r2-dialogbox{position:relative;background:linear-gradient(145deg,#123e79,#091f4a);border:4px solid #75dfff;box-shadow:0 15px 40px #0009;border-radius:24px;padding:24px;max-height:90%;overflow:auto;width:min(760px,94%);color:white}.r2-dialogbox h2{color:#ffe28d;margin:10px 34px 14px 0}.r2-dialogbox h3{color:#bcefff}.r2-dialogbox p{line-height:1.55}.r2-kicker{font-weight:900;color:#8deeff}.r2-info{padding:14px;background:#d7f3ff;color:#12375b;border:2px solid #a4ddf7;border-radius:13px;margin:13px 0;line-height:1.6;font-weight:700}.r2-close{position:absolute;top:10px;right:12px;border:2px solid #ffcae3;border-radius:10px;background:#a12755;color:white;font-size:20px;padding:6px 12px;cursor:pointer}.r2-action{display:block;width:100%;padding:12px;margin:9px 0;background:#0864b9;border:2px solid #9be6ff;border-radius:12px;color:white;text-align:left;font-weight:800;cursor:pointer}.r2-action:hover,.r2-selected{background:#168b83!important;border-color:#b7ffc6!important}.r2-digit-row{display:flex;flex-wrap:wrap;gap:5px}.r2-digit-row .r2-action{width:50px;text-align:center}.r2-type-target{padding:14px;background:#001b37;border:2px solid #81d9ff;border-radius:12px;font:700 24px monospace;white-space:pre-wrap}.r2-type-input,#r2-search-input{width:100%;padding:12px;border:2px solid #79dfff;border-radius:10px;color:#122e51;background:white;font-size:18px;margin:10px 0}.r2-error,.r2-good{border-radius:12px;padding:10px}.r2-error{background:#922d45}.r2-good{background:#126a5b}.r2-mock-browser{background:#edf9ff;color:#0c2f57;padding:12px;border-radius:12px}.r2-mock-menu{display:flex;gap:5px;flex-wrap:wrap;background:#075baf;padding:8px}.r2-mock-menu button,#r2-search-go{background:#fff;color:#07519a;border:1px solid #62a1d4;padding:8px;border-radius:7px;cursor:pointer}#r2-results{padding:14px}.r2-mock-browser .r2-action{color:white}@media(max-width:700px){.r2-nav button{padding:5px;font-size:10px}.r2-nav{gap:3px}.r2-sign{top:10%!important;min-width:55%!important}.r2-sign b{white-space:normal}.r2-dialogbox{padding:14px}#r2-meter{width:36%}}
+
+/* v32 – rõ nút website, nối cột, ngón tay, giao diện sửa chữa */
+#room2 .r2-mock-menu button,#room2 #r2-search-go,#room2 #r2-rescue-go,#room2 .r2-web-slot{color:#073a75!important;background:#fff!important;border:2px solid #77b5e6!important;min-height:38px;font-weight:900;opacity:1!important;visibility:visible!important;display:inline-flex;align-items:center;justify-content:center;gap:5px;cursor:pointer}
+#room2 .r2-mock-menu{background:#0759aa!important;display:flex;flex-wrap:wrap;gap:8px;padding:10px}
+#room2 .r2-mock-browser{background:#eaf7ff!important;color:#103452!important;border:2px solid #91dfff}
+#room2 .r2-web-content{background:white;color:#183653;padding:16px;min-height:95px;border-radius:8px;margin:9px 0;line-height:1.6}
+#room2 .r2-web-content h3{color:#0d4e8b}#room2 .r2-mock-browser input{color:#142d42;background:#fff}
+#room2 .r2-match{display:grid;grid-template-columns:1fr 1fr;gap:14px}.r2-match-col{display:flex;flex-direction:column;gap:8px}.r2-match-col .r2-action{margin:0;min-height:70px}.r2-matched{background:#15825b!important;border-color:#d5ffba!important;opacity:.75!important}.r2-web-parts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.r2-file-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.r2-hands{display:flex;gap:14px;justify-content:space-around;flex-wrap:wrap}.r2-hand{background:#d6f1ff;color:#123c68;padding:14px;border-radius:15px;flex:1;min-width:245px;text-align:center}.r2-hand>div{display:flex;gap:5px;justify-content:center;margin-top:15px}.r2-finger{display:flex;flex-direction:column;align-items:center;gap:8px;width:20%;min-width:40px;background:transparent;color:#113e68;border:0;font-size:11px;font-weight:800;cursor:pointer}.r2-finger-shape{width:100%;height:72px;border:2px solid #c86d49;border-radius:24px 24px 12px 12px;background:linear-gradient(#ffe0b4,#efb08b);display:flex;align-items:center;justify-content:center;color:#f5a17e;font-size:12px;box-shadow:0 5px #ad5c4a}.r2-finger:nth-child(2) .r2-finger-shape,.r2-finger:nth-child(4) .r2-finger-shape{height:87px}.r2-finger:nth-child(3) .r2-finger-shape{height:100px}.r2-finger-right .r2-finger-shape{background:#4ddda6}.r2-big-digit{font-size:42px;color:#ffe088;font-weight:900;display:inline-block;margin-left:20px}.r2-web-slot{flex:1;min-width:120px}#r2-rescue-input{width:100%;padding:12px;color:#123;background:white;border:2px solid #58a2d6;border-radius:9px;margin:10px 0}@media(max-width:600px){#room2 .r2-match{gap:6px}#room2 .r2-match-col .r2-action{font-size:12px;padding:7px}.r2-file-grid,.r2-web-parts{grid-template-columns:1fr}}
+
+/* v33: Tách nút chức năng khỏi nền; tránh chồng lên tiêu đề. */
+#room2 .r2-sign{top:7.5%;max-width:44%;min-width:25%;padding:5px 12px;}
+#room2 .r2-sign b{font-size:clamp(11px,1.35vw,19px);white-space:normal;}
+#room2 #r2-hud{top:.8%;left:1%;right:1%;}
+#room2 .r2-nav button{font-size:clamp(10px,1.05vw,14px);padding:7px 11px;}
+@media(max-width:700px){#room2 .r2-sign{top:10%;max-width:64%;}}
+
+/* v34: Room 02 backgrounds fill the entire game canvas; no empty sidebars. */
+#room2 .r2-world{background:#102f57;}
+#room2 #r2-bg{width:100%;height:100%;object-fit:fill;object-position:center;}
+#room2 .r2-hotspot{box-shadow:0 0 0 3px #004a9780,0 5px 10px #0009;}
+@media(max-width:800px){#room2 .r2-sign{top:9%;min-width:0;max-width:64%;padding:6px 9px}#room2 .r2-sign b{white-space:normal}#room2 .r2-nav button{padding:6px 7px}}
+
+/* v35: Nền gốc 16:9 HD từng lớp, không kéo dãn hoặc cắt ghép */
+#room2 .r2-world{background:#0d315b}
+#room2 #r2-bg{width:100%;height:100%;object-fit:cover;object-position:center;image-rendering:auto}
+#room2 .r2-sign{top:7.5%;max-width:44%;}
+#room2 #r2-hud{top:1%;}
+@media(max-width:800px){#room2 .r2-sign{top:9%;}}
+
+/* v36: coherent hand diagrams and high-contrast labels */
+#room2 .r2-real-hands{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:760px;margin:16px auto}
+#room2 .r2-hand-card{background:#e8f6ff;border:2px solid #5b9dcc;border-radius:18px;padding:12px;text-align:center;color:#123451}
+#room2 .r2-hand-card strong{color:#123451;font-size:16px}
+#room2 .r2-hand-svg{display:block;width:100%;max-width:300px;margin:auto;overflow:visible}
+#room2 .r2-hand-finger{fill:#f6c6a2;stroke:#a45d48;stroke-width:3.5;cursor:pointer;transition:fill .15s}
+#room2 .r2-hand-finger:hover,#room2 .r2-hand-finger:focus{fill:#ffdf73;outline:none;stroke:#2054aa;stroke-width:5}
+#room2 .r2-hand-finger.r2-hand-correct{fill:#3be3a2}
+#room2 .r2-hand-finger.r2-hand-wrong{fill:#ff6f75}
+#room2 .r2-finger-name{font-weight:900;color:#11375c;background:#fff;border-radius:9px;padding:8px;font-size:16px;min-height:38px}
+#room2 .r2-finger-question{text-align:center;font-weight:900;color:#fef6c2;font-size:20px}
+#room2 .r2-rescue-progress{display:flex;justify-content:center;gap:14px;margin:10px 0}
+#room2 .r2-rescue-progress span{display:grid;place-items:center;border:2px solid #92b6d9;border-radius:50%;width:38px;height:38px;color:#dceaff;font-weight:900}
+#room2 .r2-rescue-progress span.active{background:#ffcb57;color:#15375a;border-color:#fff}
+#room2 .r2-rescue-progress span.done{background:#209d72;color:white}
+#room2 .r2-rescue-files{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#room2 .r2-rescue-files button{text-align:left;overflow-wrap:anywhere}
+#room2 .r2-rescue-computers{display:flex;justify-content:space-around;gap:15px;margin:18px 0}
+#room2 .r2-rescue-computers>div{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:115px;min-width:40%;border:2px solid #79b5e2;border-radius:15px;background:#dff4ff;color:#16375b;font-size:28px}
+#room2 .r2-rescue-computers b{font-size:15px}#room2 .r2-rescue-computers small{font-size:13px}
+#room2 .r2-copybar{height:18px;border-radius:20px;background:#173e66;overflow:hidden;margin:12px 0}
+#room2 .r2-copybar span{display:block;height:100%;background:#4cf5b8;animation:r2-copy .8s linear forwards}
+@keyframes r2-copy{from{width:0}to{width:100%}}
+@media(max-width:620px){#room2 .r2-real-hands{grid-template-columns:1fr}#room2 .r2-rescue-files{grid-template-columns:1fr}}
+
+/* v37: biểu tượng trạng thái nằm trên từng phòng, không ghim cứng vào phòng 02 */
+#doors .map-door{display:flex;align-items:center;justify-content:center;z-index:3}
+#doors .map-status{display:grid;place-items:center;position:absolute;left:50%;top:51%;transform:translate(-50%,-50%);font-size:clamp(22px,3vw,48px);line-height:1;min-width:1.4em;min-height:1.4em;border-radius:50%;background:radial-gradient(circle,#123a70ee,#09204bcc);box-shadow:0 2px 12px #001a3b99;pointer-events:none}
+#doors .map-done .map-status{background:radial-gradient(circle,#ffe3a0,#a85d08);filter:drop-shadow(0 0 8px #ffd34a)}
+#doors .map-open .map-status{background:radial-gradient(circle,#a4ffec,#1b6a83);filter:drop-shadow(0 0 7px #63fff2)}
+#doors .map-locked .map-status{filter:grayscale(.4);opacity:.88}
+#doors .map-door:not(:disabled):focus-visible{outline:3px solid #ffe58b}
+
+
+/* v38 — Nút bản đồ: che hoàn toàn chữ nút vẽ sẵn trong ảnh nền */
+#map #map-play{
+  z-index:8;display:flex;align-items:center;justify-content:center;
+  white-space:nowrap;overflow:hidden;isolation:isolate;
+  border:3px solid #63370a;border-radius:999px;
+  background:linear-gradient(180deg,#fff58c 0%,#ffd342 45%,#f9a70a 100%);
+  color:#38220d;font-family:Arial,"Noto Sans",sans-serif;
+  font-weight:900;font-size:clamp(12px,1.5vw,23px);line-height:1.15;
+  text-shadow:none;box-shadow:inset 0 3px 0 #fff9bd,0 5px 0 #9c5800,0 7px 16px #0009;
+  padding:0 10px;
+}
+#map #map-play:hover{background:linear-gradient(#fffdb1,#ffdc5b,#ffae1b);transform:translateY(-2px)}
+#map #map-play:active{transform:translateY(2px);box-shadow:inset 0 2px 6px #a86d20,0 2px 0 #9c5800}
+/* Thẻ chọn lớp: dành vị trí riêng cho từng hàng, không đè chữ khi màn hình thấp */
+#grades .grade-card{
+  display:grid;grid-template-rows:minmax(42px,1.15fr) auto auto minmax(30px,.75fr) auto;
+  justify-items:center;align-content:stretch;align-items:center;
+  row-gap:clamp(3px,.6vh,9px);padding:clamp(9px,1.3vw,17px) 8px;
+  text-align:center;overflow:hidden;
+}
+#grades .grade-icon{line-height:1;font-size:clamp(36px,4.5vw,62px)}
+#grades .grade-name{line-height:1.13;font-size:clamp(15px,1.85vw,26px);white-space:nowrap;letter-spacing:0;text-shadow:0 2px 3px #0018}
+#grades .grade-name strong{font-size:1.4em}
+#grades .grade-caption{line-height:1.2;font-size:clamp(11px,1.25vw,17px);text-shadow:0 1px 2px #0016}
+#grades .grade-desc{font-size:clamp(11px,1.05vw,15px);line-height:1.35;margin:0;max-width:95%;text-wrap:balance}
+#grades .grade-go{display:flex;align-items:center;justify-content:center;min-height:43px;max-width:96%;white-space:nowrap;line-height:1.1;font-size:clamp(11px,1.2vw,16px);text-shadow:none;padding:8px 12px}
+@media(max-height:650px){#grades .grade-main{inset:10% 2% 1%}#grades .grade-cards{height:min(53vh,340px);min-height:210px}#grades .grade-note{margin:1% 0 0}#grades .grade-main h1{font-size:clamp(22px,3vw,40px)}#grades .grade-desc{font-size:11px}#grades .grade-go{min-height:36px}}
+@media(max-width:750px){#map #map-play{font-size:clamp(10px,2vw,15px);padding:0 4px}#grades .grade-desc{display:none}#grades .grade-card{grid-template-rows:1fr auto auto 0fr auto}#grades .grade-go{padding:6px 4px;min-height:36px}}
+/* Room 03 – Phiêu lưu Byte */
+#room3{background:linear-gradient(135deg,#071c43,#124c78);color:white;font-family:Arial,sans-serif;overflow:hidden}
+.r3-top{position:absolute;z-index:4;left:0;right:0;top:0;display:flex;align-items:center;gap:14px;padding:10px 18px;background:#061e44eb;border-bottom:3px solid #48d8ff;box-sizing:border-box}
+.r3-top button,.r3-btn{background:linear-gradient(#ffe67a,#ffb91c);border:2px solid #fff3b4;border-radius:14px;color:#192a50;font-weight:900;padding:10px 17px;cursor:pointer;font-size:clamp(12px,1.1vw,18px)}.r3-top strong{flex:1;text-align:center;font-size:clamp(14px,1.7vw,24px)}
+.r3-board{position:absolute;top:68px;left:2%;right:2%;bottom:3%;border:4px solid #58dfff;border-radius:25px;overflow:hidden;background:linear-gradient(135deg,#132b64,#163e71 55%,#152657);box-shadow:inset 0 0 40px #36dfff55}
+.r3-hud{position:absolute;z-index:3;top:12px;left:2%;right:2%;display:flex;justify-content:space-between;align-items:center;gap:15px;pointer-events:none}.r3-hud>div{background:#071a40df;padding:10px 18px;border-radius:14px;border:1px solid #5ad9fa;font-size:clamp(12px,1.1vw,18px)}.r3-steps{display:flex;gap:9px}.r3-steps span{display:grid;place-items:center;width:31px;height:31px;border-radius:50%;background:#52657e}.r3-steps .done{background:#16b978}.r3-steps .active{background:#ffca32;color:#122248}
+.r3-world{position:absolute;inset:0;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,#285c8b 0%,#0b2550 85%)}.r3-grid{position:absolute;inset:0;background-image:linear-gradient(#6fdbff20 2px,transparent 2px),linear-gradient(90deg,#6fdbff20 2px,transparent 2px);background-size:7% 9%}.r3-world:before{content:'⚙️   🔧   ⚙️';position:absolute;left:18%;top:42%;font-size:45px;opacity:.17}.r3-machine{position:absolute;right:3%;top:13%;padding:16px 18px;background:#081e45;border:3px solid #4fdfff;border-radius:18px;font-size:45px;text-align:center;opacity:.65}.r3-machine span{display:block;font-size:11px;font-weight:bold}.stage-3 .r3-machine{border-color:#f3c85d}.r3-object{position:absolute;transform:translate(-50%,-50%);background:#123b68e8;border:2px solid #69dfff;border-radius:16px;color:white;padding:6px 10px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;min-width:80px;box-shadow:0 4px 14px #00162b88}.r3-object span{font-size:clamp(25px,3vw,45px)}.r3-object small{font-weight:800;font-size:clamp(10px,.85vw,13px)}.r3-highlight{border-color:#ffda60;box-shadow:0 0 18px #ffca36}.r3-byte{position:absolute;transform:translate(-50%,-60%);font-size:clamp(32px,4vw,60px);z-index:2;filter:drop-shadow(0 5px 4px #0009);pointer-events:none}.r3-byte small{display:block;text-align:center;font-size:11px;color:#fff;font-weight:900;text-shadow:0 2px 4px #000}.r3-laser{position:absolute;left:42%;top:34%;height:38%;width:12%;display:grid;place-items:center;writing-mode:vertical-rl;background:repeating-linear-gradient(0deg,#ff3e5980 0 6px,transparent 6px 26px);border-left:4px solid #ff6577;border-right:4px solid #ff6577;color:#ffe3e3;font-weight:bold}
+.r3-msg{position:absolute;z-index:3;bottom:10px;left:2%;right:2%;background:#061735e8;border:2px solid #69dbff;border-radius:13px;text-align:center;padding:10px;font-weight:800;font-size:clamp(12px,1.1vw,17px)}
+.r3-dialog{position:absolute;z-index:7;inset:0;background:#06142abf;display:grid;place-items:center;padding:16px}.r3-dialog.hidden{display:none}.r3-card{background:linear-gradient(155deg,#fff,#e3f5ff);color:#193454;border:5px solid #5fd8ff;border-radius:25px;box-shadow:0 15px 55px #0009;max-width:760px;width:min(92%,760px);max-height:85%;overflow:auto;padding:22px 28px;text-align:center}.r3-card h2{font-size:clamp(20px,2.3vw,32px);color:#0b4f90;margin:0 0 15px}.r3-card p{font-size:clamp(14px,1.35vw,19px);line-height:1.55}.r3-choices{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}.r3-response{color:#bc2446;font-weight:bold}.r3-laptop,.r3-tablet,.r3-phone{padding:15px;background:#cbe9f9;border:3px solid #287ab4;border-radius:20px;margin:12px auto;max-width:410px}.r3-laptop{font-size:65px}.r3-laptop button{display:block;margin:auto}.r3-tablet button{margin:8px}.r3-phone #r3-virtual{display:flex;justify-content:center;gap:7px;flex-wrap:wrap}.r3-win{font-size:70px}
+@media(max-width:850px){.r3-top{gap:5px;padding:6px}.r3-top button{padding:6px;font-size:11px}.r3-board{top:52px}.r3-object{min-width:55px;padding:4px}.r3-hud{top:7px}.r3-hud>div{padding:5px}.r3-steps span{width:22px;height:22px}.r3-machine{font-size:25px}.r3-msg{font-size:11px}}
+#r3-teacher-entry{position:absolute;bottom:10%;left:40%;background:#ffdf58;color:#12356b;border:3px solid #fff;border-radius:20px;padding:12px;font-weight:900;cursor:pointer;z-index:10}
+
+/* v41 — Room 03: illustrated laboratory maze with the same student sprite as Room 01 */
+#room3 .r3-world{background:linear-gradient(180deg,rgba(6,31,70,.44),rgba(6,25,57,.68)),url('assets/room.png') center center/cover no-repeat,#12385f}
+#room3 .r3-grid{background-image:linear-gradient(90deg,rgba(86,225,255,.14) 2px,transparent 2px),linear-gradient(rgba(86,225,255,.14) 2px,transparent 2px);background-size:8% 12%;mask-image:linear-gradient(to bottom,transparent 0%,#000 25%)}
+#room3 .r3-world:before{content:'';position:absolute;inset:13% 4% 12%;border:5px solid rgba(96,224,255,.45);border-radius:24px;box-shadow:inset 0 0 30px rgba(22,192,255,.25);pointer-events:none}
+#room3 .r3-world:after{content:'';position:absolute;left:3%;right:3%;bottom:13%;height:9px;border-radius:100%;background:#31dcff66;pointer-events:none}
+#room3 .r3-decor{position:absolute;inset:0;pointer-events:none}
+#room3 .r3-lamp{position:absolute;top:18%;font-size:32px;filter:drop-shadow(0 0 12px #ffdc57)}
+#room3 .r3-lamp.l1{left:11%}#room3 .r3-lamp.l2{right:12%}
+#room3 .r3-shelf{position:absolute;left:4%;top:44%;font-size:clamp(22px,3vw,46px);background:#113359c9;border:3px solid #6fe8ff;border-radius:16px;padding:10px}
+#room3 .r3-console{position:absolute;top:10%;left:31%;width:38%;text-align:center;padding:12px;background:linear-gradient(#1e83ba,#082c5d);border:3px solid #72e5ff;border-radius:14px;color:#fff1a4;font-size:clamp(12px,1.4vw,20px);font-weight:900;box-shadow:0 0 22px #38ddff77}
+#room3 .r3-pipes{position:absolute;bottom:14%;left:7%;width:86%;height:10%;border:5px solid #287db6;border-radius:18px;background:linear-gradient(180deg,#1b648d,#103458);opacity:.6}
+#room3 .r3-byte{width:clamp(52px,6.1vw,90px);height:clamp(83px,10vw,144px);background-position:center;background-repeat:no-repeat;background-size:contain;z-index:5;filter:drop-shadow(0 5px 4px #001b32);transform:translate(-50%,-75%)}
+#room3 .r3-object{z-index:3;background:linear-gradient(160deg,#174c81ef,#092954ef);border:3px solid #77e5ff;box-shadow:0 7px 0 #061b40,0 0 15px #1dc8ff55;transition:filter .15s}
+#room3 .r3-object:hover{filter:brightness(1.2)}
+#room3 .r3-highlight{border-color:#ffdf64;box-shadow:0 7px 0 #63490d,0 0 20px #ffce46}
+#room3 .r3-machine{z-index:2;right:5%;top:20%;opacity:1;background:linear-gradient(#19649c,#061f4d);box-shadow:0 8px 0 #06182e,0 0 24px #40e2ff}
+#room3 .r3-hud{z-index:6}#room3 .r3-msg{z-index:6;bottom:39px}
+#room3 .r3-controls{position:absolute;z-index:6;bottom:3px;left:0;right:0;text-align:center;color:#c3f5ff;background:#061735db;font-size:clamp(10px,1vw,14px);padding:5px}
+#room3 .r3-laser{z-index:2;box-shadow:0 0 25px #ff416e88}
+@media(max-width:720px){#room3 .r3-top strong{font-size:11px}#room3 .r3-controls{font-size:9px}#room3 .r3-msg{bottom:27px}}
+
+/* v43: Room 03 grade 3 – background and interactive sprites are independent. */
+#room3 .r3-world.stage-0{background:#8095b3 url('assets/room3_kho_trong.png') center center/100% 100% no-repeat}
+#room3 .r3-world.stage-0::before,#room3 .r3-world.stage-0::after{display:none}
+#room3 .stage-0 .r3-grid,#room3 .stage-0 .r3-machine{display:none}
+#room3 .stage-0 .r3-object{min-width:0;min-height:0;width:clamp(72px,8vw,122px);padding:5px 4px 7px;background:linear-gradient(160deg,#f4fbff,#b6dcf0);border:3px solid #2679b6;color:#113e67;border-radius:15px;box-shadow:0 6px 0 #24486d,0 0 13px #2fe1ff8a;transform:translate(-50%,-50%);z-index:4}
+#room3 .stage-0 .r3-object:hover,#room3 .stage-0 .r3-object:focus-visible{filter:brightness(1.12);outline:3px solid #ffe17b;outline-offset:3px}
+#room3 .stage-0 .r3-object small{background:#103c67;color:#fff;padding:3px 8px;border-radius:7px;white-space:nowrap;font-size:clamp(10px,.9vw,13px)}
+#room3 .stage-0 .r3-icon{display:block;width:clamp(50px,5vw,82px);height:clamp(44px,5vw,76px);margin:0 auto;position:relative;font-size:40px}
+#room3 .stage-0 .r3-icon-monitor:before{content:'';position:absolute;left:9%;top:6%;width:80%;height:60%;background:linear-gradient(140deg,#5edcff,#135c9c);border:6px solid #26374b;border-radius:7px;box-sizing:border-box;box-shadow:inset 0 0 0 3px #7df2ff}
+#room3 .stage-0 .r3-icon-monitor:after{content:'';position:absolute;left:43%;top:66%;height:18%;width:14%;background:#344f68;box-shadow:0 12px 0 7px #354b5d}
+#room3 .stage-0 .r3-icon-tower:before{content:'';position:absolute;left:27%;top:2%;height:90%;width:47%;background:linear-gradient(90deg,#2b425b,#55748f);border:5px solid #213549;border-radius:8px;box-sizing:border-box}
+#room3 .stage-0 .r3-icon-tower:after{content:'';position:absolute;left:40%;top:16%;width:17%;height:17%;background:#35e9ff;border-radius:50%;box-shadow:0 26px 0 -2px #ffc84a}
+#room3 .stage-0 .r3-icon-keyboard:before{content:'';position:absolute;left:2%;top:26%;width:95%;height:52%;background:repeating-linear-gradient(90deg,#304c66 0 8px,#b4d9ec 8px 11px);border:5px solid #29445c;border-radius:7px;box-sizing:border-box;transform:perspective(100px) rotateX(14deg)}
+#room3 .stage-0 .r3-icon-mouse:before{content:'';position:absolute;left:31%;top:6%;width:42%;height:80%;border-radius:45% 45% 40% 40%;background:linear-gradient(100deg,#263d57 50%,#597b9a 50%);border:4px solid #18354f;box-sizing:border-box}
+#room3 .stage-0 .r3-icon-mouse:after{content:'';position:absolute;left:50%;top:14%;height:19%;border-left:3px solid #a5efff}
+#room3 .stage-0 .r3-icon-speaker:before{content:'';position:absolute;left:25%;top:3%;width:50%;height:90%;background:#314e6b;border:4px solid #19354e;border-radius:7px;box-sizing:border-box}
+#room3 .stage-0 .r3-icon-speaker:after{content:'';position:absolute;left:37%;top:37%;width:27%;height:30%;background:#0e2943;border:4px solid #63c9e7;border-radius:50%;box-sizing:border-box}
+#room3 .stage-0 .r3-icon-printer:before{content:'';position:absolute;left:10%;top:27%;width:80%;height:57%;background:#4b6b85;border:5px solid #25415b;border-radius:9px;box-sizing:border-box}
+#room3 .stage-0 .r3-icon-printer:after{content:'';position:absolute;left:22%;top:5%;width:56%;height:35%;background:#f8fdff;border:3px solid #25415b}
+#room3 .stage-0 .r3-icon-headphones:before{content:'';position:absolute;left:23%;top:7%;width:54%;height:70%;border:10px solid #2c4c69;border-bottom:0;border-radius:50% 50% 0 0;box-sizing:border-box}
+#room3 .stage-0 .r3-icon-headphones:after{content:'';position:absolute;left:18%;top:48%;width:22%;height:35%;border-radius:9px;background:#2b86bc;box-shadow:34px 0 #2b86bc}
+#room3 .stage-0 .r3-icon-webcam:before{content:'';position:absolute;left:18%;top:22%;width:65%;height:48%;border:6px solid #334e67;border-radius:50%;background:radial-gradient(circle,#5df2ff 0 20%,#13547c 23% 43%,#1c344f 47%)}
+#room3 .stage-0 .r3-icon-webcam:after{content:'';position:absolute;left:42%;top:68%;width:18%;height:20%;background:#3b5268}
+#room3 .stage-0 .r3-workbench{width:clamp(135px,16vw,230px);background:linear-gradient(#e3ba76,#987247);border:5px solid #684d36;box-shadow:0 8px 0 #4b3b32,0 0 20px #ffe07e}
+#room3 .stage-0 .r3-icon-workbench:before{content:'';position:absolute;left:5%;top:16%;width:90%;height:60%;background:linear-gradient(135deg,#63c7c3,#247b88);border:5px solid #704f35;border-radius:5px;box-sizing:border-box}
+#room3 .stage-0 .r3-icon-workbench:after{content:'⚒';position:absolute;left:38%;top:15%;color:#fff;font-size:28px}
+#room3 .stage-0 .r3-exit{left:89%!important;top:25%!important;width:90px;background:#4b1730;color:white;border-color:#ff6674}
+#room3 .stage-0 .r3-byte{z-index:5}
+#room3 .r3-msg{pointer-events:none}
+
+/* v44 – hình ảnh thiết bị PNG độc lập, không vẽ bằng CSS */
+#room3 .stage-0 .r3-object.r3-device-sprite{border:0;background:transparent;box-shadow:none;padding:0;width:clamp(48px,6.5vw,105px);height:clamp(40px,6.5vw,100px);min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 5px 4px #071e4880);cursor:pointer;z-index:4}
+#room3 .stage-0 .r3-device-sprite img{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;pointer-events:none;user-select:none}
+#room3 .stage-0 .r3-device-sprite:hover,#room3 .stage-0 .r3-device-sprite:focus-visible{filter:drop-shadow(0 0 9px #ffdf62) drop-shadow(0 4px 4px #071e4880);transform:translate(-50%,-50%) scale(1.10);outline:0}
+#room3 .stage-0 .r3-device-sprite.r3-broken-device{width:clamp(38px,4.2vw,70px);height:clamp(34px,4.5vw,72px);filter:drop-shadow(0 3px 4px #071e4880) saturate(.8)}
+#room3 .stage-0 .r3-device-sprite::after{content:'E';position:absolute;top:-12px;right:-6px;display:none;padding:3px 7px;border-radius:9px;background:#ffce50;color:#17314d;font-weight:900;box-shadow:0 2px 6px #172b4b}
+#room3 .stage-0 .r3-device-sprite:hover::after,#room3 .stage-0 .r3-device-sprite:focus-visible::after{display:block}
+#room3 .stage-0 .r3-object.r3-assembly-hotspot{left:50%;top:78%;width:clamp(130px,23vw,320px);height:clamp(35px,6vw,82px);background:transparent;border:2px dashed #5ef5d680;box-shadow:none;opacity:.55;color:white;z-index:4}
+#room3 .stage-0 .r3-assembly-hotspot .r3-icon{display:none}
+#room3 .stage-0 .r3-assembly-hotspot small{background:#064b72c9}
+#room3 .stage-0 .r3-assembly-hotspot:hover{opacity:1;border-color:#ffe46e;filter:none}
+
+/* v45: corrected agreed background with workbenches and red security door. */
+#room3 .stage-0 .r3-object.r3-device-sprite{width:clamp(38px,5.5vw,91px);height:clamp(34px,5.6vw,92px)}
+#room3 .stage-0 .r3-device-sprite.r3-broken-device{width:clamp(30px,3.8vw,60px);height:clamp(28px,3.8vw,60px)}
+#room3 .stage-0 .r3-assembly-hotspot{top:79%!important}
+#room3 .stage-0 .r3-exit{left:88%!important;top:22%!important;opacity:.72}
+
+/* v46: Room 03 Kho thiết bị – sprite placement and clear walkable space */
+#room3 .stage-0 .r3-grid,#room3 .stage-0 .r3-machine{display:none!important}
+#room3 .stage-0 .r3-object.r3-device-sprite{width:clamp(43px,5.2vw,91px);height:clamp(36px,5.6vw,96px);z-index:3;filter:drop-shadow(0 3px 2px #071e4855)}
+#room3 .stage-0 .r3-device-sprite.r3-broken-device{width:clamp(32px,3.5vw,62px);height:clamp(29px,3.8vw,66px);filter:drop-shadow(0 2px 2px #071e4855) saturate(.8)}
+#room3 .stage-0 .r3-device-sprite.r3-in-range{filter:drop-shadow(0 0 9px #ffe36b) drop-shadow(0 3px 3px #071e4870)!important}
+#room3 .stage-0 .r3-device-sprite.r3-in-range::after{display:block!important}
+#room3 .stage-0 .r3-assembly-hotspot{left:50%!important;top:80%!important;width:28%;height:12%;border:2px dashed transparent;opacity:.15}
+#room3 .stage-0 .r3-assembly-hotspot.r3-in-range{opacity:.95;border-color:#ffe36b}
+#room3 .stage-0 .r3-exit{left:88%!important;top:22%!important;opacity:.10;background:transparent;border:0;box-shadow:none}
+#room3 .stage-0 .r3-exit.r3-in-range{opacity:.8}
+
+/* v47: sprites scaled relative to game WORLD, not browser viewport. */
+#room3 .stage-0 .r3-object.r3-device-sprite{width:5.2%!important;height:11%!important;min-width:0!important;min-height:0!important;z-index:4}
+#room3 .stage-0 .r3-object.r3-device-sprite.r3-asset-01{width:8.2%!important;height:15.5%!important}
+#room3 .stage-0 .r3-object.r3-device-sprite.r3-asset-02{width:6.0%!important;height:14%!important}
+#room3 .stage-0 .r3-object.r3-device-sprite.r3-asset-03{width:7.1%!important;height:7.5%!important}
+#room3 .stage-0 .r3-object.r3-device-sprite.r3-asset-04{width:3.7%!important;height:7%!important}
+#room3 .stage-0 .r3-object.r3-device-sprite.r3-asset-05{width:5.4%!important;height:12%!important}
+#room3 .stage-0 .r3-object.r3-device-sprite.r3-asset-06{width:7.6%!important;height:12.5%!important}
+#room3 .stage-0 .r3-object.r3-device-sprite.r3-asset-07{width:4.7%!important;height:9.5%!important}
+#room3 .stage-0 .r3-object.r3-device-sprite.r3-asset-08{width:3.9%!important;height:8%!important}
+#room3 .stage-0 .r3-object.r3-device-sprite.r3-broken-device{width:3.9%!important;height:8%!important}
+#room3 .stage-0 .r3-object.r3-device-sprite.r3-broken-device.r3-asset-09{width:5.3%!important;height:9%!important}
+#room3 .stage-0 .r3-object.r3-device-sprite.r3-broken-device.r3-asset-10{width:4.0%!important;height:9%!important}
+#room3 .stage-0 .r3-object.r3-device-sprite.r3-broken-device.r3-11{width:4.5%!important;height:6%!important}
+#room3 .stage-0 .r3-object.r3-device-sprite img{display:block;object-fit:contain}
+
+/* Room 03 — thiết bị tương tác trực quan */
+.r3-laptop-device{width:min(100%,560px);margin:12px auto 6px;filter:drop-shadow(0 10px 12px #17406a55)}
+.r3-laptop-display{border:12px solid #172b4b;border-bottom-width:16px;border-radius:19px 19px 7px 7px;background:#102540;padding:5px;box-shadow:inset 0 0 0 2px #54b8f8}
+.r3-laptop-wallpaper{height:170px;position:relative;overflow:hidden;border-radius:5px;background:linear-gradient(140deg,#0b4b8d,#16a7d6 55%,#5de7dd);background-image:radial-gradient(circle at 70% 25%,#9befff77,transparent 40%),linear-gradient(145deg,#173976,#068fca)}
+.r3-laptop-hint{position:absolute;top:9px;left:10px;color:#fff;font-size:11px;font-weight:800;text-shadow:0 1px 3px #102540}
+.r3-laptop-lock{position:absolute;left:75%;top:12%;font-size:42px;background:#fff3;border:2px solid #a9edff;border-radius:12px;padding:5px}
+.r3-laptop-cursor{position:absolute;left:12%;top:75%;width:0;height:0;border-left:17px solid white;border-top:23px solid transparent;filter:drop-shadow(2px 2px 1px #123);transform:rotate(-25deg);z-index:2;pointer-events:none}
+.r3-laptop-base{background:linear-gradient(#dce9f6,#839eb9);border:3px solid #425a78;border-radius:5px 5px 20px 20px;padding:12px 30px 9px;box-shadow:inset 0 4px #fff9}
+.r3-laptop-keys{display:grid;gap:3px}.r3-laptop-keys>div{display:flex;justify-content:center;gap:3px}.r3-laptop-keys span{display:grid;place-items:center;background:#243b59;color:#d7efff;border-radius:3px;width:7.9%;height:22px;font-size:10px;box-shadow:0 2px #0b203c}
+.r3-laptop-touchpad{position:relative;width:45%;height:84px;background:linear-gradient(150deg,#bcd5e9,#eaf6ff);border:3px solid #668cae;border-radius:11px;margin:11px auto 0;touch-action:none;cursor:grab;user-select:none;display:grid;place-items:center;color:#2e5b83;font-size:12px;font-weight:800}
+.r3-laptop-touchpad.active{background:#b2eaf8;cursor:grabbing}.r3-laptop-touchpad i{position:absolute;bottom:4px;left:10%;right:10%;height:1px;background:#8ba9c1}
+.r3-smartphone{width:min(100%,350px);margin:10px auto;background:linear-gradient(110deg,#101e38,#354f78,#111e36);border:8px solid #17263d;border-radius:35px;padding:9px;box-shadow:0 12px 25px #122e4b66}
+.r3-phone-notch{height:9px;width:65px;border-radius:0 0 10px 10px;background:#07162b;margin:-9px auto 4px}.r3-phone-screen{background:linear-gradient(#c5edff,#eff9ff);padding:15px 9px 12px;border-radius:15px;min-height:285px}.r3-phone-title{font-size:13px;color:#225a84;font-weight:900}.r3-phone-entry{margin:9px 0 16px;border-radius:9px;border:2px solid #60b6dd;background:white;font-size:30px;font-weight:900;letter-spacing:8px;color:#173e6b;padding:8px}.r3-phone-keyboard{display:grid;gap:7px}.r3-phone-keyrow{display:flex;justify-content:center;gap:3px}.r3-phone-key{flex:1;min-width:0;height:37px;padding:0;border-radius:6px;background:linear-gradient(#fff,#bcd8ed);border:1px solid #7aa9cc;color:#1c426a;font-size:15px;font-weight:900;box-shadow:0 2px #6b9fc3;cursor:pointer}.r3-phone-key:active{transform:translateY(2px);box-shadow:none;background:#6de0ff}.r3-phone-delete{margin-top:13px;background:#1b5c95;color:white;border:0;border-radius:8px;padding:9px 17px;cursor:pointer}.r3-phone-home{height:5px;width:85px;background:#a9c2dd;border-radius:8px;margin:12px auto 2px}
+@media(max-height:700px){.r3-laptop-wallpaper{height:115px}.r3-laptop-touchpad{height:64px}.r3-phone-key{height:31px}.r3-phone-screen{min-height:0}.r3-phone-entry{margin:5px 0}}
+
+/* v51 — Đồng bộ không gian hoạt hình 2D và cửa sổ tương tác Room 03 chặng 2 */
+#room3 .r3-world.stage-1{background:#214c7e url('assets/room3_hanh_lang.svg') center/100% 100% no-repeat}
+#room3 .stage-1::before,#room3 .stage-1::after,#room3 .stage-1 .r3-grid{display:none!important}
+#room3 .stage-1 .r3-object{width:clamp(120px,15vw,220px);min-height:70px;background:linear-gradient(165deg,#e4f9ff,#9dd3f1);border:4px solid #246b9b;color:#123c63;box-shadow:0 7px 0 #14395d,0 0 19px #39d9ff9c;border-radius:17px;padding:8px;z-index:4}
+#room3 .stage-1 .r3-object span{font-size:clamp(29px,3.3vw,50px)}
+#room3 .stage-1 .r3-object small{font-size:clamp(10px,1.05vw,15px);line-height:1.15;color:#123a61}
+#room3 .stage-1 .r3-gate-complete{border-color:#6df0af;background:linear-gradient(#e9fff3,#9ce2c1);box-shadow:0 7px 0 #20634b,0 0 20px #40e9aa}
+#room3 .stage-1 .r3-laser{left:47%;top:35%;width:7%;height:41%;border-color:#ff8b89;background:repeating-linear-gradient(0deg,#fa425b9c 0 7px,transparent 7px 29px);font-size:clamp(11px,1.2vw,17px);text-shadow:0 2px 4px #310e2c}
+#room3 .stage-1 .r3-laser.r3-laser-off{background:#33e7a133;border-color:#6effb6;color:#dcfff0;box-shadow:0 0 24px #45e8b888}
+#room3 .r3-system-status{position:absolute;right:3%;top:22%;display:flex;flex-direction:column;gap:9px;padding:15px;background:#072b57eb;border:3px solid #4fe3fa;border-radius:17px;z-index:2;box-shadow:0 0 18px #1de0ff66}
+#room3 .r3-system-status span{font-weight:900;color:#ffd19a;font-size:clamp(10px,1.1vw,15px)}
+#room3 .r3-system-status .ready{color:#7fffc3}
+#room3 .stage-1 .r3-next-door{left:88%!important;top:72%!important;border-color:#6effa6;background:#d9fff0}
+#room3 .r3-dialog{backdrop-filter:blur(5px)}
+#room3 .r3-card{border:5px solid #51d7f4;background:linear-gradient(160deg,#f9fdff,#d9f1ff);box-shadow:0 16px 0 #123b64,0 24px 55px #061e45b8}
+#room3 .r3-byte-dialog{display:flex;align-items:center;gap:22px;text-align:left;min-height:180px}
+#room3 .r3-byte-avatar{flex:0 0 135px;display:grid;justify-items:center;gap:5px;color:#0a5b91;font-size:12px}
+#room3 .r3-byte-robot{font-size:84px;line-height:1;filter:drop-shadow(0 8px 5px #123a5a40)}
+#room3 .r3-byte-speech{position:relative;flex:1;padding:18px 21px;background:white;border:3px solid #52bce8;border-radius:24px;box-shadow:0 6px 0 #9cdaf4}
+#room3 .r3-byte-speech:before{content:'';position:absolute;left:-16px;top:46%;width:23px;height:23px;background:white;border-left:3px solid #52bce8;border-bottom:3px solid #52bce8;transform:rotate(45deg)}
+#room3 .r3-byte-speech p{margin:12px 0 18px;font-size:clamp(17px,1.65vw,23px);line-height:1.5;color:#193e65}
+#room3 .r3-byte-tag{font-weight:900;color:#0863a4;letter-spacing:.5px}
+#room3 .r3-tablet-device{max-width:580px;margin:12px auto;padding:13px 18px;border:10px solid #1d3554;border-radius:30px;background:linear-gradient(120deg,#a9cce6,#e2f5ff,#9dc2e2);box-shadow:0 12px 25px #1b456888}
+#room3 .r3-tablet-camera{width:9px;height:9px;border-radius:50%;background:#0e3455;margin:0 auto 9px;box-shadow:inset 0 0 0 2px #3d6684}
+#room3 .r3-tablet-screen{padding:18px 14px;background:linear-gradient(145deg,#154987,#18a7ce 70%,#54d6df);border-radius:13px;min-height:230px}
+#room3 .r3-tablet-heading{font-weight:900;color:#fff;text-shadow:0 2px 3px #063864;margin-bottom:19px;font-size:15px}
+#room3 .r3-tablet-apps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+#room3 .r3-tablet-apps button{border:3px solid #b4efff;background:linear-gradient(#ffffffeb,#d5f3ff);border-radius:16px;font-size:39px;cursor:pointer;padding:14px 4px;box-shadow:0 5px 0 #0b588e}
+#room3 .r3-tablet-apps button:hover{transform:translateY(-3px);filter:brightness(1.08)}
+#room3 .r3-tablet-apps small{display:block;color:#1b4a72;font-size:11px;font-weight:900;margin-top:8px}
+#room3 .r3-tablet-foot{margin-top:20px;color:#e9ffff;font-size:11px;font-weight:900}
+@media(max-width:650px){#room3 .r3-byte-dialog{gap:9px}#room3 .r3-byte-avatar{flex-basis:75px}#room3 .r3-byte-robot{font-size:49px}#room3 .r3-byte-speech{padding:10px}#room3 .r3-byte-speech p{font-size:15px}#room3 .r3-tablet-apps{gap:5px}#room3 .r3-tablet-apps button{font-size:24px}#room3 .r3-tablet-apps small{font-size:8px}#room3 .r3-system-status{right:1%;padding:7px}#room3 .stage-1 .r3-object{width:105px;min-height:55px}}
+
+/* v52 — Bàn lắp ráp: hình trực quan đúng vị trí các bộ phận */
+#room3 .r3-assembled-result h2{margin:5px 0;color:#1261a3}
+#room3 .r3-assembly-star{font-weight:900;color:#d87d00;font-size:clamp(16px,2vw,24px)}
+#room3 .r3-computer-layout{position:relative;width:min(100%,650px);height:clamp(225px,33vw,335px);margin:12px auto 8px;border:4px solid #77d8ef;border-radius:23px;background:radial-gradient(ellipse at 50% 5%,#d6faff,#9cddf0 70%,#75b5d8);overflow:hidden;box-shadow:inset 0 6px 18px #ffffff99,0 8px 20px #1764a944}
+#room3 .r3-computer-desktop{position:absolute;left:6%;right:6%;top:63%;height:24%;background:linear-gradient(#f6d7a1,#b97d4d);border:4px solid #8c5a37;border-radius:14px;box-shadow:0 14px 0 #805437}
+#room3 .r3-part{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px;filter:drop-shadow(2px 5px 3px #1a446b55)}
+#room3 .r3-part img{width:100%;height:calc(100% - 25px);object-fit:contain}
+#room3 .r3-part span{display:block;background:#ffffffee;border:2px solid #278cba;border-radius:12px;padding:3px 8px;color:#12507b;font-weight:900;font-size:clamp(10px,1.2vw,14px);white-space:nowrap}
+#room3 .r3-part-monitor{left:23%;top:4%;width:40%;height:67%}
+#room3 .r3-part-tower{left:70%;top:17%;width:23%;height:68%}
+#room3 .r3-part-keyboard{left:28%;top:64%;width:38%;height:31%}
+#room3 .r3-part-mouse{left:66%;top:70%;width:13%;height:23%}
+#room3 .r3-assembly-note{font-size:clamp(12px,1.25vw,16px);background:#e5f8ff;border-radius:14px;padding:8px 12px}
+#room3 .r3-assembled-result .r3-btn{margin:8px auto}
+
+/* v53 — Hành lang 2D từ hình nền mẫu: hotspot đúng với bàn laptop, cửa an ninh, trạm phụ */
+#room3 .r3-world.stage-1{background:#254e83 url('assets/room3_hanh_lang_moi.jpg') center center/100% 100% no-repeat}
+#room3 .stage-1 .r3-object{width:clamp(105px,11vw,165px);min-height:59px;padding:6px 8px;border:3px solid #70e7ff;border-radius:15px;background:linear-gradient(165deg,#eaffffed,#a7ddf5ed);box-shadow:0 5px 0 #174875,0 0 19px #2be3ffb3;z-index:5}
+#room3 .stage-1 .r3-object span{font-size:clamp(24px,2.7vw,40px)}
+#room3 .stage-1 .r3-object small{font-size:clamp(9px,.85vw,12px)}
+#room3 .stage-1 .r3-station-security{left:34%!important;top:66%!important}
+#room3 .stage-1 .r3-station-light{left:19%!important;top:49%!important}
+#room3 .stage-1 .r3-station-auth{left:83%!important;top:67%!important}
+#room3 .stage-1 .r3-laser{left:60.5%;top:33%;width:16%;height:32%;writing-mode:horizontal-tb;display:flex;align-items:flex-start;justify-content:center;padding-top:9px;border:3px solid #ff7288;border-radius:14px;background:linear-gradient(180deg,#fc45622a,#fc456218);font-size:clamp(10px,1.2vw,16px);pointer-events:none;z-index:3}
+#room3 .stage-1 .r3-laser.r3-laser-off{border-color:#54eab7;background:#19e99d1a}
+#room3 .stage-1 .r3-next-door{left:69%!important;top:66%!important;width:clamp(125px,14vw,190px);border-color:#6effa6;background:linear-gradient(#eafff4,#9be9cb)}
+#room3 .stage-1 .r3-system-status{right:1.4%;top:3%;display:flex;flex-direction:row;gap:6px;padding:8px 10px;border-radius:12px;z-index:3}
+#room3 .stage-1 .r3-system-status span{font-size:clamp(9px,.82vw,13px)}
+#room3 .stage-1 .r3-byte{z-index:4}
+@media(max-width:650px){#room3 .stage-1 .r3-system-status{top:2%;right:1%;padding:5px;gap:3px}#room3 .stage-1 .r3-object{width:93px;min-height:50px}#room3 .stage-1 .r3-laser{font-size:10px}}
+
+/* V54: Cùng phong cách 2D, 3 trạm khớp chính xác với thiết bị trên nền. */
+#room3 .r3-world.stage-1{background:#18365b url('assets/room3_hanh_lang_v54.jpg') center center/100% 100% no-repeat!important}
+#room3 .stage-1 .r3-object.r3-station-security,#room3 .stage-1 .r3-object.r3-station-light,#room3 .stage-1 .r3-object.r3-station-auth{width:19%!important;height:30%!important;min-width:0!important;min-height:0!important;background:transparent!important;border:2px solid transparent!important;box-shadow:none!important;border-radius:20px!important;opacity:1;z-index:5}
+#room3 .stage-1 .r3-station-security{left:43%!important;top:58%!important}
+#room3 .stage-1 .r3-station-light{left:18%!important;top:57%!important}
+#room3 .stage-1 .r3-station-auth{left:88%!important;top:57%!important}
+#room3 .stage-1 .r3-object.r3-station-security span,#room3 .stage-1 .r3-object.r3-station-light span,#room3 .stage-1 .r3-object.r3-station-auth span,#room3 .stage-1 .r3-object.r3-station-security small,#room3 .stage-1 .r3-object.r3-station-light small,#room3 .stage-1 .r3-object.r3-station-auth small{display:none!important}
+#room3 .stage-1 .r3-object.r3-station-security:hover,#room3 .stage-1 .r3-object.r3-station-light:hover,#room3 .stage-1 .r3-object.r3-station-auth:hover,#room3 .stage-1 .r3-object.r3-station-security:focus-visible,#room3 .stage-1 .r3-object.r3-station-light:focus-visible,#room3 .stage-1 .r3-object.r3-station-auth:focus-visible{border-color:#ffeb73!important;box-shadow:inset 0 0 35px #ffe56b55,0 0 22px #ffe56b!important;outline:none}
+#room3 .stage-1 .r3-object.r3-gate-complete{border-color:#5affb999!important;box-shadow:inset 0 0 40px #40ffa04a!important}
+#room3 .stage-1 .r3-laser{left:54.5%!important;top:35%!important;width:17%!important;height:28%!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;pointer-events:none!important}
+#room3 .stage-1 .r3-laser.r3-laser-off{box-shadow:inset 0 0 55px #3cffae66!important}
+#room3 .stage-1 .r3-system-status{position:absolute!important;left:78.4%!important;top:6.1%!important;right:auto!important;width:19%!important;height:9.4%!important;display:block!important;background:transparent!important;border:0!important;padding:0!important;box-shadow:none!important;pointer-events:none!important;z-index:7!important}
+#room3 .stage-1 .r3-system-status .r3-progress-dot{position:absolute;top:0%;width:26%;height:100%;border-radius:50%;display:grid;place-items:center;background:transparent;color:transparent;font-size:clamp(12px,2.1vw,34px);font-weight:1000;transition:all .3s ease}
+#room3 .stage-1 .r3-system-status .r3-progress-0{left:1%}
+#room3 .stage-1 .r3-system-status .r3-progress-1{left:36%}
+#room3 .stage-1 .r3-system-status .r3-progress-2{left:72%}
+#room3 .stage-1 .r3-system-status .r3-progress-dot.ready{color:#fff!important;background:radial-gradient(circle,#31efae99 15%,#00ec9d70 55%,#00eaa000 75%)!important;filter:drop-shadow(0 0 9px #50ffb9) drop-shadow(0 0 9px #00ed9a);text-shadow:0 0 7px #004b3d}
+#room3 .stage-1 .r3-next-door{left:63%!important;top:57%!important;width:15%!important;height:27%!important;min-width:0!important;min-height:0!important;background:#20e4a41f!important;border:3px solid #6affb5!important;box-shadow:0 0 23px #48ffae!important;z-index:6}
+#room3 .stage-1 .r3-next-door span{font-size:clamp(16px,2.5vw,34px)}
+#room3 .stage-1 .r3-next-door small{font-size:clamp(9px,.8vw,12px)}
+
+/* v55 — Băng chuyền phân loại trực quan */
+#room3 .r3-world.stage-2{background:radial-gradient(ellipse at 50% 35%,#316b9e,#112a53 76%)!important}
+#room3 .r3-world.stage-2:before{content:'XƯỞNG PHÂN LOẠI THIẾT BỊ';position:absolute;top:12%;left:17%;font-size:clamp(19px,3vw,42px);font-weight:1000;letter-spacing:2px;color:#c6f7ff;opacity:1;text-shadow:0 0 16px #1abaff}
+#room3 .r3-world.stage-2:after{content:'';position:absolute;top:38%;left:9%;right:9%;bottom:25%;background:repeating-linear-gradient(90deg,#24446e 0 24px,#396a94 24px 43px);border:12px solid #70d9ff;border-radius:22px;box-shadow:0 20px 0 #152b4b,0 0 25px #15baff66}
+#room3 .r3-world.stage-2 .r3-conveyor-start{z-index:3;top:54%!important;left:49%!important}
+.r3-conveyor-game{color:#f1fbff;width:min(840px,86vw);max-width:100%;margin:auto}
+.r3-conveyor-head{display:flex;justify-content:space-between;align-items:center;gap:14px;color:#fff;font-size:clamp(16px,2vw,25px);font-weight:900}
+.r3-conveyor-head b{background:#fbc448;color:#112a53;border-radius:16px;padding:7px 16px}
+.r3-conveyor-instruction{background:#173d68;border:1px solid #56cafa;border-radius:12px;padding:10px 14px;line-height:1.5}
+.r3-conveyor-track{position:relative;height:200px;border:3px solid #5dd9ff;border-radius:19px;overflow:hidden;background:linear-gradient(#1a416c 0 62%,#152e52 62%);margin:12px 0 18px}
+.r3-conveyor-belt{position:absolute;bottom:18px;left:3%;width:94%;height:42px;border:5px solid #8ac7e8;border-radius:13px;background:repeating-linear-gradient(90deg,#203b63 0 26px,#3b6d9a 26px 47px);animation:r3belt .75s linear infinite;box-shadow:0 8px 0 #0b1c3a}
+@keyframes r3belt{to{background-position:47px 0}}
+.r3-conveyor-machine{position:absolute;inset:0;z-index:2;pointer-events:none}
+.r3-conveyor-moving{position:absolute;left:40%;top:4px;width:160px;height:138px;display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:grab;touch-action:none;pointer-events:auto;animation:r3arrival 1.1s ease-out both;filter:drop-shadow(0 7px 5px #0009);user-select:none}
+.r3-conveyor-moving img{height:105px;width:135px;object-fit:contain;pointer-events:none}
+.r3-conveyor-moving strong{font-size:15px;color:white;text-shadow:0 2px 5px #000;background:#113d69;padding:3px 9px;border-radius:9px}
+.r3-conveyor-moving.selected{filter:drop-shadow(0 0 14px #ffdf65)}
+.r3-conveyor-moving.dragging{cursor:grabbing;z-index:10;animation:none}
+@keyframes r3arrival{from{left:-18%;opacity:.4}to{left:40%;opacity:1}}
+.r3-conveyor-direction{position:absolute;right:5%;bottom:69px;color:#b7faff;font-size:11px;font-weight:800}
+.r3-conveyor-bins{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}
+.r3-conveyor-bin{min-height:100px;border:3px solid #62c9fa;border-radius:13px;background:linear-gradient(#205f91,#12365f);color:white;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;padding:8px 3px;transition:.2s}
+.r3-conveyor-bin span{font-size:32px}.r3-conveyor-bin b{font-size:clamp(10px,1.25vw,14px);line-height:1.25}
+.r3-conveyor-bin:hover,.r3-conveyor-bin.hover{transform:translateY(-5px);border-color:#ffdf5c;background:#266d94}
+.r3-conveyor-bin.wrong{border-color:#ff5368;animation:r3wrong .3s}
+.r3-conveyor-bin.correct{border-color:#74ffb0;background:#167a6d;box-shadow:0 0 22px #49ffc5}
+@keyframes r3wrong{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.r3-conveyor-feedback{min-height:35px;background:#0d2b4b;border-radius:10px;padding:9px 12px;color:#fff4b2;font-weight:700}
+@media(max-width:650px){.r3-conveyor-track{height:165px}.r3-conveyor-moving{width:115px;height:112px}.r3-conveyor-moving img{height:85px;width:100px}.r3-conveyor-bin{min-height:85px}.r3-conveyor-bin span{font-size:23px}}
+
+/* v56: Tách thanh tiến độ 4 chặng khỏi bảng 3 hệ thống được vẽ sẵn trên nền. */
+#room3 .r3-world.stage-1~.r3-hud{top:12px!important;left:1.2%!important;right:auto!important;width:auto!important;max-width:70%!important;justify-content:flex-start!important;gap:8px!important;align-items:center!important;z-index:9!important}
+#room3 .r3-world.stage-1~.r3-hud #r3-stage{max-width:clamp(180px,33vw,460px);font-size:clamp(10px,1vw,15px);padding:7px 12px!important;line-height:1.3}
+#room3 .r3-world.stage-1~.r3-hud .r3-steps{display:none!important}
+/* Trong hoạt động 2, tiến độ 3 hệ thống nằm ngay trên bảng nền bên phải, không đè tiến độ 4 chặng. */
+#room3 .stage-1 .r3-system-status{z-index:8!important}
+/* Kéo thiết bị: phần tử được đưa lên lớp cao nhất của trang bằng JS, vượt khỏi vùng cắt của băng chuyền. */
+body>.r3-conveyor-moving.dragging{z-index:100000!important;pointer-events:auto!important;filter:drop-shadow(0 14px 12px #000b) drop-shadow(0 0 10px #75eaff)!important}
+
+/* v57: Cửa hoạt hình 2D khoa học viễn tưởng, không còn emoji cửa nổi trên nền. */
+#room3 .stage-1 .r3-next-door{background:transparent url('assets/room3_door_open.svg') center/contain no-repeat!important;border:0!important;box-shadow:none!important;left:63%!important;top:57%!important;width:13%!important;height:29%!important;min-width:0!important;min-height:0!important;filter:drop-shadow(0 0 10px #56ffb4)!important;z-index:7}
+#room3 .stage-1 .r3-next-door span,#room3 .stage-1 .r3-next-door small{display:none!important}
+#room3 .stage-1 .r3-next-door:hover,#room3 .stage-1 .r3-next-door:focus-visible{filter:drop-shadow(0 0 18px #ffff80)!important;transform:translate(-50%,-50%) scale(1.05)}
+/* Kho thiết bị: cửa nền chỉ sáng và tương tác khi lắp ráp hoàn thành. */
+#room3 .stage-0 .r3-exit-ready{opacity:1!important;background:transparent url('assets/room3_door_open.svg') center/contain no-repeat!important;border:0!important;box-shadow:none!important;filter:drop-shadow(0 0 12px #51ffb3)!important;width:9%!important;height:19%!important;z-index:8}
+#room3 .stage-0 .r3-exit-ready span,#room3 .stage-0 .r3-exit-ready small{display:none!important}
+#room3 .stage-0 .r3-exit-ready:hover,#room3 .stage-0 .r3-exit-ready:focus-visible{filter:drop-shadow(0 0 20px #fff39c)!important}
+
+/* v58: avatar must always render above stage-0 door and interactive objects. */
+#room3 .r3-world.stage-0 .r3-byte{z-index:30!important;pointer-events:none!important;}
+#room3 .r3-world.stage-0 .r3-exit-ready{z-index:8!important;}
+#room3 .r3-world.stage-1 .r3-byte{z-index:30!important;pointer-events:none!important;}
+#room3 .r3-world.stage-1 .r3-next-door{z-index:7!important;}
+
+/* v59: Dialogue overlay must always cover player sprites and doors.
+   The character remains in front of doors during exploration, but never over modal text. */
+#room3 #r3-dialog.r3-dialog:not(.hidden){z-index:1000!important;isolation:isolate;}
+#room3 #r3-dialog .r3-card{position:relative;z-index:1;}
+
+/* v60: Hoạt động 3 - cảnh xưởng đồng bộ với Room 03 */
+#room3 .r3-world.stage-2{background:#1d4778 url('assets/room3_xuong_phan_loai_v60.png') center center/100% 100% no-repeat!important}
+#room3 .r3-world.stage-2::before,#room3 .r3-world.stage-2::after{display:none!important}
+/* Nền đã có bảng tiêu đề và tiến độ 5 lượt: ẩn HUD riêng để không chồng lấn. */
+#room3 .r3-world.stage-2~.r3-hud{display:none!important}
+#room3 .r3-world.stage-2 .r3-machine{display:none!important}
+/* Vùng tương tác nằm ngay bảng vận hành bên phải trong ảnh nền. */
+#room3 .r3-world.stage-2 .r3-conveyor-start{left:91%!important;top:43%!important;min-width:7.5%!important;width:7.5%!important;height:12%!important;min-height:70px!important;border:3px solid #74ffe5!important;border-radius:24px!important;background:radial-gradient(circle,#25e66bbf,#057d56e8)!important;box-shadow:0 0 22px #22ff89, inset 0 0 10px #adffe6!important;z-index:12!important;padding:3px!important;animation:r3-start-pulse 1.7s ease-in-out infinite}
+#room3 .r3-world.stage-2 .r3-conveyor-start span{font-size:clamp(28px,3.5vw,58px)!important;line-height:1}
+#room3 .r3-world.stage-2 .r3-conveyor-start small{font-size:clamp(8px,.7vw,11px)!important;line-height:1.15!important}
+#room3 .r3-world.stage-2 .r3-conveyor-exit{left:91%!important;top:73%!important;z-index:12!important;background:#104c7be8!important}
+@keyframes r3-start-pulse{0%,100%{box-shadow:0 0 10px #2aff8b}50%{box-shadow:0 0 26px #38ffb4,0 0 36px #20f6ad66}}
+/* Hình thiết bị đang kéo nổi trên tất cả thùng phân loại. */
+body>.r3-conveyor-moving.dragging{z-index:2147483000!important}
+/* Hộp chơi phân loại theo màu sắc phòng thí nghiệm */
+.r3-conveyor-game{border-radius:18px;padding:12px;background:linear-gradient(145deg,#0e2e56,#154d7b);border:2px solid #4ed8ff;box-shadow:inset 0 0 25px #39bfff22}
+.r3-conveyor-bin:nth-child(1){background:linear-gradient(#bd7823,#6f3c18);border-color:#ffd36d}
+.r3-conveyor-bin:nth-child(2){background:linear-gradient(#1e84c8,#11497c);border-color:#6ce1ff}
+.r3-conveyor-bin:nth-child(3){background:linear-gradient(#c34769,#7c2146);border-color:#ff93ad}
+.r3-conveyor-bin:nth-child(4){background:linear-gradient(#219f87,#12675c);border-color:#8cf8cb}
+.r3-conveyor-bin:nth-child(5){background:linear-gradient(#8647ba,#482378);border-color:#d3a5ff}
+.r3-conveyor-bin.correct{background:linear-gradient(#179c6d,#086244)!important;border-color:#9bffc8!important;box-shadow:0 0 25px #64ffad!important}
+@media(max-width:650px){#room3 .r3-world.stage-2 .r3-conveyor-start{min-height:48px!important;border-radius:13px!important}}
+
+/* v61: xưởng tinh gọn, bớt chi tiết gây rối mắt. Giữ tông xanh pastel và neon thống nhất. */
+#room3 .r3-world.stage-2{background:linear-gradient(180deg,#a8d6f0 0%,#c3e7f5 49%,#729bc5 50%,#547ba8 100%)!important}
+#room3 .r3-world.stage-2::before{display:block!important;content:''!important;position:absolute;left:12%;right:12%;top:13%;height:26%;background:linear-gradient(130deg,#c9f4ffbb,#5db5e5aa)!important;border:7px solid #4d9ed1!important;border-radius:22px!important;box-shadow:inset 0 0 0 5px #e4f9ff66,0 7px 0 #3277a7!important;opacity:1!important}
+#room3 .r3-world.stage-2::after{display:block!important;content:''!important;position:absolute;left:9%;right:9%;top:47%;height:19%;bottom:auto!important;background:repeating-linear-gradient(90deg,#335a80 0 36px,#476f99 36px 43px)!important;border:8px solid #69d7f8!important;border-radius:19px!important;box-shadow:0 11px 0 #244d79,0 0 15px #1e9ac744!important}
+#room3 .r3-world.stage-2 .r3-grid{opacity:.16!important}
+#room3 .r3-world.stage-2 .r3-byte{z-index:40!important;pointer-events:none!important}
+#room3 .r3-world.stage-2 .r3-conveyor-start{z-index:9!important;left:91%!important;top:43%!important;min-width:7%!important;width:7%!important;height:12%!important;border:3px solid #b6ffda!important;border-radius:18px!important;background:radial-gradient(circle,#25d887,#067451)!important;box-shadow:0 0 15px #24e9a388!important;animation:none!important}
+#room3 .r3-world.stage-2 .r3-conveyor-exit{display:none!important}
+#room3 .r3-world.stage-2~.r3-hud{display:flex!important;top:10px!important;left:1.5%!important;right:auto!important;max-width:70%!important;z-index:12!important}
+#room3 .r3-world.stage-2~.r3-hud .r3-steps{display:none!important}
+#room3 .r3-world.stage-2~.r3-hud #r3-stage{background:#123b6bdc!important;border:2px solid #70d8ff!important;border-radius:14px!important;padding:8px 13px!important}
+
+/* v62 – Room 03 activities 3 & 4: cohesive illustration, code-driven hotspots. */
+#room3 .r3-world.stage-2{background:#91c7e8 url('assets/room3_xuong_v62.jpg') center/100% 100% no-repeat!important}
+#room3 .r3-world.stage-3{background:#91c7e8 url('assets/room3_an_toan_v62.jpg') center/100% 100% no-repeat!important}
+#room3 .r3-world.stage-2::before,#room3 .r3-world.stage-2::after,#room3 .r3-world.stage-3::before,#room3 .r3-world.stage-3::after{display:none!important}
+#room3 .r3-world.stage-2 .r3-grid,#room3 .r3-world.stage-3 .r3-grid{display:none!important}
+#room3 .r3-world.stage-2 .r3-byte,#room3 .r3-world.stage-3 .r3-byte{z-index:60!important;pointer-events:none!important}
+#room3 .r3-world.stage-2 .r3-conveyor-start{left:94%!important;top:51%!important;width:7%!important;height:14%!important;min-height:0!important;z-index:18!important;border:2px solid #b8ffe2!important;background:radial-gradient(circle,#32f38b,#00895e)!important;box-shadow:0 0 16px #22ff99aa!important}
+#room3 .r3-world.stage-2 .r3-conveyor-start small{display:none!important}
+#room3 .r3-world.stage-2 .r3-conveyor-start span{font-size:clamp(25px,3.6vw,55px)!important}
+#room3 .r3-world.stage-3 .r3-object.r3-hazard-v62{z-index:12!important;width:8%!important;height:14%!important;min-width:0!important;min-height:0!important;border:2px solid #ffda54aa!important;background:#173b6b15!important;border-radius:18px!important;box-shadow:0 0 15px #ffc53b66!important;transition:background .2s,box-shadow .2s}
+#room3 .r3-world.stage-3 .r3-object.r3-hazard-v62:hover,#room3 .r3-world.stage-3 .r3-object.r3-hazard-v62:focus-visible{background:#ffde5e66!important;box-shadow:0 0 20px #ffe267!important}
+#room3 .r3-world.stage-3 .r3-hazard-v62 span,#room3 .r3-world.stage-3 .r3-hazard-v62 small{display:none!important}
+#room3 .r3-hazard-checked{position:absolute;transform:translate(-50%,-50%);display:grid;place-items:center;width:4.4%;aspect-ratio:1;background:#06a871;color:white;border:3px solid #c7ffe4;border-radius:50%;font-size:clamp(14px,2.3vw,30px);font-weight:900;z-index:10;box-shadow:0 0 15px #23e8a8}
+#room3 .r3-world.stage-3 .r3-finish-v62{left:50%!important;top:55%!important;z-index:12!important;background:linear-gradient(#2cba82,#0d765b)!important;border:3px solid #b6ffdc!important}
+#room3 .r3-v62-progress{position:absolute;top:5.4%;right:3.6%;display:flex;align-items:center;gap:clamp(5px,.85vw,14px);z-index:20;pointer-events:none}
+#room3 .r3-v62-progress span{display:grid;place-items:center;width:clamp(21px,2.65vw,44px);height:clamp(21px,2.65vw,44px);border-radius:50%;background:#536c91;color:#f5fbff;font-weight:900;font-size:clamp(11px,1.25vw,20px);border:2px solid #9ab9d5}
+#room3 .r3-v62-progress span.completed{background:radial-gradient(circle,#70ffd1,#00a676);border-color:#e1ffed;box-shadow:0 0 13px #1effa2;color:white}
+#room3 .r3-world.stage-2~.r3-hud,#room3 .r3-world.stage-3~.r3-hud{display:none!important}
+@media(max-width:650px){#room3 .r3-v62-progress{top:6%;right:2%;gap:3px}#room3 .r3-v62-progress span{width:19px;height:19px;font-size:10px;border-width:1px}}
+
+/* v63: only one functional progress HUD, no duplicate stage progress. */
+#room3 .r3-v62-progress{display:none!important}
+#room3 .r3-world.stage-2~.r3-hud,#room3 .r3-world.stage-3~.r3-hud{display:flex!important;z-index:80!important;top:1.3%!important}
+#room3 .r3-world.stage-2~.r3-hud #r3-stage,#room3 .r3-world.stage-3~.r3-hud #r3-stage{background:#072c59ed!important;color:#fff!important;border:2px solid #4de3ff!important;border-radius:13px!important;font-weight:900!important;padding:8px 14px!important}
+#room3 .r3-world.stage-2~.r3-hud .r3-steps,#room3 .r3-world.stage-3~.r3-hud .r3-steps{background:#072c59ed!important;border:2px solid #4de3ff!important;box-shadow:0 0 12px #1cb8fa66!important}
+/* Existing painted green button is the visible control; invisible hitbox matches its position. */
+#room3 .r3-world.stage-2 .r3-object.r3-conveyor-start{left:93.4%!important;top:51%!important;width:7.4%!important;height:13%!important;min-width:0!important;min-height:0!important;z-index:8!important;background:transparent!important;border:0!important;box-shadow:none!important;animation:none!important;opacity:0!important;cursor:pointer!important}
+#room3 .r3-world.stage-2 .r3-byte{z-index:55!important}
+/* Let pupils discover hazards themselves: no permanent outlines, icons or glows. */
+#room3 .r3-world.stage-3 .r3-object.r3-hazard-v62,#room3 .r3-world.stage-3 .r3-object.r3-hazard-v62:hover,#room3 .r3-world.stage-3 .r3-object.r3-hazard-v62:focus-visible{border:0!important;outline:0!important;background:transparent!important;box-shadow:none!important;filter:none!important;opacity:0!important;cursor:pointer!important}
+#room3 .r3-world.stage-3 .r3-hazard-checked{z-index:30!important}
+
+/* v64: explicit working HUD for stage 3 and 4; no hidden or duplicated indicators. */
+#room3 .r3-board>.r3-hud{display:flex!important;visibility:visible!important;opacity:1!important;position:absolute!important;inset:0!important;z-index:95!important;pointer-events:none!important;max-width:none!important;width:100%!important;height:100%!important;background:none!important;box-shadow:none!important;border:0!important;padding:0!important;transform:none!important}
+#room3 .r3-board>.r3-hud #r3-stage{position:absolute!important;top:2.2%!important;left:29%!important;right:auto!important;max-width:44%!important;min-width:0!important;width:auto!important;display:block!important;background:#082956f2!important;color:white!important;border:2px solid #54cfff!important;border-radius:12px!important;font-size:clamp(10px,1.1vw,17px)!important;line-height:1.25!important;padding:7px 12px!important;box-shadow:0 3px 12px #052a57aa!important}
+#room3 .r3-world.stage-2~.r3-hud .r3-steps,#room3 .r3-world.stage-3~.r3-hud .r3-steps{position:absolute!important;top:6.2%!important;right:2.3%!important;left:auto!important;display:flex!important;gap:clamp(4px,.65vw,10px)!important;align-items:center!important;justify-content:center!important;width:20.3%!important;height:auto!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+#room3 .r3-world.stage-2~.r3-hud .r3-steps span,#room3 .r3-world.stage-3~.r3-hud .r3-steps span{width:clamp(20px,2.25vw,38px)!important;height:clamp(20px,2.25vw,38px)!important;border:2px solid #8cb9dc!important;font-size:clamp(11px,1.1vw,17px)!important;box-shadow:0 1px 4px #041a35aa!important}
+#room3 .r3-world.stage-2~.r3-hud .r3-steps span.done,#room3 .r3-world.stage-3~.r3-hud .r3-steps span.done{background:#00bf87!important;border-color:#adffdc!important;box-shadow:0 0 12px #12e8a2!important}
+#room3 .r3-world.stage-2~.r3-hud .r3-steps span.active,#room3 .r3-world.stage-3~.r3-hud .r3-steps span.active{background:#ffcc36!important;border-color:#fff4b1!important}
+#room3 .r3-world.stage-2~.r3-hud,#room3 .r3-world.stage-3~.r3-hud{display:flex!important}
+@media(max-width:700px){#room3 .r3-board>.r3-hud #r3-stage{left:24%!important;max-width:49%!important;font-size:10px!important;padding:4px 6px!important}#room3 .r3-world.stage-2~.r3-hud .r3-steps span,#room3 .r3-world.stage-3~.r3-hud .r3-steps span{width:17px!important;height:17px!important;font-size:9px!important}}
+
+/* v65: backgrounds approved by teacher; UI progress is dynamic, not baked in. */
+#room3 .r3-world.stage-2{background:#9ccced url('assets/room3_xuong_v65.jpg') center/100% 100% no-repeat!important}
+#room3 .r3-world.stage-3{background:#9ccced url('assets/room3_an_toan_v65.jpg') center/100% 100% no-repeat!important}
+/* Keep the progress panel in the top right, clear of the artwork's title. */
+#room3 .r3-world.stage-2~.r3-hud .r3-steps,#room3 .r3-world.stage-3~.r3-hud .r3-steps{top:2%!important;right:1.5%!important;width:auto!important;padding:9px 12px!important;background:#072c59f0!important;border:2px solid #4de3ff!important;border-radius:15px!important;box-shadow:0 0 10px #135eae99!important}
+#room3 .r3-world.stage-2~.r3-hud #r3-stage,#room3 .r3-world.stage-3~.r3-hud #r3-stage{display:none!important}
+/* Invisible hit box aligns with the large green play button painted into the workshop console. */
+#room3 .r3-world.stage-2 .r3-object.r3-conveyor-start{left:94.2%!important;top:48%!important;width:7.3%!important;height:14%!important;opacity:0!important;z-index:9!important}
+/* All hazards are discovered by observation, without automatic glowing clues. */
+#room3 .r3-world.stage-3 .r3-object.r3-hazard-v62{opacity:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+#room3 .r3-world.stage-3 .r3-hazard-checked{z-index:30!important}
+
+/* v66: Room 03 stages 1-2: compact tracker, no narrow vertical stage title. */
+#room3 .r3-board>.r3-hud{display:block!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;z-index:95!important;pointer-events:none!important;background:transparent!important;border:0!important;padding:0!important}
+#room3 .r3-world.stage-0~.r3-hud #r3-stage,#room3 .r3-world.stage-1~.r3-hud #r3-stage{display:none!important}
+#room3 .r3-world.stage-0~.r3-hud .r3-steps,#room3 .r3-world.stage-1~.r3-hud .r3-steps{display:flex!important;position:absolute!important;top:2%!important;right:1.5%!important;left:auto!important;width:auto!important;max-width:none!important;height:auto!important;gap:clamp(5px,.65vw,10px)!important;padding:9px 12px!important;align-items:center!important;justify-content:center!important;background:#072c59ed!important;border:2px solid #4de3ff!important;border-radius:15px!important;box-shadow:0 0 10px #135eae99!important;transform:none!important}
+#room3 .r3-world.stage-0~.r3-hud .r3-steps span,#room3 .r3-world.stage-1~.r3-hud .r3-steps span{width:clamp(23px,2.25vw,38px)!important;height:clamp(23px,2.25vw,38px)!important;font-size:clamp(11px,1.1vw,17px)!important;flex:0 0 auto!important}
+#room3 .r3-world.stage-0~.r3-hud .r3-steps span.done,#room3 .r3-world.stage-1~.r3-hud .r3-steps span.done{background:#00bf87!important;box-shadow:0 0 10px #12e8a2!important}
+#room3 .r3-world.stage-0~.r3-hud .r3-steps span.active,#room3 .r3-world.stage-1~.r3-hud .r3-steps span.active{background:#ffcc36!important;color:#14294a!important}
+@media(max-width:700px){#room3 .r3-world.stage-0~.r3-hud .r3-steps,#room3 .r3-world.stage-1~.r3-hud .r3-steps{padding:5px 7px!important;gap:4px!important}#room3 .r3-world.stage-0~.r3-hud .r3-steps span,#room3 .r3-world.stage-1~.r3-hud .r3-steps span{width:21px!important;height:21px!important;font-size:10px!important}}
+
+/* v67: accessible functional avatar settings, unified reset, remove decorative nav text in welcome art */
+#welcome:before{content:'';position:absolute;top:0;left:0;right:0;height:6%;background:linear-gradient(180deg,#071b40,#0c3261);z-index:9;pointer-events:none}
+.welcome-tools{position:absolute;top:1%;right:2%;display:flex;gap:12px;z-index:20;align-items:center}
+.welcome-tools .reset-game{position:static!important}
+.avatar-settings-btn,.reset-game,.reset-inline{background:linear-gradient(145deg,#145c96,#09264f)!important;color:#f2fdff!important;border:2px solid #6eeaff!important;border-radius:13px!important;box-shadow:0 3px 0 #071b39,0 0 12px #19baff44!important;padding:9px 15px!important;font-weight:900!important;cursor:pointer!important;white-space:nowrap!important}
+.avatar-settings-btn:hover,.reset-game:hover{filter:brightness(1.2)}
+.map-avatar{position:absolute;top:11%;right:15%;z-index:20}
+.avatar-picker{position:fixed;inset:0;z-index:200000;background:#041a38c9;display:flex;align-items:center;justify-content:center;padding:18px}
+.avatar-panel{width:min(660px,95vw);max-height:95vh;overflow:auto;text-align:center;background:linear-gradient(145deg,#dff8ff,#b8e7ff);border:5px solid #5de1ff;border-radius:28px;box-shadow:0 0 40px #14ceff77;padding:22px;color:#0a3769}
+.avatar-panel h2{margin:0 0 10px;color:#064b89;font-size:clamp(19px,2.5vw,29px)}.avatar-panel p{margin:5px 0 14px}
+.avatar-options{display:flex;gap:18px;justify-content:center}.avatar-options button{width:45%;background:#fff;border:4px solid #8ec9e5;border-radius:20px;padding:12px;color:#154771;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px}
+.avatar-options button.selected{border-color:#10bc81;background:#dcfff0;box-shadow:0 0 17px #16cf9d77}.avatar-options img{width:110px;height:160px;object-fit:contain;image-rendering:auto}.avatar-options strong{font-size:15px}
+.avatar-actions{display:flex;justify-content:center;gap:15px;margin-top:20px}.avatar-actions button{padding:11px 20px;border-radius:12px;border:2px solid #167ac2;background:#0e639d;color:white;font-weight:900;cursor:pointer}#avatar-save{background:#00a875;border-color:#00c995}
+@media(max-width:650px){.avatar-settings-btn,.reset-game{font-size:11px!important;padding:6px 8px!important}.welcome-tools{gap:5px}.avatar-options img{height:115px}}
+
+/* v69 – independent, approved home and map backgrounds */
+#welcome:before{display:none!important}
+#welcome .welcome-tools{left:1.6%!important;right:1.6%!important;top:1.3%!important;justify-content:space-between!important;pointer-events:none}
+#welcome .welcome-tools button{pointer-events:auto;opacity:.02!important;min-width:16%;min-height:8%;font-size:0!important;box-shadow:none!important;border:0!important;background:transparent!important}
+#welcome .welcome-tools button:hover,#welcome .welcome-tools button:focus-visible{outline:3px solid #fff!important;opacity:.3!important}
+#welcome #start{z-index:6;border-radius:18px}
+#map-grade-label,#map-count{display:none!important}
+#map .map-avatar{position:absolute!important;top:1.5%!important;right:1.8%!important;left:auto!important;z-index:20!important;opacity:.02!important;width:14%;height:8%;font-size:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+#map .reset-map{position:absolute!important;top:1.5%!important;right:17%!important;z-index:20!important;opacity:.02!important;width:14%;height:8%;font-size:0!important;background:transparent!important;border:0!important;box-shadow:none!important}
+#map .map-avatar:hover,#map .reset-map:hover{opacity:.35!important;outline:3px solid #fff!important}
+#map [data-home]{top:1.5%!important;left:1.5%!important;width:18%!important;height:8%!important}
+#map .door{width:10.5%!important;height:12.5%!important;z-index:4!important;border-radius:12px!important}
+#map .map-status{position:absolute;bottom:2px;right:8px;font-size:clamp(12px,1.5vw,24px);color:#9fffc6;text-shadow:0 0 8px #002;pointer-events:none}
+#map .map-locked .map-status{display:none}
+#map .map-open{border-color:#a2ffbe77!important;box-shadow:0 0 12px #48ffd088!important}
+#map .map-done{border-color:#ffe887aa!important}
+#map .map-next{position:absolute;bottom:1.5%;right:2%;z-index:12;background:#073f79ed;border:2px solid #6feaff;border-radius:14px;padding:10px 20px;color:#fff;font-weight:900;box-shadow:0 0 15px #0ff5;font-size:clamp(11px,1.3vw,18px)}
+
+/* v70 – Navigation only on welcome and map; completed rooms marked with a star. */
+#grades .grade-top{display:none!important}
+#grades .grade-main{inset:5% 2% 2%!important}
+#welcome .welcome-tools{top:1.5%!important;left:1.6%!important;right:1.6%!important;z-index:30!important}
+#welcome .welcome-tools button{
+  opacity:1!important;visibility:visible!important;display:inline-flex!important;align-items:center!important;
+  justify-content:center!important;width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;
+  font-size:clamp(12px,1.5vw,21px)!important;line-height:1.2!important;
+  padding:clamp(8px,1.1vw,16px) clamp(13px,1.9vw,30px)!important;
+  color:#fff!important;font-weight:900!important;background:linear-gradient(155deg,#075a9e,#062552)!important;
+  border:3px solid #56e3ff!important;border-radius:17px!important;
+  box-shadow:0 4px 0 #04335b,0 0 13px #27d9ff77!important;
+  pointer-events:auto!important;cursor:pointer!important
+}
+#welcome .welcome-tools button:hover{filter:brightness(1.18)!important;transform:translateY(-2px)!important}
+#map .map-home-button{position:absolute;top:1.5%;left:1.7%;z-index:30;
+  padding:clamp(8px,1vw,15px) clamp(13px,1.6vw,25px);color:white;font-weight:900;
+  font-size:clamp(12px,1.35vw,20px);border:3px solid #57e3ff;border-radius:18px;
+  background:linear-gradient(155deg,#0967b5,#063168);box-shadow:0 4px 0 #062653,0 0 14px #1ee1ff80}
+#map .map-home-button:hover{filter:brightness(1.18)}
+#map .map-avatar,#map .reset-map{opacity:1!important;font-size:clamp(11px,1.2vw,18px)!important;
+  background:linear-gradient(150deg,#075c9d,#05234c)!important;border:2px solid #58ddff!important;
+  border-radius:14px!important;box-shadow:0 0 12px #28d8ff77!important;color:white!important;
+  width:auto!important;height:auto!important;padding:10px 14px!important}
+#map .map-avatar{right:1.8%!important;top:1.5%!important}
+#map .reset-map{right:13.6%!important;top:1.5%!important}
+#map .map-door{background:transparent!important;border-color:transparent!important;box-shadow:none!important}
+#map .map-door:not(:disabled):hover{border-color:#b0ffdf!important;box-shadow:0 0 14px #28ffbc!important}
+#map .map-status{position:absolute!important;left:50%!important;top:51%!important;right:auto!important;bottom:auto!important;
+  transform:translate(-50%,-50%)!important;display:grid!important;place-items:center!important;
+  font-size:clamp(23px,3vw,46px)!important;line-height:1!important;
+  background:none!important;box-shadow:none!important;border:0!important;filter:drop-shadow(0 2px 2px #452900) drop-shadow(0 0 7px #ffe257)!important;
+  min-width:0!important;min-height:0!important;pointer-events:none!important}
+#map .map-open .map-status,#map .map-locked .map-status{display:none!important}
+#map .map-done .map-status{display:grid!important}
+@media(max-width:700px){#map .map-home-button,#map .map-avatar,#map .reset-map{font-size:10px!important;padding:5px 7px!important;border-width:1px!important}}
+
+/* v72: status markers centered on the actual door openings */
+#map #doors .map-door{width:9.3%!important;height:12.8%!important;overflow:visible!important;}
+#map #doors .map-status{position:absolute!important;left:50%!important;top:50%!important;right:auto!important;bottom:auto!important;transform:translate(-50%,-50%)!important;width:clamp(31px,4.7vw,76px)!important;height:clamp(31px,4.7vw,76px)!important;min-width:0!important;min-height:0!important;display:grid!important;place-items:center!important;background:transparent!important;border:0!important;box-shadow:none!important;filter:none!important;pointer-events:none!important;}
+#map #doors .map-status img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 0 9px #fff0a0) drop-shadow(0 3px 3px #172044);}
+#map #doors .map-open .map-status{display:grid!important;}
+#map #doors .map-locked .map-status{display:none!important;}
+#map #doors .map-done .map-status{display:grid!important;}
+#map #doors .map-open .map-status img{filter:drop-shadow(0 0 11px #1fffe7) drop-shadow(0 2px 3px #05204b);}
+#map #doors .map-done .map-status img{filter:drop-shadow(0 0 10px #ffe949) drop-shadow(0 2px 3px #7e3b00);}
+
+/* v73: v66-style golden medallions, no glow; centered on doors. */
+#map #doors .map-status{width:clamp(35px,5.4vw,85px)!important;height:clamp(35px,5.4vw,85px)!important;filter:none!important;box-shadow:none!important}
+#map #doors .map-status img,
+#map #doors .map-open .map-status img,
+#map #doors .map-done .map-status img{filter:drop-shadow(0 2px 2px #3a2718aa)!important}
+
+/* v74 - scale down door status medals while retaining v66 appearance */
+#map #doors .map-status{width:clamp(24px,3.15vw,49px)!important;height:clamp(24px,3.15vw,49px)!important;min-width:0!important;min-height:0!important;}
+
+/* v75: lower status medals slightly to center them visually in each doorway */
+#map #doors .map-status{top:61%!important;}
+
+/* v76: center medals over printed padlocks on map background.
+   The v75 61% offset displaced the icon below its actual target. */
+#map #doors .map-status{top:50%!important;width:clamp(35px,3.85vw,60px)!important;height:clamp(35px,3.85vw,60px)!important;z-index:6!important;overflow:hidden!important;border-radius:50%!important;background:#e5a447!important;}
+#map #doors .map-status img{width:100%!important;height:100%!important;object-fit:cover!important;}
+
+/* v77: Settings available only on initial welcome screen. */
+#welcome .avatar-settings-btn{display:inline-flex!important;align-items:center;justify-content:center}
+#map .map-home-button{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  top:1.5%!important;left:1.5%!important;right:auto!important;
+  padding:clamp(9px,1.05vw,16px) clamp(16px,2vw,30px)!important;
+  font-size:clamp(12px,1.25vw,19px)!important;line-height:1.15!important;
+  color:#fff!important;letter-spacing:.3px!important;
+  background:linear-gradient(180deg,#167dca 0%,#07529d 49%,#062e67 100%)!important;
+  border:2px solid #7af3ff!important;border-radius:16px!important;
+  box-shadow:0 4px 0 #06224e, inset 0 1px 0 #b7faff88,0 0 15px #16bfff77!important;
+  text-shadow:0 1px 2px #032448!important;cursor:pointer!important;
+  transition:filter .15s,transform .15s!important;
+}
+#map .map-home-button:hover{filter:brightness(1.16)!important;transform:translateY(-2px)!important}
+#map .map-home-button:active{transform:translateY(2px)!important;box-shadow:0 1px 0 #06224e!important}
+#room header nav button[data-home],#room header nav button[data-map]{border-radius:12px!important;background:linear-gradient(180deg,#197fca,#06356e)!important;border:2px solid #71e9ff!important;color:#fff!important;box-shadow:0 2px 0 #06214a!important;font-weight:800!important}
