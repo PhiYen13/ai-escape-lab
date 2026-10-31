@@ -608,3 +608,33 @@ body>.r3-conveyor-moving.dragging{z-index:2147483000!important}
 #touch-controls button:active,#touch-controls button.pressed{background:rgba(24,163,231,.95);transform:scale(.95)}
 @media(max-width:700px){.touch-dpad{transform:scale(.78);transform-origin:bottom left}.touch-action{transform:scale(.78);transform-origin:bottom right}}
 @media(orientation:landscape) and (max-height:450px){.touch-dpad{transform:scale(.67);transform-origin:bottom left}.touch-action{transform:scale(.67);transform-origin:bottom right}}
+
+/* Mobile landscape guidance and proportion-preserving backgrounds */
+#landscape-notice{display:none;position:fixed;inset:0;z-index:2000;background:linear-gradient(155deg,#061c45,#07528b);color:#fff;align-items:center;justify-content:center;text-align:center;padding:24px;flex-direction:column;gap:14px}
+#landscape-notice .rotate-icon{font-size:clamp(55px,13vw,100px)}
+#landscape-notice h2{font-size:clamp(23px,6vw,36px);margin:0;color:#ffe586}
+#landscape-notice p{font-size:clamp(16px,4vw,21px);max-width:440px;line-height:1.5;margin:0}
+@media (orientation:portrait){html.mobile-landscape-required #landscape-notice{display:flex}}
+@media (orientation:landscape) and (pointer:coarse){
+ #room2 .r2-dialogbox{max-height:88dvh;overflow-y:auto}
+ #modal article{max-height:88dvh;overflow-y:auto}
+ #touch-controls .touch-dpad{bottom:max(5px,env(safe-area-inset-bottom))}
+ #touch-controls .touch-action{bottom:max(8px,env(safe-area-inset-bottom))}
+}
+
+/* Landscape responsive v2: fixed 16:9 stage; percentage-based hotspots stay aligned. */
+@media (orientation:landscape) and (pointer:coarse), (orientation:landscape) and (max-height:650px) and (hover:none){
+ html,body{width:100%;height:100%;height:100dvh;overflow:hidden}
+ .screen{inset:auto!important;position:absolute!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%);width:min(100vw,177.7778dvh)!important;height:min(100dvh,56.25vw)!important;overflow:hidden!important}
+ .screen .bg{width:100%!important;height:100%!important;object-fit:fill!important}
+ #room2 .r2-world{width:100%!important;height:100%!important;aspect-ratio:auto!important;min-height:0!important}
+ #room2 #r2-bg{width:100%!important;height:100%!important;object-fit:fill!important}
+ #room3 .r3-board{max-height:100%!important}
+ #room3 .r3-world{max-height:100%!important}
+ #modal article{max-height:85dvh!important;overflow-y:auto!important}
+ #room2 .r2-dialogbox{max-height:85dvh!important;overflow-y:auto!important}
+ #room3 .r3-dialogbox{max-height:85dvh!important;overflow-y:auto!important}
+ #touch-controls{z-index:950}
+ .touch-dpad{transform:scale(clamp(.53,1.5dvh,.82))!important;transform-origin:bottom left!important}
+ .touch-action{transform:scale(clamp(.53,1.5dvh,.82))!important;transform-origin:bottom right!important}
+}
