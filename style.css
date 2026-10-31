@@ -595,3 +595,16 @@ body>.r3-conveyor-moving.dragging{z-index:2147483000!important}
 #map .map-home-button:hover{filter:brightness(1.16)!important;transform:translateY(-2px)!important}
 #map .map-home-button:active{transform:translateY(2px)!important;box-shadow:0 1px 0 #06224e!important}
 #room header nav button[data-home],#room header nav button[data-map]{border-radius:12px!important;background:linear-gradient(180deg,#197fca,#06356e)!important;border:2px solid #71e9ff!important;color:#fff!important;box-shadow:0 2px 0 #06214a!important;font-weight:800!important}
+
+/* Touch controller — only visible inside a playable room on touch screens. */
+#touch-controls{display:none;position:fixed;inset:0;z-index:900;pointer-events:none;user-select:none;-webkit-user-select:none;touch-action:none}
+#touch-controls.tc-visible{display:block}
+.touch-dpad{position:absolute;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));width:166px;height:154px;display:grid;grid-template-columns:repeat(3,52px);grid-template-rows:repeat(3,48px);gap:3px;align-content:center}
+#touch-controls button{pointer-events:auto;touch-action:none;-webkit-tap-highlight-color:transparent;border:2px solid rgba(169,236,255,.9);background:rgba(12,64,132,.78);color:#fff;box-shadow:0 3px 12px #001b3980;font-weight:900;cursor:pointer}
+.touch-dpad button{border-radius:15px;font-size:25px}
+.tc-up{grid-column:2;grid-row:1}.tc-left{grid-column:1;grid-row:2}.tc-down{grid-column:2;grid-row:2}.tc-right{grid-column:3;grid-row:2}
+.touch-action{position:absolute;right:max(14px,env(safe-area-inset-right));bottom:max(22px,env(safe-area-inset-bottom));border-radius:50%;width:112px;height:112px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.touch-action span{font-size:29px}.touch-action b{font-size:12px}
+#touch-controls button:active,#touch-controls button.pressed{background:rgba(24,163,231,.95);transform:scale(.95)}
+@media(max-width:700px){.touch-dpad{transform:scale(.78);transform-origin:bottom left}.touch-action{transform:scale(.78);transform-origin:bottom right}}
+@media(orientation:landscape) and (max-height:450px){.touch-dpad{transform:scale(.67);transform-origin:bottom left}.touch-action{transform:scale(.67);transform-origin:bottom right}}
