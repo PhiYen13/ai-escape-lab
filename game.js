@@ -141,16 +141,28 @@ function quiz(p,isHint){
       box.innerHTML='<p class="activity-help">Chọn một thẻ cột trái, rồi chọn thẻ cột phải để nối. Em có thể nối cả khi chưa chắc đáp án, đổi lại cặp nối và chỉ kiểm tra sau khi ghép đủ.</p><div class="match-grid"><div id="left-options" class="match-column"></div><div id="right-options" class="match-column"></div></div><div id="match-results" class="match-results" aria-live="polite"></div>';
       const left=$('#left-options'),right=$('#right-options');let active=-1;const pairsMap={};
       const pairColors=[['#dbeafe','#1d4ed8'],['#fce7f3','#be185d'],['#dcfce7','#15803d'],['#fef3c7','#a16207'],['#ede9fe','#6d28d9'],['#ffedd5','#c2410c']];
-      const paintPair=(b,index)=>{if(index<0){b.style.backgroundColor='';b.style.borderColor='';b.style.color='';b.style.boxShadow='';return}const [bg,fg]=pairColors[index%pairColors.length];b.style.backgroundColor=bg;b.style.borderColor=fg;b.style.color=fg;b.style.boxShadow='inset 0 0 0 2px '+fg};
+      const paintPair=(b,index)=>{
+        if(index<0){
+          ['background','background-color','border-color','color','box-shadow'].forEach(k=>b.style.removeProperty(k));
+          return;
+        }
+        const [bg,fg]=pairColors[index%pairColors.length];
+        // Force identical color on BOTH sides; override legacy .tile.selected styles.
+        b.style.setProperty('background',bg,'important');
+        b.style.setProperty('background-color',bg,'important');
+        b.style.setProperty('border-color',fg,'important');
+        b.style.setProperty('color',fg,'important');
+        b.style.setProperty('box-shadow','inset 0 0 0 2px '+fg,'important');
+      };
       const redraw=()=>{
         const count=Object.keys(pairsMap).length;
         left.querySelectorAll('button').forEach((b,i)=>{
-          b.classList.toggle('selected',active===i);
+          b.classList.toggle('selected',active===i && pairsMap[i]===undefined);
           paintPair(b,pairsMap[i]!==undefined?i:-1);
           b.textContent=(pairsMap[i]!==undefined?'🔗 ':'')+data.left[i]+(pairsMap[i]!==undefined?' → '+(Number(pairsMap[i])+1):'');
         });
         right.querySelectorAll('button').forEach((b,i)=>{
-          b.classList.toggle('selected',Object.values(pairsMap).includes(i));
+          b.classList.toggle('selected',false);
           const pairedLeft=Object.keys(pairsMap).find(k=>pairsMap[k]===i);
           paintPair(b,pairedLeft===undefined?-1:Number(pairedLeft));
           b.textContent=(Object.values(pairsMap).includes(i)?'🔗 ':'')+(i+1)+'. '+data.right[i];
