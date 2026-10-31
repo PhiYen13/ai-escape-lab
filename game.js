@@ -138,11 +138,27 @@ function quiz(p,isHint){
     if(kind==='sequence'){const it=data.items[step];box.innerHTML=`<div class="step-label">Câu ${step+1}/${data.items.length}</div><p class="question-line">${escapeHTML(it.question)}</p>`;it.answers.forEach((v,i)=>makeButton(String.fromCharCode(65+i)+'. '+v,()=>{if(i!==it.correct){wrong();return}step++;if(step===data.items.length)finish();else start()}));return}
     if(kind==='multi'){const selected=new Set();data.answers.forEach((v,i)=>{const b=makeButton('☐ '+v,()=>{if(selected.has(i))selected.delete(i);else selected.add(i);b.classList.toggle('selected',selected.has(i));b.textContent=(selected.has(i)?'☑ ':'☐ ')+v})});verify(()=>selected.size===data.correct.length&&data.correct.every(i=>selected.has(i)));return}
     if(kind==='match'){
-      box.innerHTML='<p class="activity-help">Chọn một thẻ bên trái rồi chọn thẻ phù hợp bên phải. Trên máy tính em cũng có thể kéo thả.</p><div class="match-grid"><div id="left-options" class="match-column"></div><div id="right-options" class="match-column"></div></div><div id="match-results" class="match-results"></div>';
+      box.innerHTML='<p class="activity-help">Chọn một thẻ cột trái, rồi chọn thẻ cột phải để nối. Em có thể nối cả khi chưa chắc đáp án, đổi lại cặp nối và chỉ kiểm tra sau khi ghép đủ.</p><div class="match-grid"><div id="left-options" class="match-column"></div><div id="right-options" class="match-column"></div></div><div id="match-results" class="match-results" aria-live="polite"></div>';
       const left=$('#left-options'),right=$('#right-options');let active=-1;const pairsMap={};
-      const redraw=()=>{left.querySelectorAll('button').forEach((b,i)=>{b.classList.toggle('selected',active===i);b.textContent=(pairsMap[i]!==undefined?'✓ ':'')+data.left[i]});right.querySelectorAll('button').forEach((b,i)=>b.classList.toggle('selected',Object.values(pairsMap).includes(i)));$('#match-results').textContent=`Đã ghép ${Object.keys(pairsMap).length}/${data.left.length} cặp`};
-      data.left.forEach((v,i)=>{const b=document.createElement('button');b.className='tile';b.textContent=v;b.draggable=true;b.onclick=()=>{active=i;redraw()};b.ondragstart=e=>{e.dataTransfer.setData('text/plain',String(i));active=i};left.appendChild(b)});
-      data.right.forEach((v,j)=>{const b=document.createElement('button');b.className='tile';b.textContent=v;b.onclick=()=>{if(active<0)return;for(const k of Object.keys(pairsMap))if(pairsMap[k]===j)delete pairsMap[k];pairsMap[active]=j;active=-1;redraw()};b.ondragover=e=>e.preventDefault();b.ondrop=e=>{e.preventDefault();active=Number(e.dataTransfer.getData('text/plain'));b.click()};right.appendChild(b)});redraw();verify(()=>data.correct.every((v,i)=>pairsMap[i]===v));return
+      const redraw=()=>{
+        const count=Object.keys(pairsMap).length;
+        left.querySelectorAll('button').forEach((b,i)=>{
+          b.classList.toggle('selected',active===i);
+          b.textContent=(pairsMap[i]!==undefined?'🔗 ':'')+data.left[i]+(pairsMap[i]!==undefined?' → '+(Number(pairsMap[i])+1):'');
+        });
+        right.querySelectorAll('button').forEach((b,i)=>{
+          b.classList.toggle('selected',Object.values(pairsMap).includes(i));
+          b.textContent=(Object.values(pairsMap).includes(i)?'🔗 ':'')+(i+1)+'. '+data.right[i];
+        });
+        $('#match-results').textContent=`Đã nối ${count}/${data.left.length} cặp. ${count===data.left.length?'Đã nối đủ, hãy nhấn KIỂM TRA.':'Tiếp tục nối các cặp còn lại.'}`;
+      };
+      data.left.forEach((v,i)=>{const b=document.createElement('button');b.className='tile';b.draggable=true;b.onclick=()=>{active=i;redraw()};b.ondragstart=e=>{e.dataTransfer.setData('text/plain',String(i));active=i};left.appendChild(b)});
+      data.right.forEach((v,j)=>{const b=document.createElement('button');b.className='tile';b.onclick=()=>{
+        if(active<0)return;
+        for(const k of Object.keys(pairsMap))if(pairsMap[k]===j)delete pairsMap[k];
+        pairsMap[active]=j;active=-1;redraw();
+      };b.ondragover=e=>e.preventDefault();b.ondrop=e=>{e.preventDefault();active=Number(e.dataTransfer.getData('text/plain'));b.click()};right.appendChild(b)});
+      redraw();verify(()=>Object.keys(pairsMap).length===data.left.length&&data.correct.every((v,i)=>pairsMap[i]===v));return
     }
     if(kind==='sort'){
       box.innerHTML='<p class="activity-help">Chọn một thẻ rồi chọn nhóm phù hợp. Có thể kéo thả thẻ vào nhóm.</p><div id="sort-items" class="tile-grid"></div><div id="sort-groups" class="sort-groups"></div>';
