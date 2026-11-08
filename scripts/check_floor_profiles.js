@@ -1,0 +1,61 @@
+const { spawnSync } = require('child_process');
+const fs = require('fs');
+
+const html = `<!doctype html>
+<html>
+<body>
+<canvas id="c" width="1672" height="941"></canvas>
+<pre id="out"></pre>
+<script>
+window.onload = async () => {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+  const out = document.getElementById('out');
+
+  const im = new Image();
+  await new Promise(r => { im.onload = r; im.src = '/assets/room3_4/nen_room.png'; });
+  ctx.drawImage(im, 0, 0);
+
+  function getPix(x, y) {
+    const d = ctx.getImageData(Math.round(x), Math.round(y), 1, 1).data;
+    return [d[0], d[1], d[2]];
+  }
+
+  // 1. Trạm 1 (x: 150, y: 320): desk spans x: 150..410, y: 320..493
+  // What is at y: 510?
+  const tr1_below = [];
+  for (let y = 470; y <= 580; y += 15) tr1_below.push({ y, rgb: getPix(280, y) });
+
+  // 2. Trạm 3 (x: 950, y: 150): desk spans x: 950..1210, y: 150..323
+  // What is below desk: y: 320..420 at x: 1080
+  const tr3_below = [];
+  for (let y = 300; y <= 450; y += 15) tr3_below.push({ y, rgb: getPix(1080, y) });
+
+  // 3. Trạm 4 (x: 950, y: 600): desk spans x: 950..1210, y: 600..773
+  // What is below desk: y: 760..880 at x: 1080
+  const tr4_below = [];
+  for (let y = 740; y <= 890; y += 15) tr4_below.push({ y, rgb: getPix(1080, y) });
+
+  out.textContent = JSON.stringify({ tr1_below, tr3_below, tr4_below }, null, 2);
+  document.title = 'FLOOR_PROFILES';
+};
+</script>
+</body>
+</html>`;
+
+fs.writeFileSync('scripts/floor_profiles.html', html, 'utf8');
+
+const res = spawnSync('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', [
+  '--headless=new',
+  '--dump-dom',
+  '--virtual-time-budget=2000',
+  'http://localhost:3000/scripts/floor_profiles.html'
+], { encoding: 'utf8' });
+
+const match = res.stdout.match(/<pre id="out">([\s\S]*?)<\/pre>/);
+if (match) {
+  console.log(match[1]);
+} else {
+  console.log('Error', res.stdout.substring(0, 300));
+}
+

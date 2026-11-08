@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;background:#000;">
+<canvas id="c" width="1672" height="941" style="display:block;"></canvas>
+<script>
+window.onload = async () => {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+
+  const load = src => new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error('Failed ' + src));
+    im.src = src;
+  });
+
+  const bg = await load('/assets/room3_4/nen_room.png');
+  ctx.drawImage(bg, 0, 0);
+
+  const t1 = await load('/assets/room3_4/tram1.png');
+  const t2 = await load('/assets/room3_4/tram2.png');
+  const t3 = await load('/assets/room3_4/tram3.png');
+  const t4 = await load('/assets/room3_4/tram4.png');
+  const door = await load('/assets/room3_4/cua_khoa.png');
+
+  // STATIONS with user coordinates:
+  const STATIONS = [
+    { id: 0, x: 150, y: 320, w: 260, h: 173, label: 'Trạm 1: Kho dữ liệu' },
+    { id: 1, x: 330, y: 80,  w: 260, h: 173, label: 'Trạm 2: Bộ điều khiển liên kết' },
+    { id: 2, x: 950, y: 150, w: 260, h: 173, label: 'Trạm 3: Hệ thống bảo mật' },
+    { id: 3, x: 950, y: 600, w: 260, h: 173, label: 'Trạm 4: Kho tri thức' }
+  ];
+
+  STATIONS.forEach((s, i) => {
+    const img = [t1, t2, t3, t4][i];
+    ctx.drawImage(img, s.x, s.y, s.w, s.h);
+
+    // Draw station bounding box
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(s.x, s.y, s.w, s.h);
+
+    ctx.fillStyle = '#ffff00';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText(s.label + ` (${s.x}, ${s.y})`, s.x, s.y - 8);
+  });
+
+  // Vault door:
+  const VAULT_DOOR = { x: 1280, y: 75, w: 260, h: 195 };
+  ctx.drawImage(door, VAULT_DOOR.x, VAULT_DOOR.y, VAULT_DOOR.w, VAULT_DOOR.h);
+  ctx.strokeStyle = '#ff00ff';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(VAULT_DOOR.x, VAULT_DOOR.y, VAULT_DOOR.w, VAULT_DOOR.h);
+
+  document.title = 'USER_STATIONS_VIEW';
+};
+</script>
+</body>
+</html>

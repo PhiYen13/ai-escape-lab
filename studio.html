@@ -1,0 +1,1792 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Escape Lab — Teacher Studio (Quản trị, Chỉnh sửa &amp; Xuất bản)</title>
+  <link rel="stylesheet" href="studio.css" />
+</head>
+
+<body>
+  <!-- ========================================================================
+       1. MÀN HÌNH KIỂM TRA PHIÊN ĐĂNG NHẬP BAN ĐẦU (BOOT OVERLAY)
+       ======================================================================== -->
+  <div id="boot-overlay" class="boot-overlay" role="status" aria-live="polite">
+    <div class="spinner" aria-hidden="true"></div>
+    <h2 style="margin: 0; font-size: 20px; color: var(--accent-gold);">Đang kết nối Teacher Studio...</h2>
+    <p id="boot-status-text" style="margin: 0; color: var(--text-light); font-size: 14px;">
+      Đang kiểm tra phiên đăng nhập Supabase Authentication
+    </p>
+  </div>
+
+  <!-- ========================================================================
+       2. MÀN HÌNH ĐĂNG NHẬP / ĐĂNG KÝ TEACHER STUDIO
+       (Hiển thị khi chưa đăng nhập; chặn hoàn toàn truy cập vào #studio-app)
+       ======================================================================== -->
+  <section id="auth-screen" class="auth-wrapper hidden" aria-label="Đăng nhập Teacher Studio">
+    <!-- Header gọn gàng của màn hình đăng nhập -->
+    <header class="auth-top-header">
+      <div class="auth-header-brand">
+        <div class="brand-logo" aria-hidden="true">🧪</div>
+        <div class="auth-header-brand-text">
+          <span class="auth-header-title">AI ESCAPE LAB</span>
+          <span class="auth-header-badge">TEACHER STUDIO</span>
+        </div>
+      </div>
+      <a href="index.html" class="auth-header-back-link" title="Quay lại Màn hình Chơi Game (Học sinh)">
+        <span>🎮</span> Về trò chơi
+      </a>
+    </header>
+
+    <div class="auth-container">
+      <!-- Cột trái – Giới thiệu nền tảng & Linh vật Én Én (Bố cục banner nhiều lớp) -->
+      <div class="auth-hero">
+        <div class="auth-hero-intro">
+          <div class="auth-brand-pill">
+            <span class="auth-pill-dot"></span> AI ESCAPE LAB · TEACHER STUDIO
+          </div>
+          <h1 class="auth-hero-title">Biến bài học thành cuộc phiêu lưu</h1>
+          <p class="auth-hero-desc">
+            Sáng tạo và chia sẻ trò chơi Tin học cùng Én Én.
+          </p>
+
+          <div class="auth-benefit-list">
+            <div class="auth-benefit-item">
+              <span class="auth-benefit-check">✓</span>
+              <span>Kho trò chơi mẫu.</span>
+            </div>
+            <div class="auth-benefit-item">
+              <span class="auth-benefit-check">✓</span>
+              <span>Tùy chỉnh câu hỏi.</span>
+            </div>
+            <div class="auth-benefit-item">
+              <span class="auth-benefit-check">✓</span>
+              <span>Chia sẻ với học sinh.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Linh vật Én Én độc lập đặt ở phần dưới cột trái, không khung viền -->
+        <div class="auth-mascot-wrapper">
+          <img src="assets/mascot/studio_login_mascot.png" alt="Linh vật Én Én đồng hành cùng giáo viên" class="auth-mascot-img" />
+        </div>
+      </div>
+
+      <!-- Cột phải – Đăng nhập / Đăng ký (45-48% desktop) -->
+      <div class="auth-panel">
+        <div class="auth-tabs" role="tablist" aria-label="Chế độ xác thực">
+          <button type="button" id="tab-btn-login" class="auth-tab active" role="tab" aria-selected="true">
+            🔑 Đăng nhập
+          </button>
+          <button type="button" id="tab-btn-signup" class="auth-tab" role="tab" aria-selected="false">
+            📝 Đăng ký Giáo viên
+          </button>
+        </div>
+
+        <div class="auth-form-header">
+          <h2 id="auth-form-title">Chào mừng trở lại!</h2>
+          <p id="auth-form-subtitle" class="auth-panel-sub">
+            Đăng nhập để tiếp tục sáng tạo bài học.
+          </p>
+        </div>
+
+        <!-- Hộp thông báo lỗi / thành công -->
+        <div id="auth-alert" class="alert-box hidden" role="alert" aria-live="assertive"></div>
+
+        <!-- BIỂU MẪU ĐĂNG NHẬP -->
+        <form id="login-form" autocomplete="on" novalidate>
+          <div class="form-group">
+            <label for="login-email">Địa chỉ Email</label>
+            <input type="email" id="login-email" class="form-input" placeholder="Nhập địa chỉ email của bạn..."
+              autocomplete="username" required />
+          </div>
+
+          <div class="form-group">
+            <div class="form-label-row">
+              <label for="login-password">Mật khẩu</label>
+              <button type="button" id="btn-forgot-password" class="btn-forgot-pw-link">
+                Quên mật khẩu?
+              </button>
+            </div>
+            <div class="input-row">
+              <input type="password" id="login-password" class="form-input" placeholder="Nhập mật khẩu của bạn..."
+                autocomplete="current-password" required />
+              <button type="button" id="btn-toggle-login-pw" class="btn-toggle-pw" title="Hiện/Ẩn mật khẩu"
+                aria-label="Hiện hoặc ẩn mật khẩu">
+                👁️
+              </button>
+            </div>
+          </div>
+
+          <!-- Nút ẩn để tương thích code sự kiện cũ nếu có -->
+          <button type="button" id="btn-switch-to-signup" class="hidden" aria-hidden="true"></button>
+
+          <button type="submit" id="btn-submit-login" class="btn btn-gold btn-block" style="margin-top: 10px;">
+            🚀 Đăng nhập vào Studio
+          </button>
+        </form>
+
+        <!-- BIỂU MẪU QUÊN MẬT KHẨU (GỬI YÊU CẦU HỖ TRỢ CHO ADMIN) -->
+        <form id="forgot-password-form" class="hidden" autocomplete="on" novalidate>
+          <div class="permission-notice notice-teacher" style="margin-top: 0; margin-bottom: 14px; font-size: 12.5px;">
+            <span>ℹ️</span>
+            <span>
+              Để đảm bảo bảo mật và tránh lỗi gián đoạn email, yêu cầu hỗ trợ mật khẩu sẽ được ghi nhận trực tiếp trên
+              hệ thống để <strong>Quản trị viên (Admin)</strong> cấp mật khẩu mới.
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="forgot-email">Địa chỉ Email đã đăng ký <span style="color: var(--accent-gold);">*</span></label>
+            <input type="email" id="forgot-email" class="form-input" placeholder="Nhập địa chỉ email của bạn..."
+              autocomplete="email" required />
+          </div>
+          <p style="font-size: 12.5px; color: var(--text-muted); margin: 0 0 14px;">
+            Sau khi bạn gửi yêu cầu, Quản trị viên sẽ xác minh tài khoản và cung cấp mật khẩu tạm thời mới trực tiếp cho
+            bạn.
+          </p>
+          <div style="display: flex; gap: 10px;">
+            <button type="button" id="btn-back-to-login" class="btn btn-outline" style="flex: 1;">
+              ⬅ Quay lại Đăng nhập
+            </button>
+            <button type="submit" id="btn-submit-forgot" class="btn btn-gold" style="flex: 1.4;">
+              📨 Gửi yêu cầu hỗ trợ
+            </button>
+          </div>
+        </form>
+
+        <!-- BIỂU MẪU ĐẶT LẠI MẬT KHẨU MỚI (HIỂN THỊ KHI MỞ LIÊN KẾT KHÔI PHỤC TỪ EMAIL) -->
+        <form id="recovery-password-form" class="hidden" autocomplete="off" novalidate>
+          <div class="permission-notice notice-teacher" style="margin-top: 0; margin-bottom: 14px; font-size: 12.5px;">
+            <span>🔐</span>
+            <span>
+              <strong>Thiết lập mật khẩu mới:</strong> Vui lòng nhập mật khẩu mới tối thiểu 8 ký tự (bao gồm chữ hoa,
+              chữ thường và chữ số). Mật khẩu cũ sẽ bị vô hiệu hóa ngay sau khi lưu.
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="recovery-new-password">Mật khẩu mới <span style="color: var(--accent-gold);">*</span></label>
+            <div class="input-row">
+              <input type="password" id="recovery-new-password" class="form-input"
+                placeholder="Nhập mật khẩu mới (tối thiểu 8 ký tự)..." autocomplete="new-password" minlength="8"
+                required />
+              <button type="button" id="btn-toggle-recovery-pw" class="btn-toggle-pw" title="Hiện/Ẩn mật khẩu"
+                aria-label="Hiện hoặc ẩn mật khẩu">
+                👁️
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="recovery-confirm-password">Xác nhận mật khẩu mới <span
+                style="color: var(--accent-gold);">*</span></label>
+            <input type="password" id="recovery-confirm-password" class="form-input"
+              placeholder="Nhập lại mật khẩu mới..." autocomplete="new-password" minlength="8" required />
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <button type="button" id="btn-cancel-recovery" class="btn btn-outline" style="flex: 1;">
+              ⬅ Hủy &amp; Đăng nhập
+            </button>
+            <button type="submit" id="btn-submit-recovery" class="btn btn-gold" style="flex: 1.4;">
+              💾 Lưu mật khẩu mới
+            </button>
+          </div>
+        </form>
+
+        <!-- BIỂU MẪU ĐĂNG KÝ TÀI KHOẢN GIÁO VIÊN MỚI -->
+        <form id="signup-form" class="hidden" autocomplete="on" novalidate>
+          <div class="permission-notice notice-teacher" style="margin-top: 0; margin-bottom: 14px; font-size: 12.5px;">
+            <span>🛡️</span>
+            <span>
+              <strong>Kiểm soát truy cập trường học:</strong> Tài khoản tự đăng ký sẽ ở trạng thái <em>Chờ phê
+                duyệt</em> và chỉ có thể sử dụng Teacher Studio sau khi được Quản trị viên (Admin) phê duyệt.
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label for="signup-fullname">Họ và tên Giáo viên <span style="color: var(--accent-gold);">*</span></label>
+            <input type="text" id="signup-fullname" class="form-input" placeholder="Ví dụ: Nguyễn Văn A"
+              autocomplete="name" required />
+          </div>
+
+          <div class="form-group">
+            <label for="signup-school">Trường học / Đơn vị công tác</label>
+            <input type="text" id="signup-school" class="form-input"
+              placeholder="Ví dụ: Trường Tiểu học – THCS – THPT Sky-Line" autocomplete="organization" />
+          </div>
+
+          <div class="form-group">
+            <label for="signup-email">Địa chỉ Email công vụ <span style="color: var(--accent-gold);">*</span></label>
+            <input type="email" id="signup-email" class="form-input" placeholder="giaovien@truonghoc.edu.vn"
+              autocomplete="email" required />
+          </div>
+
+          <div class="form-group">
+            <label for="signup-password">Mật khẩu (tối thiểu 6 ký tự) <span
+                style="color: var(--accent-gold);">*</span></label>
+            <div class="input-row">
+              <input type="password" id="signup-password" class="form-input" placeholder="Tạo mật khẩu an toàn..."
+                autocomplete="new-password" minlength="6" required />
+              <button type="button" id="btn-toggle-signup-pw" class="btn-toggle-pw" title="Hiện/Ẩn mật khẩu"
+                aria-label="Hiện hoặc ẩn mật khẩu">
+                👁️
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="signup-password-confirm">Xác nhận mật khẩu <span
+                style="color: var(--accent-gold);">*</span></label>
+            <input type="password" id="signup-password-confirm" class="form-input" placeholder="Nhập lại mật khẩu..."
+              autocomplete="new-password" minlength="6" required />
+          </div>
+
+          <button type="submit" id="btn-submit-signup" class="btn btn-gold btn-block" style="margin-top: 10px;">
+            ✨ Tạo tài khoản giáo viên
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Chân trang chân phương đồng bộ -->
+    <footer class="auth-footer-simple">
+      <span>AI Escape Lab – Én Én</span>
+    </footer>
+  </section>
+
+  <!-- ========================================================================
+       3. KHÔNG GIAN QUẢN TRỊ CHÍNH TEACHER STUDIO (CHỈ HIỂN THỊ KHI ĐÃ ĐĂNG NHẬP)
+       ======================================================================== -->
+  <div id="studio-app" class="hidden">
+    <!-- THANH ĐIỀU HƯỚNG TRÊN CÙNG -->
+    <header class="studio-navbar">
+      <div class="navbar-brand">
+        <div class="brand-logo" aria-hidden="true">🧪</div>
+        <div>
+          <span class="brand-title">AI ESCAPE LAB <em>STUDIO</em></span>
+          <span class="brand-subtitle">Hệ thống quản trị trò chơi học tập</span>
+        </div>
+      </div>
+
+      <nav class="navbar-links" aria-label="Điều hướng Teacher Studio">
+        <button type="button" id="nav-tab-all" class="nav-tab-btn active" data-view="all">
+          🏠 Tổng quan
+        </button>
+        <button type="button" id="nav-tab-master" class="nav-tab-btn" data-view="master">
+          📚 Kho trò chơi gốc MASTER
+        </button>
+        <button type="button" id="nav-tab-personal" class="nav-tab-btn" data-view="personal">
+          🎮 Trò chơi của tôi
+        </button>
+        <button type="button" id="nav-tab-teachers" class="nav-tab-btn hidden" data-view="teachers">
+          👥 Quản lý giáo viên
+          <span id="nav-pending-count-badge" class="badge badge-draft hidden"
+            style="padding: 1px 7px; font-size: 11px;">0</span>
+          <span id="nav-reset-count-badge" class="badge badge-code hidden"
+            style="padding: 1px 7px; font-size: 11px; background: rgba(255, 183, 3, 0.2); color: #ffca65; border-color: #ffca65;"
+            title="Yêu cầu đặt lại mật khẩu">🔑 0</span>
+        </button>
+      </nav>
+
+      <div class="navbar-user">
+        <a href="index.html" target="_blank" rel="noopener" class="btn btn-gold btn-sm btn-play-game"
+          title="Mở trực tiếp trò chơi học sinh trong tab mới">
+          🎮 Vào Game
+        </a>
+
+        <div class="user-menu-dropdown-container">
+          <button type="button" id="btn-user-menu" class="user-menu-trigger" aria-haspopup="true" aria-expanded="false"
+            title="Menu tài khoản">
+            <div class="user-avatar-circle" id="nav-user-avatar">
+              <img src="assets/enen_avatar.png" alt="Én Én" class="nav-avatar-img" />
+            </div>
+            <div class="user-meta-compact">
+              <span id="nav-user-name" class="user-compact-name">Quản trị viên</span>
+              <span id="nav-role-badge" class="role-badge role-admin">Admin</span>
+            </div>
+            <span class="user-menu-chevron" aria-hidden="true">▼</span>
+          </button>
+
+
+          <div id="user-dropdown-menu" class="user-dropdown-menu hidden" role="menu">
+            <div class="dropdown-user-header">
+              <strong id="dropdown-user-fullname">Quản trị viên</strong>
+              <span id="dropdown-user-email">admin@aiescapelab.edu.vn</span>
+            </div>
+            <div class="dropdown-divider"></div>
+            <button type="button" id="btn-menu-profile" class="dropdown-item" role="menuitem">
+              👤 Thông tin cá nhân
+            </button>
+            <button type="button" id="btn-menu-change-pw" class="dropdown-item" role="menuitem">
+              🔑 Đổi mật khẩu
+            </button>
+            <div class="dropdown-divider"></div>
+            <button type="button" id="btn-logout" class="dropdown-item dropdown-item-danger" role="menuitem">
+              🚪 Đăng xuất
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- NỘI DUNG CHÍNH -->
+    <main class="studio-main">
+      <!-- Hộp cảnh báo toàn cục nếu có lỗi kết nối -->
+      <div id="global-alert" class="alert-box hidden" role="alert"></div>
+
+      <!-- 3.1. DASHBOARD TỔNG QUAN VỚI LINH VẬT ÉN ÉN -->
+      <section id="welcome-section" aria-label="Tổng quan hệ thống và linh vật Én Én">
+        <!-- BANNER NHẬN DIỆN THƯƠNG HIỆU ÉN ÉN -->
+        <div class="enen-hero-banner-wrapper">
+          <!-- Linh vật Én Én 3D đứng nổi phía trước banner, nguyên vẹn từ đầu đến chân -->
+          <img src="assets/enen_mascot_full.png" alt="Linh vật Én Én" class="banner-enen-standalone" />
+          <img src="assets/mascot_enen.jpg" alt="Én Én" class="hidden" style="display: none;" />
+
+          <!-- Khung nền banner chính -->
+          <div class="enen-hero-banner">
+            <div class="banner-slogan-col">
+              <div class="banner-brand-badge">AI ESCAPE LAB</div>
+              <div class="banner-slogan-cloud">
+                “Cùng Én Én thiết kế những hành trình khám phá tri thức số thú vị!”
+              </div>
+            </div>
+
+            <!-- Cổng trò chơi & vật phẩm học tập phía bên phải (hiển thị từ hình nền công nghệ) -->
+            <div class="banner-portal-art" aria-hidden="true">
+              <div class="portal-badge hidden" style="display: none;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 THẺ THỐNG KÊ NHANH -->
+        <div class="dashboard-stats-grid">
+          <!-- Thẻ 1 – Phòng MASTER -->
+          <div class="dashboard-stat-card card-master">
+            <div class="dash-stat-left-icon">
+              <span class="stat-round-icon">
+                <svg class="stat-svg-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor"
+                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path
+                    d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" />
+                  <path d="m2 12 8.58 3.91a2 2 0 0 0 1.66 0L22 12" />
+                  <path d="m2 17 8.58 3.91a2 2 0 0 0 1.66 0L22 17" />
+                </svg>
+              </span>
+            </div>
+            <div class="dash-stat-body">
+              <div class="dash-stat-label">Phòng MASTER</div>
+              <div id="stat-master-value" class="dash-stat-value">7</div>
+              <div id="stat-master-sub" class="dash-stat-sub">3 khối lớp (3, 4, 5)</div>
+            </div>
+          </div>
+
+          <!-- Thẻ 2 – Giáo viên -->
+          <div class="dashboard-stat-card card-teachers">
+            <div class="dash-stat-left-icon">
+              <span class="stat-round-icon">
+                <svg class="stat-svg-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor"
+                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </span>
+            </div>
+            <div class="dash-stat-body">
+              <div id="stat-role-label" class="dash-stat-label">Giáo viên</div>
+              <div id="stat-role-value" class="dash-stat-value">6</div>
+              <div id="stat-role-sub" class="dash-stat-sub">Tài khoản đang hoạt động</div>
+            </div>
+          </div>
+
+          <!-- Thẻ 3 – Bộ đề riêng -->
+          <div class="dashboard-stat-card card-campaigns">
+            <div class="dash-stat-left-icon">
+              <span class="stat-round-icon">
+                <svg class="stat-svg-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor"
+                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <line x1="6" x2="10" y1="12" y2="12" />
+                  <line x1="8" x2="8" y1="10" y2="14" />
+                  <line x1="15" x2="15.01" y1="13" y2="13" />
+                  <line x1="18" x2="18.01" y1="11" y2="11" />
+                  <rect width="20" height="12" x="2" y="6" rx="6" />
+                </svg>
+              </span>
+            </div>
+            <div class="dash-stat-body">
+              <div class="dash-stat-label">Bộ đề riêng</div>
+              <div id="stat-personal-count" class="dash-stat-value">1</div>
+              <div id="stat-personal-sub" class="dash-stat-sub">Đã tạo từ MASTER</div>
+            </div>
+          </div>
+
+          <!-- Thẻ 4 – Đã xuất bản -->
+          <div class="dashboard-stat-card card-published">
+            <div class="dash-stat-left-icon">
+              <span class="stat-round-icon">
+                <svg class="stat-svg-icon" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor"
+                  stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z" />
+                  <path
+                    d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" />
+                  <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0" />
+                  <path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5" />
+                </svg>
+              </span>
+            </div>
+            <div class="dash-stat-body">
+              <div class="dash-stat-label">Đã xuất bản</div>
+              <div id="stat-publish-breakdown" class="dash-stat-value">1</div>
+              <div id="stat-publish-sub" class="dash-stat-sub">Link trò chơi đã tạo</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3.2. KHO TRÒ CHƠI GỐC MASTER (MASTER TEMPLATE REPOSITORY) -->
+      <section id="master-section" class="hidden" aria-labelledby="master-section-heading">
+        <div class="section-header">
+          <div>
+            <h2 id="master-section-heading" class="section-title">
+              🏛️ Kho trò chơi gốc (MASTER Template)
+            </h2>
+            <p class="section-sub">
+              Bộ đề chuẩn chính thức gồm 3 phòng học tương ứng Khối 3, Khối 4 và Khối 5. Giáo viên có thể xem chi tiết
+              và sao chép để tạo trò chơi riêng.
+            </p>
+          </div>
+        </div>
+
+        <!-- Trạng thái đang tải MASTER -->
+        <div id="master-loading" class="state-box">
+          <div class="spinner" aria-hidden="true"></div>
+          <h3>Đang tải dữ liệu bộ đề gốc MASTER...</h3>
+          <p>Hệ thống đang truy vấn thông tin chiến dịch MASTER và 3 phòng học Khối 3, 4, 5 từ Supabase.</p>
+        </div>
+
+        <!-- Trạng thái lỗi hoặc chưa có MASTER -->
+        <div id="master-error" class="state-box hidden">
+          <div class="state-box-icon">⚠️</div>
+          <h3>Không tìm thấy hoặc không thể tải bộ đề MASTER</h3>
+          <p id="master-error-msg">Vui lòng kiểm tra kết nối mạng hoặc thử tải lại dữ liệu.</p>
+          <button type="button" id="btn-retry-master" class="btn btn-primary btn-sm">🔄 Thử lại</button>
+        </div>
+
+        <!-- Thẻ hiển thị chi tiết MASTER -->
+        <!-- Thẻ hiển thị chi tiết MASTER -->
+        <div id="master-card-container" class="master-showcase-card hidden">
+          <div class="master-card-top">
+            <div>
+              <div class="badge-row">
+                <span class="badge badge-master">⭐ BỘ ĐỀ GỐC CHUẨN (TEMPLATE)</span>
+                <span id="master-status-badge" class="badge badge-published">🟢 Đã xuất bản</span>
+                <span id="master-share-code-badge" class="badge badge-code">Mã: MASTER</span>
+                <span id="master-version-badge" class="badge badge-code">Phiên bản: v2</span>
+              </div>
+              <h3 id="master-title-text" class="master-title">AI Escape Lab – Bộ đề chuẩn Khối 3-4-5</h3>
+              <p id="master-desc-text" class="master-desc">
+                Hệ thống phòng thí nghiệm giáo dục số thông minh gồm 16 phòng cho mỗi khối lớp. Quản lý theo cấu trúc:
+                Chọn Khối lớp → Chọn Phòng học → Quản lý Nội dung.
+              </p>
+            </div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="button" id="btn-publish-master" class="btn btn-primary hidden"
+                title="Xuất bản cập nhật bộ đề MASTER cho học sinh">
+                🚀 Xuất bản MASTER
+              </button>
+              <button type="button" id="btn-edit-master" class="btn btn-purple hidden">
+                🛠️ Chỉnh sửa MASTER
+              </button>
+              <button type="button" id="btn-clone-from-master" class="btn btn-gold">
+                🧬 Sao chép tạo trò chơi riêng
+              </button>
+              <button type="button" id="btn-inspect-master" class="btn btn-outline">
+                🔍 Xem toàn bộ câu hỏi
+              </button>
+            </div>
+          </div>
+
+          <!-- Thông báo quyền hạn đối với MASTER -->
+          <div id="master-permission-banner" class="permission-notice notice-teacher">
+            <span>🔒</span>
+            <span id="master-permission-text">
+              Chế độ Bảo vệ Kho gốc: Giáo viên có quyền xem toàn bộ câu hỏi và sao chép bộ đề MASTER, nhưng không được
+              chỉnh sửa trực tiếp dữ liệu gốc.
+            </span>
+          </div>
+
+          <!-- Hộp liên kết học sinh chính thức cho MASTER (index.html mặc định) -->
+          <div id="master-share-box" class="campaign-share-box" style="margin-top: 14px;">
+            <div class="campaign-share-box-head">
+              <span>🔗 <strong>Liên kết học sinh chính thức:</strong> (Mở trực tiếp trên trình duyệt, không cần
+                mã)</span>
+              <span id="master-share-version-pill" class="badge badge-published">Phiên bản xuất bản: v2</span>
+            </div>
+            <div class="campaign-share-url-row">
+              <input type="text" id="master-share-url-input" class="share-url-readonly" readonly
+                value="http://localhost:3000/index.html" aria-label="Liên kết học sinh chính thức" />
+              <button type="button" id="btn-copy-master-link" class="btn btn-outline btn-sm"
+                title="Sao chép liên kết trò chơi MASTER gửi cho học sinh">
+                📋 Sao chép liên kết
+              </button>
+              <button type="button" id="btn-open-master-game" class="btn btn-primary btn-sm"
+                title="Mở giao diện trò chơi học sinh chính thức (index.html)">
+                🎮 Mở trò chơi học sinh
+              </button>
+            </div>
+          </div>
+
+          <!-- ============================================================== -->
+          <!-- BỘ QUẢN LÝ 3 CẤP: CHỌN KHỐI LỚP → CHỌN PHÒNG → QUẢN LÝ NỘI DUNG -->
+          <!-- ============================================================== -->
+          <div class="master-manager-container" style="margin-top: 22px;">
+
+            <!-- CẤP 1: TABS CHỌN KHỐI LỚP (LỚP 3, LỚP 4, LỚP 5) -->
+            <div class="master-grade-tabs-bar" role="tablist" aria-label="Chọn khối lớp quản lý">
+              <button type="button" class="master-grade-tab-btn active" data-grade="3" id="tab-master-grade-3">
+                <span class="tab-grade-title">🏫 LỚP 3</span>
+                <span class="tab-grade-badge" id="badge-master-grade-3">3 phòng sẵn sàng</span>
+              </button>
+              <button type="button" class="master-grade-tab-btn" data-grade="4" id="tab-master-grade-4">
+                <span class="tab-grade-title">🏫 LỚP 4</span>
+                <span class="tab-grade-badge" id="badge-master-grade-4">2 phòng sẵn sàng</span>
+              </button>
+              <button type="button" class="master-grade-tab-btn" data-grade="5" id="tab-master-grade-5">
+                <span class="tab-grade-title">🏫 LỚP 5</span>
+                <span class="tab-grade-badge" id="badge-master-grade-5">2 phòng sẵn sàng</span>
+              </button>
+            </div>
+
+            <!-- CẤP 2: LƯỚI 16 PHÒNG HỌC (4x4) CỦA KHỐI ĐANG CHỌN -->
+            <div class="master-matrix-container">
+              <div class="matrix-header">
+                <div>
+                  <h4 id="master-matrix-heading" class="matrix-heading">
+                    📍 DANH SÁCH 16 PHÒNG HỌC – LỚP 3
+                  </h4>
+                  <p class="matrix-sub">
+                    Chọn phòng để xem thông tin chi tiết hoặc mở Game Editor chỉnh sửa nội dung bài học.
+                  </p>
+                </div>
+                <div class="matrix-legend">
+                  <span class="legend-tag ready">🟢 Đã xây dựng</span>
+                  <span class="legend-tag unbuilt">⚪ Chưa xây dựng (Slot 4–16)</span>
+                </div>
+              </div>
+
+              <!-- Lưới 16 phòng (4x4) -->
+              <div id="master-rooms-grid-16" class="master-rooms-grid-16">
+                <!-- Sẽ được render động từ JavaScript -->
+              </div>
+            </div>
+
+            <!-- CẤP 3: KHU VỰC THÔNG TIN PHÒNG ĐANG CHỌN (DETAIL PANEL) -->
+            <div id="master-room-detail-panel" class="master-room-detail-panel" style="margin-top: 18px;">
+              <!-- Sẽ được render động từ JavaScript -->
+            </div>
+
+          </div>
+
+          <!-- Vùng ẩn tương thích ngược cho master-grades-grid -->
+          <div id="master-grades-grid" class="master-grades-grid hidden"></div>
+        </div>
+      </section>
+
+      <!-- 3.3. DANH SÁCH TRÒ CHƠI CỦA TÔI (PERSONAL CAMPAIGNS) -->
+      <section id="personal-section" class="hidden" aria-labelledby="personal-section-heading">
+        <div class="section-header">
+          <div>
+            <h2 id="personal-section-heading" class="section-title">
+              🎒 Danh sách Trò chơi của tôi
+            </h2>
+            <p class="section-sub">
+              Các bộ đề riêng do bạn tạo hoặc sao chép từ kho MASTER. Mỗi bộ đề có mã chia sẻ riêng và trạng thái Bản
+              nháp / Đã xuất bản độc lập.
+            </p>
+          </div>
+
+          <button type="button" id="btn-open-clone-section" class="btn btn-gold">
+            ➕ Tạo trò chơi mới
+          </button>
+        </div>
+
+        <!-- Thanh công cụ tìm kiếm & lọc trạng thái -->
+        <div class="toolbar-row">
+          <div class="toolbar-filters">
+            <input type="search" id="search-campaigns-input" class="search-input"
+              placeholder="🔎 Tìm theo tên trò chơi hoặc mã chia sẻ..." aria-label="Tìm kiếm trò chơi của tôi" />
+            <select id="filter-campaigns-status" class="filter-select" aria-label="Lọc theo trạng thái">
+              <option value="all">Tất cả trạng thái</option>
+              <option value="draft">📝 Bản nháp (Draft)</option>
+              <option value="published">🟢 Đã xuất bản (Published)</option>
+            </select>
+          </div>
+          <div style="font-size: 13px; color: var(--text-muted);">
+            Hiển thị <strong id="personal-visible-count" style="color: var(--accent-cyan);">0</strong> bộ đề
+          </div>
+        </div>
+
+        <!-- Trạng thái đang tải danh sách trò chơi cá nhân -->
+        <div id="campaigns-loading" class="state-box">
+          <div class="spinner" aria-hidden="true"></div>
+          <h3>Đang tải danh sách trò chơi của bạn...</h3>
+          <p>Đang đồng bộ danh sách bộ đề cá nhân từ cơ sở dữ liệu Supabase.</p>
+        </div>
+
+        <!-- Trạng thái lỗi khi tải danh sách -->
+        <div id="campaigns-error" class="state-box hidden">
+          <div class="state-box-icon">❌</div>
+          <h3>Không thể tải danh sách trò chơi</h3>
+          <p id="campaigns-error-msg">Đã xảy ra lỗi khi truy vấn dữ liệu từ Supabase.</p>
+          <button type="button" id="btn-retry-campaigns" class="btn btn-primary btn-sm">🔄 Thử lại</button>
+        </div>
+
+        <!-- Trạng thái danh sách trống (chưa tạo trò chơi nào) -->
+        <div id="campaigns-empty" class="state-box hidden">
+          <div class="state-box-icon">✨</div>
+          <h3>Bạn chưa có trò chơi cá nhân nào</h3>
+          <p>
+            Hãy bắt đầu bằng cách sao chép bộ đề chuẩn <strong>MASTER</strong> (gồm đầy đủ 3 phòng Khối 3, 4, 5 và 24
+            vật phẩm) để tạo phiên bản trò chơi riêng cho lớp học của bạn!
+          </p>
+          <button type="button" id="btn-empty-create-game" class="btn btn-gold">
+            🧬 Sao chép từ MASTER ngay
+          </button>
+        </div>
+
+        <!-- Lưới hiển thị các thẻ trò chơi cá nhân -->
+        <div id="campaigns-grid" class="campaigns-grid hidden">
+          <!-- Render động bởi studio.js -->
+        </div>
+      </section>
+
+      <!-- 3.4. GAME EDITOR – TRÌNH CHỈNH SỬA NỘI DUNG TRÒ CHƠI (GIAI ĐOẠN 2) -->
+      <section id="game-editor-section" class="hidden" aria-label="Game Editor - Trình chỉnh sửa nội dung trò chơi">
+        <!-- Thanh điều khiển trên cùng của Game Editor -->
+        <div class="editor-topbar" style="margin-bottom: 22px;">
+          <div class="editor-topbar-row">
+            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <button type="button" id="btn-editor-back-dashboard" class="btn btn-outline btn-sm">
+                ⬅ Quay lại Dashboard
+              </button>
+              <div id="editor-badges-row" class="badge-row" style="margin-bottom: 0;"></div>
+              <span id="editor-dirty-pill" class="editor-status-pill is-synced">
+                ✓ Đã đồng bộ Supabase
+              </span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <button type="button" id="btn-editor-live-room-preview" class="btn btn-gold btn-sm"
+                title="Mở trực tiếp phòng game thực tế với nội dung nháp đang soạn">
+                🎮 Xem trước phòng (Game)
+              </button>
+              <button type="button" id="btn-editor-preview" class="btn btn-primary btn-sm">
+                👁️ Xem trước (Chơi thử)
+              </button>
+              <button type="button" id="btn-editor-validate" class="btn btn-outline btn-sm">
+                ✔️ Kiểm tra tính hợp lệ
+              </button>
+              <button type="button" id="btn-editor-save-top" class="btn btn-gold btn-sm">
+                💾 Lưu thay đổi
+              </button>
+              <button type="button" id="btn-editor-publish" class="btn btn-emerald btn-sm">
+                🚀 Xuất bản
+              </button>
+            </div>
+          </div>
+
+          <!-- Thanh liên kết chia sẻ cho học sinh ngay trong Game Editor (hiển thị khi bộ đề đã xuất bản) -->
+          <div id="editor-share-banner" class="editor-share-banner hidden">
+            <div class="editor-share-info">
+              <span class="badge badge-published" id="editor-published-ver-badge">🟢 Đã xuất bản v1</span>
+              <span style="font-size: 13px; color: var(--text-light);">Liên kết học sinh:</span>
+              <input type="text" id="editor-share-url-input" class="share-url-readonly" readonly
+                aria-label="Liên kết chia sẻ cho học sinh" />
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <button type="button" id="btn-editor-copy-share-url" class="btn btn-outline btn-sm">
+                📋 Sao chép liên kết
+              </button>
+              <button type="button" id="btn-editor-open-student-game" class="btn btn-primary btn-sm">
+                🎮 Mở trò chơi
+              </button>
+            </div>
+          </div>
+
+          <!-- Dòng tên bộ đề & thông báo quyền chỉnh sửa -->
+          <div class="editor-topbar-row">
+            <div class="editor-title-block">
+              <label for="editor-campaign-title" style="font-size: 13px; font-weight: 800; color: var(--accent-gold);">
+                🎮 Tên trò chơi:
+              </label>
+              <input type="text" id="editor-campaign-title" class="editor-campaign-title-input" maxlength="120"
+                placeholder="Nhập tên bộ đề trò chơi..." />
+              <button type="button" id="btn-editor-save-title" class="btn btn-emerald btn-sm">
+                💾 Lưu tên bộ đề
+              </button>
+            </div>
+          </div>
+
+          <div id="editor-permission-banner" class="permission-notice notice-teacher" style="margin-top: 0;"></div>
+          <div id="editor-alert-box" class="alert-box hidden" role="alert" style="margin-bottom: 0;"></div>
+        </div>
+
+        <!-- Bố cục 2 cột: Cột trái (Danh sách Phòng & Vật phẩm) – Cột phải (Nội dung chỉnh sửa) -->
+        <div class="editor-workspace">
+          <!-- CỘT BÊN TRÁI: DANH SÁCH PHÒNG THEO KHỐI & DANH SÁCH VẬT PHẨM -->
+          <aside class="editor-sidebar" aria-label="Danh sách phòng và vật phẩm">
+            <div class="editor-sidebar-box">
+              <h3 class="editor-sidebar-title">
+                <span>🏫 1. Chọn Phòng theo Khối</span>
+                <span id="editor-rooms-count-badge" class="badge badge-code">1/16 phòng</span>
+              </h3>
+              <!-- Thanh chọn khối lớp 3, 4, 5 -->
+              <div class="editor-grade-tabs" role="tablist" aria-label="Chọn khối lớp">
+                <button type="button" class="editor-grade-btn active" id="btn-editor-grade-3" data-grade="3">Khối
+                  3</button>
+                <button type="button" class="editor-grade-btn" id="btn-editor-grade-4" data-grade="4">Khối 4</button>
+                <button type="button" class="editor-grade-btn" id="btn-editor-grade-5" data-grade="5">Khối 5</button>
+              </div>
+              <div id="editor-rooms-list" class="editor-room-list">
+                <!-- Render động danh sách 16 phòng của Khối đang chọn -->
+              </div>
+            </div>
+
+            <div class="editor-sidebar-box" id="editor-sidebar-items-box">
+              <h3 class="editor-sidebar-title">
+                <span id="editor-sidebar-room-label">🧩 2. Vật phẩm trong Phòng</span>
+                <span class="badge badge-code" id="editor-items-count-badge">8 vật phẩm</span>
+              </h3>
+
+              <div class="editor-item-group-label" id="editor-tasks-group-label">
+                <span>🧩 4 Vật phẩm Nhiệm vụ chính (Cấp chữ số)</span>
+              </div>
+              <div id="editor-tasks-nav-list" class="editor-item-list">
+                <!-- Render động 4 vật phẩm task: map, computer, library, station hoặc các chặng khôi phục -->
+              </div>
+
+              <div class="editor-item-group-label" id="editor-secrets-group-label" style="margin-top: 14px;">
+                <span>🔎 4 Vật phẩm Gợi ý (Cấp manh mối)</span>
+              </div>
+              <div id="editor-secrets-nav-list" class="editor-item-list">
+                <!-- Render động 4 vật phẩm secret hoặc trạm lý thuyết -->
+              </div>
+            </div>
+          </aside>
+
+          <!-- CỘT BÊN PHẢI: KHUNG CHỈNH SỬA PHÒNG & CÂU HỎI / VẬT PHẨM -->
+          <div class="editor-main">
+            <!-- KHUNG A: THÔNG TIN PHÒNG HỌC & CẤU TRÚC MẬT MÃ MỞ CỬA -->
+            <div class="editor-panel-card" id="editor-room-settings-card">
+              <div class="editor-panel-header">
+                <div>
+                  <h3 id="editor-room-heading">🏫 Thiết lập Phòng học – Khối 3</h3>
+                  <p id="editor-room-desc" style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">
+                    Chỉnh sửa chủ đề bài học, tên không gian phòng và mật mã 4 chữ số dùng để mở cửa phòng.
+                  </p>
+                </div>
+                <button type="button" id="btn-editor-save-room" class="btn btn-emerald btn-sm">
+                  💾 Lưu thông tin Phòng
+                </button>
+              </div>
+
+              <div class="editor-grid-3">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="editor-room-topic">Chủ đề bài học của Phòng <span
+                      style="color: var(--accent-gold);">*</span></label>
+                  <input type="text" id="editor-room-topic" class="form-input"
+                    placeholder="Ví dụ: Thông tin và quyết định" maxlength="120" />
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="editor-room-theme">Tên không gian Phòng</label>
+                  <input type="text" id="editor-room-theme" class="form-input"
+                    placeholder="Ví dụ: Phòng thí nghiệm thông tin" maxlength="100" />
+                </div>
+
+                <div class="form-group" id="editor-room-passcode-group" style="margin-bottom: 0;">
+                  <label for="editor-room-passcode" id="editor-room-passcode-label">Mật mã mở cửa (4 chữ số) <span
+                      style="color: var(--accent-gold);">*</span></label>
+                  <input type="text" id="editor-room-passcode" class="form-input" inputmode="numeric" maxlength="16"
+                    placeholder="4279"
+                    style="font-family: Consolas, Monaco, monospace; font-size: 18px; font-weight: 900; letter-spacing: 3px; text-align: center; color: var(--accent-gold);" />
+                </div>
+              </div>
+
+              <!-- Hộp kiểm tra khớp mật mã mở cửa và 4 chữ số nhiệm vụ -->
+              <div id="editor-passcode-checker" class="passcode-checker-box valid">
+                <div id="editor-passcode-checker-text">
+                  Đang kiểm tra cấu trúc mật mã mở cửa...
+                </div>
+                <button type="button" id="btn-sync-passcode-digits" class="btn btn-outline btn-sm">
+                  🔄 Đồng bộ 4 chữ số nhiệm vụ theo Mật mã phòng
+                </button>
+              </div>
+            </div>
+
+            <!-- KHUNG B: TRÌNH CHỈNH SỬA VẬT PHẨM & CÂU HỎI CHI TIẾT -->
+            <div class="editor-panel-card" id="editor-item-settings-card">
+              <div class="editor-panel-header">
+                <div>
+                  <div id="editor-item-badges" class="badge-row" style="margin-bottom: 6px;"></div>
+                  <h3 id="editor-item-heading">✏️ Chỉnh sửa Vật phẩm &amp; Câu hỏi</h3>
+                  <p id="editor-item-prop-desc" style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);"></p>
+                </div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                  <button type="button" id="btn-editor-preview-item" class="btn btn-primary btn-sm">
+                    👁️ Xem trước thử thách này
+                  </button>
+                  <button type="button" id="btn-editor-save-item" class="btn btn-gold btn-sm">
+                    💾 Lưu thay đổi
+                  </button>
+                </div>
+              </div>
+
+              <!-- Hàng 1: Tiêu đề vật phẩm + Phần thưởng (Chữ số hoặc Gợi ý) -->
+              <div class="editor-grid-2" style="margin-bottom: 14px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="editor-item-title">Tiêu đề nhiệm vụ / thử thách <span
+                      style="color: var(--accent-gold);">*</span></label>
+                  <input type="text" id="editor-item-title" class="form-input" placeholder="Ví dụ: THÔNG TIN QUANH EM"
+                    maxlength="120" />
+                </div>
+
+                <!-- Hiển thị khi vật phẩm là Nhiệm vụ chính (item_type = 'task') -->
+                <div id="editor-task-digit-group" class="form-group" style="margin-bottom: 0;">
+                  <label for="editor-item-digit">
+                    🔢 Chữ số mật mã thưởng khi giải đúng <span style="color: var(--accent-gold);">*</span>
+                  </label>
+                  <select id="editor-item-digit" class="form-input"
+                    style="font-weight: 900; color: var(--accent-gold);">
+                    <option value="0">Chữ số 0</option>
+                    <option value="1">Chữ số 1</option>
+                    <option value="2">Chữ số 2</option>
+                    <option value="3">Chữ số 3</option>
+                    <option value="4">Chữ số 4</option>
+                    <option value="5">Chữ số 5</option>
+                    <option value="6">Chữ số 6</option>
+                    <option value="7">Chữ số 7</option>
+                    <option value="8">Chữ số 8</option>
+                    <option value="9">Chữ số 9</option>
+                  </select>
+                </div>
+
+                <!-- Hiển thị khi vật phẩm là Manh mối bí mật (item_type = 'secret') -->
+                <div id="editor-secret-hint-group" class="form-group hidden" style="margin-bottom: 0;">
+                  <label id="editor-item-hint-label" for="editor-item-hint">
+                    💡 Nội dung gợi ý thứ tự mật mã (tối thiểu 5 ký tự) <span
+                      style="color: var(--accent-gold);">*</span>
+                  </label>
+                  <input type="text" id="editor-item-hint" class="form-input"
+                    placeholder="Ví dụ: Chữ số đầu tiên là số chẵn lớn hơn 2." maxlength="240" />
+                  <small id="editor-hint-passcode-ref"
+                    style="display: block; margin-top: 4px; font-size: 12px; color: var(--accent-cyan);"></small>
+                </div>
+              </div>
+
+              <!-- Hàng 2: Tình huống dẫn nhập (intro) -->
+              <div class="form-group">
+                <label id="editor-item-intro-label" for="editor-item-intro">
+                  📖 Tình huống dẫn nhập / Câu chuyện mở đầu (Hiển thị phía trên câu hỏi – Có thể để trống)
+                </label>
+                <textarea id="editor-item-intro" class="form-textarea" style="min-height: 66px;"
+                  placeholder="Ví dụ: Ngày mai lớp 3A tổ chức hoạt động trồng cây..."></textarea>
+              </div>
+
+              <!-- Hàng 3: Câu hỏi / Yêu cầu chính -->
+              <div class="form-group">
+                <label for="editor-item-question" id="editor-item-question-label">
+                  ❓ Nội dung câu hỏi / Yêu cầu chính <span style="color: var(--accent-gold);">*</span>
+                </label>
+                <textarea id="editor-item-question" class="form-textarea" style="min-height: 68px;"
+                  placeholder="Nhập câu hỏi hoặc yêu cầu dành cho học sinh..."></textarea>
+              </div>
+
+              <!-- Hàng 4: KHUNG CHỈNH SỬA ĐÁP ÁN CHUYÊN BIỆT THEO TỪNG LOẠI NHIỆM VỤ (KIND) -->
+              <div id="editor-kind-container" class="kind-editor-box">
+                <!-- Render động dựa trên item.kind: single, multi, sequence, match, sort, order, pair -->
+              </div>
+
+              <!-- Hàng 5: Phản hồi khi trả lời sai & Kiến thức bổ sung -->
+              <div class="editor-grid-2" style="margin-top: 16px;">
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="editor-item-feedback">
+                    💬 Phản hồi hướng dẫn khi học sinh trả lời sai (Feedback)
+                  </label>
+                  <textarea id="editor-item-feedback" class="form-textarea"
+                    placeholder="Ví dụ: Thông tin giúp em đưa ra quyết định phù hợp. Hãy đọc kỹ từng tình huống nhé!"></textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 0;">
+                  <label for="editor-item-knowledge">
+                    🧠 Nội dung kiến thức bổ sung / Ghi nhớ sau khi hoàn thành
+                  </label>
+                  <textarea id="editor-item-knowledge" class="form-textarea"
+                    placeholder="Nhập kiến thức tóm tắt hoặc lời giải thích bổ sung cho học sinh sau khi giải đúng..."></textarea>
+                </div>
+              </div>
+
+              <!-- Thanh công cụ dưới cùng của trình chỉnh sửa vật phẩm -->
+              <div class="editor-bottom-actions">
+                <button type="button" id="btn-editor-reset-item" class="btn btn-outline btn-sm">
+                  ↩️ Khôi phục vật phẩm này về dữ liệu đã lưu
+                </button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                  <button type="button" id="btn-editor-preview-bottom" class="btn btn-primary">
+                    👁️ Xem trước nội dung đang sửa
+                  </button>
+                  <button type="button" id="btn-editor-save-bottom" class="btn btn-gold">
+                    💾 Lưu thay đổi vào Supabase
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- KHUNG C: THÔNG BÁO VỊ TRÍ PHÒNG CHƯA XÂY DỰNG -->
+            <div id="editor-unbuilt-panel" class="editor-panel-card hidden">
+              <div class="editor-panel-header">
+                <div>
+                  <div class="badge-row" style="margin-bottom: 6px;">
+                    <span class="status-badge status-unbuilt">⚪ Chưa xây dựng</span>
+                    <span class="badge badge-code" id="editor-unbuilt-slot-badge">Vị trí phòng: 02/16</span>
+                  </div>
+                  <h3 id="editor-unbuilt-heading">🏫 Phòng 02 – Khối 3: Chưa xây dựng</h3>
+                  <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">
+                    Vị trí phòng này nằm trong cấu trúc chuẩn 16 phòng của khối học nhưng chưa được phát triển nội dung.
+                  </p>
+                </div>
+              </div>
+
+              <div
+                style="padding: 28px 20px; text-align: center; background: rgba(5, 18, 40, 0.55); border-radius: var(--radius-md); border: 1.5px dashed rgba(114, 213, 255, 0.2); margin-top: 14px;">
+                <div style="font-size: 46px; margin-bottom: 12px;">🏗️</div>
+                <h4 style="margin: 0 0 8px; font-size: 16px; color: var(--accent-gold);">Phòng chưa có dữ liệu trong hệ
+                  thống</h4>
+                <p
+                  style="max-width: 580px; margin: 0 auto 16px; font-size: 13.5px; color: var(--text-muted); line-height: 1.6;">
+                  Theo nguyên tắc kiến trúc của hệ thống AI Escape Lab, mỗi phòng có thể sử dụng một cơ chế chơi
+                  (gameplay engine) độc lập. Hệ thống không tạo sẵn bản ghi trống trong cơ sở dữ liệu để bảo toàn tính
+                  toàn vẹn dữ liệu.
+                </p>
+                <div id="editor-unbuilt-role-hint" class="permission-notice notice-teacher"
+                  style="max-width: 580px; margin: 0 auto; text-align: left; font-size: 12.5px;">
+                  <span>💡</span>
+                  <span>
+                    <strong>Thông tin:</strong> Biểu mẫu chỉnh sửa câu hỏi chỉ mở khi phòng đã được Quản trị viên
+                    (Admin) phát triển cơ chế và tích hợp vào hệ thống MASTER.
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- KHUNG D: THÔNG BÁO MODULE GAMEPLAY CHƯA HỖ TRỢ BỞI EDITOR HIỆN TẠI -->
+            <div id="editor-unsupported-module-panel" class="editor-panel-card hidden">
+              <div class="editor-panel-header">
+                <div>
+                  <div class="badge-row" style="margin-bottom: 6px;">
+                    <span class="badge badge-personal" id="editor-unsupported-module-badge">Module: unknown</span>
+                  </div>
+                  <h3 id="editor-unsupported-heading">🎮 Module Gameplay Độc Lập</h3>
+                  <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">
+                    Phòng học này sử dụng cơ chế gameplay chuyên biệt.
+                  </p>
+                </div>
+              </div>
+
+              <div
+                style="padding: 28px 20px; text-align: center; background: rgba(5, 18, 40, 0.55); border-radius: var(--radius-md); border: 1.5px solid rgba(114, 213, 255, 0.25); margin-top: 14px;">
+                <div style="font-size: 46px; margin-bottom: 12px;">🕹️</div>
+                <h4 style="margin: 0 0 8px; font-size: 16px; color: var(--accent-cyan);" id="editor-unsupported-title">
+                  Gameplay Module Riêng Biệt</h4>
+                <p id="editor-unsupported-desc"
+                  style="max-width: 580px; margin: 0 auto 16px; font-size: 13.5px; color: var(--text-muted); line-height: 1.6;">
+                  Phòng này sử dụng module trò chơi riêng, khác với định dạng Escape Room Point-and-Click v1. Trình
+                  chỉnh sửa chuyên biệt cho module này sẽ được mở khi cập nhật phiên bản tương ứng.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3.5. TRANG QUẢN LÝ GIÁO VIÊN & PHÊ DUYỆT TÀI KHOẢN (CHỈ DÀNH CHO ADMIN) -->
+      <section id="teachers-section" class="hidden" aria-labelledby="teachers-section-heading">
+        <div class="section-header">
+          <div>
+            <h2 id="teachers-section-heading" class="section-title">
+              👥 Quản lý Tài khoản Giáo viên &amp; Phê duyệt Truy cập
+            </h2>
+            <p class="section-sub">
+              Khu vực dành riêng cho Quản trị viên (Admin) tạo tài khoản giáo viên trực tiếp, xét duyệt yêu cầu tự đăng
+              ký và kiểm soát quyền truy cập Teacher Studio.
+            </p>
+          </div>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" id="btn-refresh-teachers" class="btn btn-outline btn-sm">
+              🔄 Làm mới danh sách
+            </button>
+            <button type="button" id="btn-open-create-teacher-modal" class="btn btn-gold">
+              ➕ Thêm giáo viên
+            </button>
+          </div>
+        </div>
+
+        <!-- Thống kê nhanh trạng thái tài khoản -->
+        <div class="stats-grid" style="margin-bottom: 22px;">
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div>
+              <div class="stat-label">Tổng số tài khoản</div>
+              <div id="teacher-stat-total" class="stat-value">0</div>
+              <div class="stat-sub">Admin &amp; Giáo viên trên hệ thống</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🟢</div>
+            <div>
+              <div class="stat-label">Đã phê duyệt (Approved)</div>
+              <div id="teacher-stat-approved" class="stat-value">0</div>
+              <div class="stat-sub">Đang có quyền sử dụng Teacher Studio</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">⏳</div>
+            <div>
+              <div class="stat-label">Chờ phê duyệt (Pending)</div>
+              <div id="teacher-stat-pending" class="stat-value">0</div>
+              <div class="stat-sub">Yêu cầu tự đăng ký đang chờ duyệt</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🔒</div>
+            <div>
+              <div class="stat-label">Từ chối / Bị khóa</div>
+              <div id="teacher-stat-blocked" class="stat-value">0</div>
+              <div class="stat-sub">Đã chặn truy cập Teacher Studio</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- KHU VỰC C: YÊU CẦU ĐẶT LẠI MẬT KHẨU (PASSWORD RESET REQUESTS) -->
+        <div class="teacher-mgmt-card" style="margin-bottom: 24px;">
+          <div class="teacher-mgmt-header">
+            <div>
+              <h3 style="margin: 0; font-size: 18px; color: #ffca65;">
+                🔑 Yêu cầu hỗ trợ đặt lại mật khẩu
+              </h3>
+              <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">
+                Danh sách giáo viên gửi yêu cầu hỗ trợ mật khẩu từ màn hình đăng nhập. Admin kiểm tra và nhấn "Cấp lại
+                mật khẩu" để tạo mật khẩu tạm thời mới.
+              </p>
+            </div>
+            <span id="reset-requests-count-badge" class="badge badge-draft">0 yêu cầu</span>
+          </div>
+
+          <div id="reset-requests-empty" class="state-box" style="padding: 24px;">
+            <p style="margin: 0; color: var(--text-muted);">
+              ✅ Hiện không có yêu cầu hỗ trợ mật khẩu nào đang chờ xử lý.
+            </p>
+          </div>
+
+          <div id="reset-requests-list" class="pending-requests-grid hidden">
+            <!-- Render động danh sách yêu cầu reset mật khẩu -->
+          </div>
+        </div>
+
+        <!-- KHU VỰC B: YÊU CẦU ĐĂNG KÝ ĐANG CHỜ PHÊ DUYỆT -->
+        <div class="teacher-mgmt-card" style="margin-bottom: 24px;">
+          <div class="teacher-mgmt-header">
+            <div>
+              <h3 style="margin: 0; font-size: 18px; color: var(--accent-gold);">
+                ⏳ Yêu cầu đăng ký đang chờ phê duyệt
+              </h3>
+              <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">
+                Các tài khoản do giáo viên tự đăng ký đang ở trạng thái <code>pending</code> (chưa có quyền truy cập dữ
+                liệu hay RPC).
+              </p>
+            </div>
+            <span id="pending-requests-count-badge" class="badge badge-draft">0 yêu cầu</span>
+          </div>
+
+          <div id="pending-requests-empty" class="state-box" style="padding: 24px;">
+            <p style="margin: 0; color: var(--text-muted);">
+              ✅ Hiện không có yêu cầu đăng ký nào đang chờ phê duyệt.
+            </p>
+          </div>
+
+          <div id="pending-requests-list" class="pending-requests-grid hidden">
+            <!-- Render động danh sách tài khoản pending -->
+          </div>
+        </div>
+
+        <!-- KHU VỰC A: DANH SÁCH GIÁO VIÊN & TÀI KHOẢN HỆ THỐNG -->
+        <div class="teacher-mgmt-card">
+          <div class="teacher-mgmt-header">
+            <div>
+              <h3 style="margin: 0; font-size: 18px; color: var(--accent-cyan);">
+                📋 Danh sách Giáo viên &amp; Tài khoản Hệ thống
+              </h3>
+              <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">
+                Toàn bộ tài khoản trong trường kèm trạng thái phê duyệt, hình thức tạo tài khoản và công cụ khóa / mở
+                khóa.
+              </p>
+            </div>
+          </div>
+
+          <div class="toolbar-row" style="margin-top: 14px;">
+            <div class="toolbar-filters">
+              <input type="search" id="search-teachers-input" class="search-input"
+                placeholder="🔎 Tìm theo họ tên, email hoặc trường học..." aria-label="Tìm kiếm giáo viên" />
+              <select id="filter-teachers-status" class="filter-select" aria-label="Lọc theo trạng thái tài khoản">
+                <option value="all">Tất cả trạng thái</option>
+                <option value="approved">🟢 Đã phê duyệt (approved)</option>
+                <option value="pending">⏳ Chờ phê duyệt (pending)</option>
+                <option value="rejected">🚫 Từ chối (rejected)</option>
+                <option value="suspended">🔒 Bị khóa (suspended)</option>
+              </select>
+            </div>
+            <div style="font-size: 13px; color: var(--text-muted);">
+              Hiển thị <strong id="teachers-visible-count" style="color: var(--accent-cyan);">0</strong> tài khoản
+            </div>
+          </div>
+
+          <div class="teachers-table-wrap">
+            <table class="teachers-table">
+              <thead>
+                <tr>
+                  <th>Họ và tên / Đơn vị</th>
+                  <th>Email</th>
+                  <th>Vai trò</th>
+                  <th>Trạng thái tài khoản</th>
+                  <th>Hình thức tạo</th>
+                  <th>Ngày tạo</th>
+                  <th style="text-align: right;">Thao tác quản trị</th>
+                </tr>
+              </thead>
+              <tbody id="teachers-table-body">
+                <!-- Render động bởi studio.js -->
+              </tbody>
+            </table>
+          </div>
+
+          <div id="teachers-table-empty" class="state-box hidden" style="padding: 24px; margin-top: 12px;">
+            <p style="margin: 0; color: var(--text-muted);">
+              Không tìm thấy tài khoản giáo viên nào phù hợp với bộ lọc hiện tại.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CHÂN TRANG NHẬN DIỆN THƯƠNG HIỆU -->
+      <footer class="studio-footer">
+        <div class="studio-footer-content">
+          <span class="studio-footer-brand">AI Escape Lab – Én Én</span>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- ========================================================================
+       4. MODAL TẠO TRÒ CHƠI RIÊNG TỪ KHO MASTER (CLONE CAMPAIGN RPC)
+       ======================================================================== -->
+  <div id="clone-modal-backdrop" class="studio-modal-backdrop hidden" role="dialog" aria-modal="true"
+    aria-labelledby="clone-modal-title">
+    <div class="studio-modal">
+      <div class="modal-header">
+        <div>
+          <h2 id="clone-modal-title">🧬 Tạo trò chơi riêng từ kho MASTER</h2>
+          <p style="margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted);">
+            Sử dụng RPC <code>public.clone_campaign</code> để sao chép nguyên vẹn 3 phòng học (Khối 3, 4, 5) và 24 câu
+            hỏi về tài khoản của bạn dưới dạng <strong>Bản nháp</strong>.
+          </p>
+        </div>
+        <button type="button" id="btn-close-clone-modal" class="btn-close-modal" aria-label="Đóng hộp thoại">×</button>
+      </div>
+
+      <div id="clone-modal-alert" class="alert-box hidden" role="alert"></div>
+
+      <form id="clone-campaign-form" novalidate>
+        <div class="form-group">
+          <label for="clone-source-select">Bộ đề nguồn (Source Template)</label>
+          <select id="clone-source-select" class="form-input" disabled>
+            <option value="MASTER">⭐ MASTER – AI Escape Lab (Bộ đề chuẩn Khối 3, 4, 5 • 24 vật phẩm)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="clone-new-title">Tên trò chơi mới của bạn <span
+              style="color: var(--accent-gold);">*</span></label>
+          <input type="text" id="clone-new-title" class="form-input"
+            placeholder="Ví dụ: AI Escape Lab - Lớp 4A1 Cô Yến (Học kỳ 1)" maxlength="120" required />
+        </div>
+
+        <div class="form-group">
+          <label for="clone-new-share-code">
+            Mã chia sẻ (Share Code) <span style="color: var(--accent-gold);">*</span>
+          </label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="clone-new-share-code" class="form-input" placeholder="Ví dụ: SKYLINE-4A1"
+              maxlength="30"
+              style="font-family: Consolas, Monaco, monospace; text-transform: uppercase; font-weight: 800;" required />
+            <button type="button" id="btn-generate-share-code" class="btn btn-outline btn-sm" title="Tạo mã ngẫu nhiên">
+              🎲 Tạo mã
+            </button>
+          </div>
+          <small style="display: block; margin-top: 6px; font-size: 12px; color: var(--text-muted);">
+            Chỉ gồm chữ cái in hoa (A–Z), chữ số (0–9), dấu gạch ngang (<code>-</code>) hoặc gạch dưới (<code>_</code>),
+            độ dài 3–30 ký tự, không trùng với <code>MASTER</code>.
+          </small>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="btn-cancel-clone" class="btn btn-outline">Hủy bỏ</button>
+          <button type="submit" id="btn-submit-clone" class="btn btn-gold">
+            🚀 Sao chép &amp; Tạo trò chơi
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       5. MODAL XEM & QUẢN LÝ CHI TIẾT TRÒ CHƠI (INSPECTOR & MANAGER MODAL)
+       ======================================================================== -->
+  <div id="inspect-modal-backdrop" class="studio-modal-backdrop hidden" role="dialog" aria-modal="true"
+    aria-labelledby="inspect-modal-title">
+    <div class="studio-modal modal-xl">
+      <div class="modal-header">
+        <div>
+          <div id="inspect-badges-row" class="badge-row" style="margin-bottom: 6px;"></div>
+          <h2 id="inspect-modal-title">Chi tiết Bộ đề</h2>
+          <p id="inspect-modal-subtitle" style="margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted);"></p>
+        </div>
+        <button type="button" id="btn-close-inspect-modal" class="btn-close-modal"
+          aria-label="Đóng hộp thoại">×</button>
+      </div>
+
+      <!-- Thông báo quyền hạn trong Modal Chi tiết -->
+      <div id="inspect-permission-banner" class="permission-notice notice-teacher"
+        style="margin-top: 0; margin-bottom: 16px;"></div>
+
+      <!-- Hộp đổi tên nhanh bộ đề (Chỉ bật cho Chủ sở hữu bộ đề cá nhân hoặc Admin trên MASTER) -->
+      <form id="inspect-rename-form" class="toolbar-row hidden" style="margin-bottom: 16px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex: 1; flex-wrap: wrap;">
+          <label for="inspect-title-input" style="font-size: 13px; font-weight: 800; color: var(--accent-gold);">
+            ✏️ Tên bộ đề:
+          </label>
+          <input type="text" id="inspect-title-input" class="search-input" style="max-width: 520px;" required />
+          <button type="submit" id="btn-save-campaign-title" class="btn btn-emerald btn-sm">
+            💾 Lưu tên mới
+          </button>
+        </div>
+        <span style="font-size: 12px; color: var(--text-muted);">
+          (Trình chỉnh sửa từng câu hỏi chi tiết &amp; Xuất bản sẽ mở ở Giai đoạn 2)
+        </span>
+      </form>
+
+      <!-- Thanh chọn Khối 3, Khối 4, Khối 5 -->
+      <div id="inspect-grade-tabs" class="grade-tabs-bar" role="tablist" aria-label="Chọn Khối lớp để xem nội dung">
+        <!-- Render động 3 nút Khối 3, Khối 4, Khối 5 -->
+      </div>
+
+      <!-- Tóm tắt thông tin Phòng của Khối đang chọn -->
+      <div id="inspect-room-summary" class="room-summary-bar">
+        <!-- Render động chủ đề phòng, mã khóa 4 chữ số, số nhiệm vụ & manh mối -->
+      </div>
+
+      <!-- Danh sách 8 vật phẩm (4 Nhiệm vụ chính + 4 Vật phẩm bí mật) -->
+      <div class="items-columns">
+        <div class="items-group-box">
+          <h3 class="items-group-title">
+            <span>🧩 4 Nhiệm vụ chính (Cung cấp chữ số mật mã)</span>
+            <span id="inspect-tasks-count" class="badge badge-personal">4 vật phẩm</span>
+          </h3>
+          <div id="inspect-tasks-list"></div>
+        </div>
+
+        <div class="items-group-box">
+          <h3 class="items-group-title">
+            <span>🔎 4 Vật phẩm bí mật (Cung cấp gợi ý mở khóa)</span>
+            <span id="inspect-secrets-count" class="badge badge-master">4 vật phẩm</span>
+          </h3>
+          <div id="inspect-secrets-list"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="btn-inspect-publish" class="btn btn-emerald hidden">
+          🚀 Xuất bản &amp; Chia sẻ
+        </button>
+        <button type="button" id="btn-inspect-open-editor" class="btn btn-primary">
+          ✏️ Mở trong Game Editor
+        </button>
+        <button type="button" id="btn-inspect-clone-shortcut" class="btn btn-gold hidden">
+          🧬 Sao chép bộ đề MASTER này
+        </button>
+        <button type="button" id="btn-close-inspect-footer" class="btn btn-outline">
+          Đóng cửa sổ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       6. MODAL CẬP NHẬT HỒ SƠ CÁ NHÂN (PROFILES)
+       ======================================================================== -->
+  <div id="profile-modal-backdrop" class="studio-modal-backdrop hidden" role="dialog" aria-modal="true"
+    aria-labelledby="profile-modal-title">
+    <div class="studio-modal">
+      <div class="modal-header">
+        <div>
+          <h2 id="profile-modal-title">👤 Cập nhật Hồ sơ Giáo viên / Admin</h2>
+          <p style="margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted);">
+            Thông tin hiển thị trên Teacher Studio (Vai trò tài khoản được bảo vệ bởi hệ thống).
+          </p>
+        </div>
+        <button type="button" id="btn-close-profile-modal" class="btn-close-modal"
+          aria-label="Đóng hộp thoại">×</button>
+      </div>
+
+      <div id="profile-modal-alert" class="alert-box hidden" role="alert"></div>
+
+      <form id="profile-update-form" novalidate>
+        <div class="form-group">
+          <label for="profile-edit-email">Địa chỉ Email (Không thể thay đổi)</label>
+          <input type="email" id="profile-edit-email" class="form-input" disabled />
+        </div>
+
+        <div class="form-group">
+          <label for="profile-edit-role">Vai trò hệ thống (Được bảo vệ bởi RLS &amp; Trigger)</label>
+          <input type="text" id="profile-edit-role" class="form-input" disabled />
+        </div>
+
+        <div class="form-group">
+          <label for="profile-edit-fullname">Họ và tên hiển thị <span
+              style="color: var(--accent-gold);">*</span></label>
+          <input type="text" id="profile-edit-fullname" class="form-input" placeholder="Nhập họ và tên của bạn..."
+            maxlength="100" required />
+        </div>
+
+        <div class="form-group">
+          <label for="profile-edit-school">Trường học / Đơn vị công tác</label>
+          <input type="text" id="profile-edit-school" class="form-input"
+            placeholder="Ví dụ: Trường Tiểu học – THCS – THPT Sky-Line" maxlength="150" />
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="btn-cancel-profile" class="btn btn-outline">Hủy</button>
+          <button type="submit" id="btn-submit-profile" class="btn btn-emerald">
+            💾 Lưu thông tin hồ sơ
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       7. MODAL XEM TRƯỚC TƯƠNG TÁC (INTERACTIVE GAME PREVIEW & ANSWER KEY)
+       ======================================================================== -->
+  <div id="preview-modal-backdrop" class="studio-modal-backdrop hidden" role="dialog" aria-modal="true"
+    aria-labelledby="preview-modal-title">
+    <div class="studio-modal modal-xl">
+      <div class="modal-header">
+        <div>
+          <div class="badge-row" style="margin-bottom: 6px;">
+            <span class="badge badge-personal">👁️ CHẾ ĐỘ XEM TRƯỚC TƯƠNG TÁC (PREVIEW)</span>
+            <span class="badge badge-code">Không cần xuất bản • Không ảnh hưởng dữ liệu học sinh</span>
+          </div>
+          <h2 id="preview-modal-title">Xem trước Phòng học &amp; Thử thách</h2>
+          <p id="preview-modal-subtitle" style="margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted);"></p>
+        </div>
+        <button type="button" id="btn-close-preview-modal" class="btn-close-modal"
+          aria-label="Đóng hộp thoại">×</button>
+      </div>
+
+      <!-- Chuyển chế độ Xem trước: Chơi thử tương tác vs Bảng tổng hợp đáp án -->
+      <div
+        style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" id="btn-preview-mode-play" class="btn btn-gold btn-sm">
+            🎮 Chơi thử Tương tác (Như học sinh trong Game)
+          </button>
+          <button type="button" id="btn-preview-mode-summary" class="btn btn-outline btn-sm">
+            📋 Bảng tổng hợp 8 Câu hỏi, Đáp án &amp; Gợi ý
+          </button>
+        </div>
+        <span style="font-size: 12.5px; color: var(--accent-cyan);">
+          💡 Bạn đang xem trước trực tiếp dữ liệu trên trình soạn thảo (kể cả nội dung vừa sửa chưa lưu).
+        </span>
+      </div>
+
+      <!-- Chế độ 1: Chơi thử tương tác từng vật phẩm + Cửa mật mã 4 chữ số -->
+      <div id="preview-play-container">
+        <div id="preview-items-selector" class="preview-item-selector">
+          <!-- Render động 8 nút vật phẩm + 1 nút Cửa mật mã 4 chữ số -->
+        </div>
+        <div id="preview-stage-box" class="preview-stage">
+          <!-- Render động giao diện chơi thử của vật phẩm đang chọn -->
+        </div>
+      </div>
+
+      <!-- Chế độ 2: Bảng tổng hợp toàn bộ câu hỏi, đáp án đúng và gợi ý trong phòng -->
+      <div id="preview-summary-container" class="hidden">
+        <!-- Render động bảng đối chiếu 8 vật phẩm + mật mã phòng -->
+      </div>
+
+      <div class="modal-footer"
+        style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <button type="button" id="btn-preview-launch-live-game" class="btn btn-gold">
+          🚀 Mở Trực Tiếp Phòng Game Thực Tế (Live Preview)
+        </button>
+        <button type="button" id="btn-close-preview-footer" class="btn btn-outline">
+          Đóng Xem trước
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       8. MODAL XUẤT BẢN & CHIA SẺ TRÒ CHƠI CHO HỌC SINH (PUBLISH & SHARE MODAL)
+       ======================================================================== -->
+  <div id="publish-modal-backdrop" class="studio-modal-backdrop hidden" role="dialog" aria-modal="true"
+    aria-labelledby="publish-modal-title">
+    <div class="studio-modal" style="width: min(680px, 96vw);">
+      <div class="modal-header">
+        <div>
+          <div id="publish-modal-badges" class="badge-row" style="margin-bottom: 6px;"></div>
+          <h2 id="publish-modal-title">🚀 Xuất bản &amp; Chia sẻ Trò chơi</h2>
+          <p id="publish-modal-subtitle" style="margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted);">
+            Kiểm tra tính hợp lệ bằng <code>public.validate_campaign</code> và phát hành lên
+            <code>public.published_campaigns</code>.
+          </p>
+        </div>
+        <button type="button" id="btn-close-publish-modal" class="btn-close-modal"
+          aria-label="Đóng hộp thoại">×</button>
+      </div>
+
+      <!-- Hộp thông báo kết quả kiểm tra / xuất bản -->
+      <div id="publish-modal-alert" class="alert-box hidden" role="alert"></div>
+
+      <!-- Khung hướng dẫn sửa lỗi nhanh nếu bộ đề chưa hợp lệ -->
+      <div id="publish-error-fix-box" class="publish-fix-box hidden">
+        <div id="publish-error-fix-text" style="font-size: 13.5px; color: #ffe4e8;"></div>
+        <button type="button" id="btn-publish-goto-fix" class="btn btn-gold btn-sm">
+          🔧 Mở ngay vị trí cần sửa trong Game Editor
+        </button>
+      </div>
+
+      <!-- Khung tóm tắt kiểm tra trước khi xuất bản -->
+      <div id="publish-summary-box" class="publish-summary-box">
+        <!-- Render động danh sách kiểm tra 3 phòng Khối 3, 4, 5 và thông tin phiên bản -->
+      </div>
+
+      <!-- Khung liên kết chia sẻ cho học sinh (hiển thị khi đã xuất bản) -->
+      <div id="publish-share-box" class="publish-share-card hidden">
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+          <strong style="color: var(--accent-green); font-size: 14.5px;">
+            🔗 Liên kết Trò chơi dành cho Học sinh (Không cần đăng nhập)
+          </strong>
+          <span id="publish-share-version-pill" class="badge badge-published">Phiên bản: v1</span>
+        </div>
+        <p style="margin: 0 0 10px; font-size: 12.5px; color: var(--text-light);">
+          Gửi liên kết bên dưới cho học sinh để mở trực tiếp bộ đề này. Nếu bạn chỉnh sửa thêm ở bản nháp, học sinh vẫn
+          chơi phiên bản đã xuất bản hiện tại cho đến khi bạn nhấn <strong>Xuất bản lại</strong>.
+        </p>
+        <div class="share-url-row">
+          <input type="text" id="publish-share-url-input" class="form-input share-url-input" readonly
+            aria-label="Liên kết chia sẻ trò chơi cho học sinh" />
+          <button type="button" id="btn-publish-copy-url" class="btn btn-gold btn-sm">
+            📋 Sao chép liên kết
+          </button>
+          <button type="button" id="btn-publish-open-game" class="btn btn-primary btn-sm">
+            🎮 Mở trò chơi
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="btn-cancel-publish" class="btn btn-outline">Đóng</button>
+        <button type="button" id="btn-confirm-publish" class="btn btn-emerald">
+          🚀 Xác nhận Xuất bản ngay
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       9. MODAL ADMIN TRỰC TIẾP TẠO TÀI KHOẢN GIÁO VIÊN (ADMIN CREATE TEACHER)
+       ======================================================================== -->
+  <div id="create-teacher-modal-backdrop" class="studio-modal-backdrop hidden" role="dialog" aria-modal="true"
+    aria-labelledby="create-teacher-modal-title">
+    <div class="studio-modal">
+      <div class="modal-header">
+        <div>
+          <h2 id="create-teacher-modal-title">➕ Thêm Tài khoản Giáo viên mới</h2>
+          <p style="margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted);">
+            Chỉ cần nhập Họ tên và Email đăng nhập. Hệ thống sẽ tự động sinh mật khẩu tạm thời đủ mạnh và hiển thị một
+            lần duy nhất sau khi tạo.
+          </p>
+        </div>
+        <button type="button" id="btn-close-create-teacher-modal" class="btn-close-modal"
+          aria-label="Đóng hộp thoại">×</button>
+      </div>
+
+      <div id="create-teacher-modal-alert" class="alert-box hidden" role="alert"></div>
+
+      <form id="create-teacher-form" novalidate>
+        <div class="form-group">
+          <label for="admin-teacher-fullname">Họ và tên <span style="color: var(--accent-gold);">*</span></label>
+          <input type="text" id="admin-teacher-fullname" class="form-input" placeholder="Ví dụ: Trần Thị Minh"
+            maxlength="100" required />
+        </div>
+
+        <div class="form-group">
+          <label for="admin-teacher-email">Email đăng nhập <span style="color: var(--accent-gold);">*</span></label>
+          <input type="email" id="admin-teacher-email" class="form-input" placeholder="Ví dụ: giaovien@truonghoc.edu.vn"
+            autocomplete="off" required />
+        </div>
+
+        <div class="permission-notice notice-teacher" style="margin-top: 8px; margin-bottom: 4px; font-size: 12.5px;">
+          <span>🔐</span>
+          <span>
+            Khi nhấn <strong>Tạo tài khoản</strong>, hệ thống sẽ tự tạo mật khẩu tạm thời riêng biệt, gán vai trò
+            <strong>Teacher (Đã phê duyệt)</strong> và bắt buộc giáo viên đổi mật khẩu ở lần đăng nhập đầu tiên.
+          </span>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="btn-cancel-create-teacher" class="btn btn-outline">Hủy</button>
+          <button type="submit" id="btn-submit-create-teacher" class="btn btn-gold">
+            🚀 Tạo tài khoản
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       9B. MODAL XÁC NHẬN RESET MẬT KHẨU GIÁO VIÊN (ADMIN RESET TEACHER PASSWORD)
+       ======================================================================== -->
+  <div id="reset-teacher-pw-modal-backdrop" class="studio-modal-backdrop hidden" role="dialog" aria-modal="true"
+    aria-labelledby="reset-teacher-pw-modal-title">
+    <div class="studio-modal">
+      <div class="modal-header">
+        <div>
+          <h2 id="reset-teacher-pw-modal-title">🔑 Xác nhận Reset mật khẩu Giáo viên</h2>
+          <p style="margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted);">
+            Tạo mật khẩu tạm thời mới cho tài khoản giáo viên và yêu cầu đổi mật khẩu khi đăng nhập tiếp theo.
+          </p>
+        </div>
+        <button type="button" id="btn-close-reset-teacher-pw-modal" class="btn-close-modal"
+          aria-label="Đóng hộp thoại">×</button>
+      </div>
+
+      <div id="reset-teacher-pw-alert" class="alert-box hidden" role="alert"></div>
+
+      <div
+        style="background: rgba(6, 21, 47, 0.85); border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 14px;">
+        <div style="font-size: 13px; color: var(--text-muted);">Tài khoản giáo viên được chọn:</div>
+        <div id="reset-pw-target-name"
+          style="font-size: 16.5px; font-weight: 800; color: var(--text-white); margin-top: 4px;">---</div>
+        <div id="reset-pw-target-email"
+          style="font-size: 13.5px; color: var(--accent-cyan); font-family: Consolas, Monaco, monospace; margin-top: 2px;">
+          ---</div>
+      </div>
+
+      <div class="permission-notice notice-teacher" style="margin-top: 0;">
+        <span>⚠️</span>
+        <span>
+          <strong>Cảnh báo quan trọng:</strong> Sau khi xác nhận, <strong>mật khẩu hiện tại của giáo viên sẽ không còn
+            sử dụng được nữa</strong>. Hệ thống sẽ tạo một mật khẩu tạm thời mới (hiển thị một lần duy nhất) và bắt buộc
+          giáo viên đổi mật khẩu trong lần đăng nhập tiếp theo.
+        </span>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="btn-cancel-reset-teacher-pw" class="btn btn-outline">Hủy bỏ</button>
+        <button type="button" id="btn-confirm-reset-teacher-pw" class="btn btn-gold">
+          🔑 Xác nhận Reset mật khẩu
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       9C. MODAL HIỂN THỊ THÔNG TIN ĐĂNG NHẬP TẠM THỜI MỘT LẦN DUY NHẤT
+       ======================================================================== -->
+  <div id="teacher-credentials-modal-backdrop" class="studio-modal-backdrop hidden" role="dialog" aria-modal="true"
+    aria-labelledby="credentials-modal-title">
+    <div class="studio-modal">
+      <div class="modal-header">
+        <div>
+          <h2 id="credentials-modal-title">🔐 Thông tin đăng nhập Giáo viên (Hiển thị 1 lần)</h2>
+          <p id="credentials-modal-subtitle" style="margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted);">
+            Tài khoản giáo viên đã sẵn sàng. Vui lòng sao chép thông tin bên dưới.
+          </p>
+        </div>
+        <button type="button" id="btn-close-credentials-modal" class="btn-close-modal"
+          aria-label="Đóng hộp thoại">×</button>
+      </div>
+
+      <div class="permission-notice notice-teacher" style="margin-top: 0; margin-bottom: 16px;">
+        <span>⚠️</span>
+        <span>
+          <strong>Lưu ý bảo mật:</strong> Mật khẩu tạm thời này <strong>chỉ hiển thị một lần duy nhất</strong> và không
+          được lưu trữ dạng văn bản trong cơ sở dữ liệu. Admin cần sao chép và cung cấp thông tin này trực tiếp cho đúng
+          giáo viên.
+        </span>
+      </div>
+
+      <div
+        style="background: rgba(5, 18, 42, 0.92); border: 1.5px solid var(--accent-gold); border-radius: var(--radius-lg); padding: 16px 18px; display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Họ và tên
+            Giáo viên</div>
+          <div id="credentials-teacher-name"
+            style="font-size: 15.5px; font-weight: 800; color: var(--text-white); margin-top: 2px;">---</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Email
+            đăng nhập</div>
+          <div id="credentials-teacher-email"
+            style="font-size: 15px; font-weight: 800; color: var(--accent-cyan); font-family: Consolas, Monaco, monospace; margin-top: 2px;">
+            ---</div>
+        </div>
+        <div>
+          <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Mật khẩu
+            tạm thời (Bắt buộc đổi ở lần đăng nhập đầu tiên)</div>
+          <div id="credentials-temp-password"
+            style="font-size: 18px; font-weight: 900; color: var(--accent-gold); font-family: Consolas, Monaco, monospace; letter-spacing: 0.8px; margin-top: 4px; padding: 8px 12px; background: rgba(255, 224, 102, 0.12); border: 1px dashed var(--accent-gold); border-radius: 8px; user-select: all;">
+            ---</div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button type="button" id="btn-copy-teacher-credentials" class="btn btn-gold">
+          📋 Sao chép thông tin đăng nhập
+        </button>
+        <button type="button" id="btn-done-credentials-modal" class="btn btn-emerald">
+          ✅ Đã sao chép &amp; Đóng
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       10. MODAL BẮT BUỘC ĐỔI MẬT KHẨU LẦN ĐẦU (FIRST LOGIN PASSWORD CHANGE)
+       ======================================================================== -->
+  <div id="first-pw-modal-backdrop" class="studio-modal-backdrop hidden" role="dialog" aria-modal="true"
+    aria-labelledby="first-pw-modal-title">
+    <div class="studio-modal">
+      <div class="modal-header">
+        <div>
+          <h2 id="first-pw-modal-title">🔐 Đổi mật khẩu lần đầu</h2>
+          <p style="margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted);">
+            Bạn đang đăng nhập bằng mật khẩu tạm thời do Quản trị viên cấp. Để bảo vệ tài khoản, bạn bắt buộc phải thiết
+            lập mật khẩu mới trước khi vào Teacher Studio.
+          </p>
+        </div>
+      </div>
+
+      <div id="first-pw-modal-alert" class="alert-box hidden" role="alert"></div>
+
+      <form id="first-pw-form" novalidate>
+        <div class="form-group">
+          <label for="first-pw-new">
+            Mật khẩu mới (tối thiểu 8 ký tự, gồm chữ hoa, chữ thường và số) <span
+              style="color: var(--accent-gold);">*</span>
+          </label>
+          <div class="input-row">
+            <input type="password" id="first-pw-new" class="form-input" placeholder="Nhập mật khẩu mới đủ mạnh..."
+              autocomplete="new-password" minlength="8" required />
+            <button type="button" id="btn-toggle-first-pw" class="btn-toggle-pw" title="Hiện/Ẩn mật khẩu">
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="first-pw-confirm">Xác nhận mật khẩu mới <span style="color: var(--accent-gold);">*</span></label>
+          <input type="password" id="first-pw-confirm" class="form-input" placeholder="Nhập lại mật khẩu mới..."
+            autocomplete="new-password" minlength="8" required />
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="btn-first-pw-logout" class="btn btn-outline">
+            🚪 Đăng xuất
+          </button>
+          <button type="submit" id="btn-submit-first-pw" class="btn btn-gold">
+            💾 Lưu mật khẩu mới &amp; Vào Teacher Studio
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL ĐỔI MẬT KHẨU TÀI KHOẢN (CHANGE PASSWORD MODAL) -->
+  <div id="change-pw-modal-backdrop" class="studio-modal-backdrop hidden" role="dialog" aria-modal="true"
+    aria-labelledby="change-pw-modal-title">
+    <div class="studio-modal" style="width: min(500px, 96vw);">
+      <div class="modal-header">
+        <div>
+          <h2 id="change-pw-modal-title">🔑 Đổi mật khẩu tài khoản</h2>
+          <p style="margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted);">
+            Nhập mật khẩu mới tối thiểu 8 ký tự (bao gồm chữ hoa, chữ thường và chữ số).
+          </p>
+        </div>
+        <button type="button" id="btn-close-change-pw-modal" class="btn-close-modal"
+          aria-label="Đóng hộp thoại">×</button>
+      </div>
+
+      <div id="change-pw-modal-alert" class="alert-box hidden" role="alert"></div>
+
+      <form id="change-pw-form" autocomplete="off" novalidate>
+        <div class="form-group">
+          <label for="change-pw-new">Mật khẩu mới <span style="color: var(--accent-gold);">*</span></label>
+          <div class="input-row">
+            <input type="password" id="change-pw-new" class="form-input"
+              placeholder="Nhập mật khẩu mới (tối thiểu 8 ký tự)..." autocomplete="new-password" minlength="8"
+              required />
+            <button type="button" id="btn-toggle-change-pw" class="btn-toggle-pw" title="Hiện/Ẩn mật khẩu"
+              aria-label="Hiện hoặc ẩn mật khẩu">
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="change-pw-confirm">Xác nhận mật khẩu mới <span style="color: var(--accent-gold);">*</span></label>
+          <input type="password" id="change-pw-confirm" class="form-input" placeholder="Nhập lại mật khẩu mới..."
+            autocomplete="new-password" minlength="8" required />
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" id="btn-cancel-change-pw" class="btn btn-outline">Hủy</button>
+          <button type="submit" id="btn-submit-change-pw" class="btn btn-gold">
+            💾 Cập nhật mật khẩu
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Khay hiển thị Toast thông báo nhanh -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- ========================================================================
+       8. NẠP THƯ VIỆN SUPABASE CLIENT & MÃ NGUỒN TEACHER STUDIO + GAME EDITOR
+       ======================================================================== -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="studio.js"></script>
+  <script src="game-editor.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;background:#000;">
+<canvas id="c" width="1672" height="941"></canvas>
+<script>
+window.onload = async () => {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+
+  const im = new Image();
+  await new Promise(r => { im.onload = r; im.src = '/assets/room3_4/nen_room.png'; });
+  ctx.drawImage(im, 0, 0);
+
+  const t1 = new Image();
+  await new Promise(r => { t1.onload = r; t1.src = '/assets/room3_4/tram1.png'; });
+  ctx.drawImage(t1, 150, 320, 260, 173);
+
+  // Let's mark points around Trạm 1:
+  const pts = [
+    { label: 'Above (280, 290)', x: 280, y: 290 },
+    { label: 'Front/Below (280, 505)', x: 280, y: 505 },
+    { label: 'Right (430, 410)', x: 430, y: 410 },
+    { label: 'Far below (280, 600)', x: 280, y: 600 }
+  ];
+
+  pts.forEach(p => {
+    ctx.fillStyle = '#00ff00';
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 10, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 16px sans-serif';
+    ctx.fillText(p.label, p.x + 15, p.y + 5);
+  });
+
+  document.title = 'TRAM1_INSPECT';
+};
+</script>
+</body>
+</html>

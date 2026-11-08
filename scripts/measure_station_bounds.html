@@ -1,0 +1,62 @@
+<!doctype html>
+<html>
+<body>
+<canvas id="c" width="1672" height="941"></canvas>
+<pre id="out"></pre>
+<script>
+window.onload = async () => {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+  const out = document.getElementById('out');
+
+  const load = src => new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error('Failed ' + src));
+    im.src = src;
+  });
+
+  const names = ['tram1.png', 'tram2.png', 'tram3.png', 'tram4.png', 'cua_khoa.png'];
+  const results = {};
+
+  for (const name of names) {
+    const img = await load('/assets/room3_4/' + name);
+    c.width = img.width;
+    c.height = img.height;
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0);
+    const data = ctx.getImageData(0, 0, c.width, c.height).data;
+
+    let minX = c.width, maxX = 0, minY = c.height, maxY = 0;
+    for (let y = 0; y < c.height; y++) {
+      for (let x = 0; x < c.width; x++) {
+        const a = data[(y * c.width + x) * 4 + 3];
+        if (a > 30) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+    // Also find where the bottom 30% (legs/base) is non-transparent:
+    results[name] = {
+      naturalW: img.width,
+      naturalH: img.height,
+      minX, maxX, minY, maxY,
+      opaqueW: maxX - minX,
+      opaqueH: maxY - minY,
+      // Scaled to 260 x 173:
+      scaledOpaqueX: Math.round(minX * (260 / img.width)),
+      scaledOpaqueY: Math.round(minY * (173 / img.height)),
+      scaledOpaqueW: Math.round((maxX - minX) * (260 / img.width)),
+      scaledOpaqueH: Math.round((maxY - minY) * (173 / img.height))
+    };
+  }
+
+  out.textContent = JSON.stringify(results, null, 2);
+  document.title = 'BOUNDS_MEASURED';
+};
+</script>
+</body>
+</html>

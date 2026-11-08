@@ -1,0 +1,84 @@
+const { spawnSync } = require('child_process');
+const fs = require('fs');
+
+const html = `<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;background:#000;">
+<iframe id="f" src="http://localhost:3000/index.html" style="width:100vw;height:100vh;border:none;"></iframe>
+<pre id="log" style="position:fixed;top:0;left:0;background:#000c;color:#0f0;padding:10px;font-size:12px;z-index:9999;max-height:90vh;overflow:auto;"></pre>
+<script>
+const logEl = document.getElementById('log');
+function log(msg) {
+  logEl.textContent += msg + '\\n';
+  console.log(msg);
+}
+
+window.onload = () => {
+  const f = document.getElementById('f');
+  f.onload = async () => {
+    const win = f.contentWindow;
+    const doc = f.contentDocument;
+
+    log('=== BẮT ĐẦU KIỂM TRA TRÌNH DUYỆT THỰC TẾ ===');
+
+    // 1. Mở Room 3 Lớp 4
+    localStorage.setItem('ai-escape-lab-avatar', 'boy');
+    win.grade = 4;
+    win.openRoom3Grade4();
+
+    await new Promise(r => setTimeout(r, 400));
+    // Đóng intro
+    const btnOk = doc.getElementById('r3g4-btn-intro-ok');
+    if (btnOk) btnOk.click();
+    await new Promise(r => setTimeout(r, 200));
+
+    // Lấy state của room3_grade4
+    log('1. Đã vào phòng và đóng intro');
+
+    // Hàm giả lập nhấn phím E
+    function pressE() {
+      win.dispatchEvent(new KeyboardEvent('keydown', { key: 'e', bubbles: true }));
+      win.dispatchEvent(new KeyboardEvent('keyup', { key: 'e', bubbles: true }));
+    }
+
+    // Hàm di chuyển đến tọa độ (x, y)
+    function teleport(x, y) {
+      // Vì là kiểm thử luồng tương tác, ta đặt pos và kiểm tra getNearTarget
+      const ev = new CustomEvent('__test_teleport', { detail: { x, y } });
+      // Thử gọi window key event nếu cần, hoặc giả lập pos trực tiếp
+    }
+
+    // Kiểm tra tương tác với Trạm 2 khi đứng tại (460, 275)
+    // Dispatch phím mũi tên hoặc set state pos
+    // Ta dispatch key events để kiểm tra phím E và nút cảm ứng
+    const touchAction = doc.querySelector('#touch-controls .touch-action');
+    log('Touch action button exists: ' + Boolean(touchAction));
+
+    // Thử click nút touch action
+    if (touchAction) {
+      touchAction.dispatchEvent(new PointerEvent('pointerdown', { pointerId: 1, pointerType: 'touch', bubbles: true }));
+      touchAction.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, pointerType: 'touch', bubbles: true }));
+    }
+
+    document.title = 'TEST_LIVE_DONE';
+    log('=== HOÀN THÀNH KIỂM TRA THỰC TẾ ===');
+  };
+};
+</script>
+</body>
+</html>`;
+
+fs.writeFileSync('scripts/test_live_walk.html', html, 'utf8');
+
+const res = spawnSync('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', [
+  '--headless=new',
+  '--dump-dom',
+  '--virtual-time-budget=3000',
+  'http://localhost:3000/scripts/test_live_walk.html'
+], { encoding: 'utf8' });
+
+const match = res.stdout.match(/<pre id="log"[\s\S]*?>([\s\S]*?)<\/pre>/);
+if (match) console.log(match[1]);
+else console.log(res.stdout.substring(0, 500));
+

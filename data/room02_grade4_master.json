@@ -1,0 +1,173 @@
+{
+  "room": {
+    "room_number": 2,
+    "grade": 4,
+    "topic": "Khôi phục hệ thống nhập liệu",
+    "theme": "Phòng thí nghiệm nhập liệu",
+    "passcode": "SYSTEM_RESTORE",
+    "module_id": "lab_exploration_repair_v1",
+    "development_status": "ready",
+    "engine_config": {
+      "background": "assets/room2_grade4.png",
+      "station_count": 5,
+      "stage_count": 4,
+      "stations_coords": [
+        { "x": 28, "y": 40 },
+        { "x": 72, "y": 40 },
+        { "x": 22, "y": 69 },
+        { "x": 78, "y": 69 },
+        { "x": 50, "y": 56 }
+      ],
+      "spawn_point": { "x": 50, "y": 84 },
+      "interaction_radius": 17,
+      "restore_percentage_per_stage": 25,
+      "unlock_target_room": 3
+    },
+    "story": "Hệ thống bàn phím và đường truyền nhập liệu đang gặp sự cố. Khám phá cách gõ bàn phím đúng cách rồi sửa chữa bốn mô-đun!"
+  },
+  "items": [
+    {
+      "item_key": "station_0",
+      "item_type": "station",
+      "kind": "single",
+      "title": "LỢI ÍCH GÕ ĐÚNG CÁCH",
+      "intro": "Gõ bàn phím đúng cách giúp gõ nhanh, chính xác, tiết kiệm thời gian, công sức và góp phần bảo vệ sức khỏe.",
+      "question": "Hãy ngồi đúng tư thế, đặt tay đúng vị trí và ưu tiên độ chính xác.",
+      "hint": "Gõ phím đúng cách bảo vệ sức khỏe và nâng cao tốc độ.",
+      "content_payload": {
+        "icon": "🌟",
+        "station_index": 0,
+        "theory": "Gõ bàn phím đúng cách giúp gõ nhanh, chính xác, tiết kiệm thời gian, công sức và góp phần bảo vệ sức khỏe.",
+        "example": "Hãy ngồi đúng tư thế, đặt tay đúng vị trí và ưu tiên độ chính xác."
+      },
+      "sort_order": 1
+    },
+    {
+      "item_key": "station_1",
+      "item_type": "station",
+      "kind": "single",
+      "title": "KHÁM PHÁ HÀNG PHÍM SỐ",
+      "intro": "Ngón út trái: 1; áp út trái: 2; giữa trái: 3; trỏ trái: 4, 5. Ngón trỏ phải: 6, 7; giữa phải: 8; áp út phải: 9; út phải: 0.",
+      "question": "Nhấn các phím số bên dưới để xem ngón tay phụ trách.",
+      "hint": "Ghi nhớ ngón tay phụ trách từng phím số trên hàng phím số.",
+      "content_payload": {
+        "icon": "⌨️",
+        "station_index": 1,
+        "theory": "Ngón út trái: 1; áp út trái: 2; giữa trái: 3; trỏ trái: 4, 5. Ngón trỏ phải: 6, 7; giữa phải: 8; áp út phải: 9; út phải: 0.",
+        "example": "Nhấn các phím số bên dưới để xem ngón tay phụ trách."
+      },
+      "sort_order": 2
+    },
+    {
+      "item_key": "station_2",
+      "item_type": "station",
+      "kind": "single",
+      "title": "NGÓN TAY TRỞ VỀ ĐÂU?",
+      "intro": "Khi gõ một phím ở hàng phím số, ngón tay di chuyển từ hàng phím cơ sở lên phím số, sau đó trở về vị trí xuất phát.",
+      "question": "Hai ngón trỏ đặt tại F và J; sau khi gõ phím số 3, ngón giữa trái trở về phím D.",
+      "hint": "Luôn đưa ngón tay trở về hàng phím cơ sở sau khi gõ.",
+      "content_payload": {
+        "icon": "🖐️",
+        "station_index": 2,
+        "theory": "Khi gõ một phím ở hàng phím số, ngón tay di chuyển từ hàng phím cơ sở lên phím số, sau đó trở về vị trí xuất phát.",
+        "example": "Hai ngón trỏ đặt tại F và J; sau khi gõ phím số 3, ngón giữa trái trở về phím D."
+      },
+      "sort_order": 3
+    },
+    {
+      "item_key": "station_3",
+      "item_type": "station",
+      "kind": "single",
+      "title": "LUYỆN GÕ VĂN BẢN",
+      "intro": "Gõ đúng chữ, số, dấu cách; sử dụng Caps Lock hoặc Shift khi cần viết chữ hoa.",
+      "question": "Em có thể thực hành không dấu; gõ chính xác quan trọng hơn gõ nhanh.",
+      "hint": "Ưu tiên độ chính xác trước khi rèn luyện tốc độ.",
+      "content_payload": {
+        "icon": "📝",
+        "station_index": 3,
+        "theory": "Gõ đúng chữ, số, dấu cách; sử dụng Caps Lock hoặc Shift khi cần viết chữ hoa.",
+        "example": "Em có thể thực hành không dấu; gõ chính xác quan trọng hơn gõ nhanh."
+      },
+      "sort_order": 4
+    },
+    {
+      "item_key": "stage_0",
+      "item_type": "task",
+      "kind": "single",
+      "title": "BỘ ĐIỀU KHIỂN NGÓN TAY",
+      "intro": "Quan sát hai bàn tay và nhấn trực tiếp vào ngón tay phụ trách phím số tương ứng.",
+      "question": "Chọn ngón tay gõ các phím số: 4, 8, 1, 0, 6",
+      "hint": "Nhớ vị trí ngón tay phụ trách phím số trên hàng phím cơ sở.",
+      "content_payload": {
+        "stage_index": 0,
+        "task_mode": "fingers",
+        "digits": [4, 8, 1, 0, 6],
+        "correct": ["Trỏ trái", "Giữa phải", "Út trái", "Út phải", "Trỏ phải"],
+        "feedback": "Chính xác! Em đã thành thạo phân công ngón tay gõ phím số."
+      },
+      "sort_order": 5
+    },
+    {
+      "item_key": "stage_1",
+      "item_type": "task",
+      "kind": "single",
+      "title": "SỬA HÀNG PHÍM SỐ",
+      "intro": "Luyện gõ các dãy số để phục hồi hệ thống mạch phím số.",
+      "question": "Gõ chính xác các dãy số theo mẫu",
+      "hint": "Hãy kiểm tra thứ tự từng phím số.",
+      "content_payload": {
+        "stage_index": 1,
+        "task_mode": "typing",
+        "lines": ["13579", "24680", "1234567890"],
+        "tip": "Hãy kiểm tra thứ tự từng phím số.",
+        "feedback": "Xuất sắc! Hàng phím số đã được khôi phục."
+      },
+      "sort_order": 6
+    },
+    {
+      "item_key": "stage_2",
+      "item_type": "task",
+      "kind": "single",
+      "title": "NHẬP VĂN BẢN",
+      "intro": "Luyện gõ các dòng thơ không dấu để phục hồi bộ đệm nhập liệu.",
+      "question": "Gõ đoạn thơ theo mẫu (không dấu)",
+      "hint": "Đối chiếu từng chữ, dấu cách và dấu chấm.",
+      "content_payload": {
+        "stage_index": 2,
+        "task_mode": "typing",
+        "lines": [
+          "Lam anh that kho",
+          "Nhung ma that vui",
+          "Ai yeu em be",
+          "Thi lam duoc thoi."
+        ],
+        "tip": "Đối chiếu từng chữ, dấu cách và dấu chấm.",
+        "feedback": "Tuyệt vời! Đoạn văn bản đã được nhập chính xác."
+      },
+      "sort_order": 7
+    },
+    {
+      "item_key": "stage_3",
+      "item_type": "task",
+      "kind": "single",
+      "title": "KÍCH HOẠT NHẬP LIỆU",
+      "intro": "Nhập các số điện thoại khẩn cấp quan trọng để kích hoạt 100% hệ thống.",
+      "question": "Nhập các số điện thoại khẩn cấp",
+      "hint": "Kiểm tra số, chữ, dấu phẩy và khoảng trắng.",
+      "content_payload": {
+        "stage_index": 3,
+        "task_mode": "typing",
+        "lines": [
+          "111 - Bao ve tre em",
+          "112 - Tim kiem, cuu nan",
+          "113 - Cong an",
+          "114 - Cuu hoa",
+          "115 - Cap cuu"
+        ],
+        "tip": "Kiểm tra số, chữ, dấu phẩy và khoảng trắng.",
+        "feedback": "Hoàn thành xuất sắc! Hệ thống nhập liệu đã khôi phục 100%."
+      },
+      "sort_order": 8
+    }
+  ]
+}

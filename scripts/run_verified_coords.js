@@ -1,0 +1,59 @@
+const fs = require('fs');
+const { spawnSync } = require('child_process');
+
+const html = `<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;background:#000;">
+<canvas id="c" width="1672" height="941" style="display:block;"></canvas>
+<script>
+window.onload = () => {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+  const bg = new Image();
+  bg.onload = () => {
+    ctx.drawImage(bg, 0, 0);
+
+    const markers = [
+      { name: 'GLOBE', x: 700, y: 640 },
+      { name: 'TRAM 2 (khoang trên trái)', x: 420, y: 240 },
+      { name: 'TRAM 1 (khoang giữa trái)', x: 380, y: 560 },
+      { name: 'TRAM 3 (khoang trên phải)', x: 1040, y: 380 },
+      { name: 'TRAM 4 (khoang dưới phải)', x: 1150, y: 810 },
+      { name: 'DOOR (hốc trên cùng phải)', x: 1410, y: 160 }
+    ];
+
+    markers.forEach(m => {
+      ctx.strokeStyle = '#00ff00';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(m.x, m.y, 18, 0, Math.PI * 2);
+      ctx.moveTo(m.x - 35, m.y); ctx.lineTo(m.x + 35, m.y);
+      ctx.moveTo(m.x, m.y - 35); ctx.lineTo(m.x, m.y + 35);
+      ctx.stroke();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillText(m.name + ' (' + m.x + ',' + m.y + ')', m.x + 24, m.y - 10);
+    });
+
+    document.title = 'VERIFIED_COORDS';
+  };
+  bg.src = '/assets/room3_4/nen_room.png';
+};
+</script>
+</body>
+</html>`;
+
+fs.writeFileSync('scripts/test_verified_coords.html', html, 'utf8');
+
+const brainDir = 'C:\\Users\\ADMIN\\.gemini\\antigravity\\brain\\20185340-8473-464a-990c-a1ae8d8bfdcb';
+spawnSync('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', [
+  '--headless=new',
+  '--window-size=1672,941',
+  '--virtual-time-budget=2000',
+  `--screenshot=${brainDir}\\test_verified_coords.png`,
+  'http://localhost:3000/scripts/test_verified_coords.html'
+]);
+console.log('Capture test_verified_coords DONE');
+

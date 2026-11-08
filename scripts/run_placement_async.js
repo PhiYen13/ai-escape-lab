@@ -1,0 +1,61 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+
+const html = `<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;background:#000;">
+<canvas id="c" width="1672" height="941" style="display:block;"></canvas>
+<script>
+window.onload = async () => {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+
+  const load = src => new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = (e) => reject(new Error('Failed ' + src));
+    im.src = src;
+  });
+
+  try {
+    const bg = await load('/assets/room3_4/nen_room.png');
+    ctx.drawImage(bg, 0, 0);
+
+    const t1 = await load('/assets/room3_4/tram1.png');
+    const t2 = await load('/assets/room3_4/tram2.png');
+    const t3 = await load('/assets/room3_4/tram3.png');
+    const t4 = await load('/assets/room3_4/tram4.png');
+    const door = await load('/assets/room3_4/cua_khoa.png');
+
+    // 1. Trạm 1: khoang giữa bên trái: (230, 560)
+    ctx.drawImage(t1, 230 - 180, 560 - 150, 360, 240);
+
+    // 2. Trạm 2: khoang trên bên trái: (240, 240)
+    ctx.drawImage(t2, 240 - 180, 240 - 150, 360, 240);
+
+    // 3. Trạm 3: khoang phía trên bên phải: (610, 350)
+    ctx.drawImage(t3, 610 - 180, 350 - 150, 360, 240);
+
+    // 4. Trạm 4: khoang dưới bên phải: (720, 800)
+    ctx.drawImage(t4, 720 - 180, 800 - 150, 360, 240);
+
+    // 5. Cửa thoát: hốc trên cùng bên phải (1410, 160)
+    ctx.drawImage(door, 1410 - 150, 160 - 115, 300, 225);
+
+    document.title = 'LOADED_AND_DRAWN';
+  } catch(e) {
+    document.title = 'ERROR_' + e.message;
+  }
+};
+</script>
+</body>
+</html>`;
+
+fs.writeFileSync('scripts/test_placement_async.html', html, 'utf8');
+
+const chrome = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const brainDir = 'C:\\Users\\ADMIN\\.gemini\\antigravity\\brain\\20185340-8473-464a-990c-a1ae8d8bfdcb';
+execSync(`"${chrome}" --headless=new --window-size=1672,941 --screenshot="${brainDir}\\test_placement_async.png" "http://localhost:3000/scripts/test_placement_async.html"`, { stdio: 'inherit' });
+console.log('Capture test_placement_async DONE');
+

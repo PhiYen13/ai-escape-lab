@@ -1,0 +1,186 @@
+{
+  "room": {
+    "room_number": 2,
+    "grade": 3,
+    "topic": "Trung tâm xử lí thông tin",
+    "theme": "Phòng thí nghiệm xử lí thông tin",
+    "passcode": "SYSTEM_RESTORE",
+    "module_id": "lab_exploration_repair_v1",
+    "development_status": "ready",
+    "engine_config": {
+      "background": "assets/room2_grade3.png",
+      "station_count": 5,
+      "stage_count": 4,
+      "stations_coords": [
+        { "x": 28, "y": 40 },
+        { "x": 72, "y": 40 },
+        { "x": 22, "y": 69 },
+        { "x": 78, "y": 69 },
+        { "x": 50, "y": 56 }
+      ],
+      "spawn_point": { "x": 50, "y": 84 },
+      "interaction_radius": 17,
+      "restore_percentage_per_stage": 25,
+      "unlock_target_room": 3
+    },
+    "story": "Bộ xử lí thông tin bị lỗi! Hãy tìm hiểu cách con người thu nhận, xử lí thông tin và đưa ra quyết định để kích hoạt các thiết bị."
+  },
+  "items": [
+    {
+      "item_key": "station_0",
+      "item_type": "station",
+      "kind": "single",
+      "title": "THU NHẬN THÔNG TIN",
+      "intro": "Con người thu nhận thông tin từ môi trường xung quanh bằng các giác quan như mắt, tai, mũi, lưỡi và da.",
+      "question": "Nhìn thấy đèn đỏ, nghe tiếng chuông vào lớp là những ví dụ về thu nhận thông tin.",
+      "hint": "Con người thu nhận thông tin bằng 5 giác quan.",
+      "content_payload": {
+        "icon": "👁️",
+        "station_index": 0,
+        "theory": "Con người thu nhận thông tin từ môi trường xung quanh bằng các giác quan như mắt, tai, mũi, lưỡi và da.",
+        "example": "Nhìn thấy đèn đỏ, nghe tiếng chuông vào lớp là những ví dụ về thu nhận thông tin."
+      },
+      "sort_order": 1
+    },
+    {
+      "item_key": "station_1",
+      "item_type": "station",
+      "kind": "single",
+      "title": "BỘ NÃO XỬ LÍ THÔNG TIN",
+      "intro": "Bộ não là nơi xử lí thông tin, tạo ra quyết định, điều khiển các suy nghĩ và hành động của con người.",
+      "question": "Tai nghe chuông vào lớp → Bộ não xử lí → Em quyết định đi vào lớp.",
+      "hint": "Bộ não là trung tâm điều khiển và ra quyết định.",
+      "content_payload": {
+        "icon": "🧠",
+        "station_index": 1,
+        "theory": "Bộ não là nơi xử lí thông tin, tạo ra quyết định, điều khiển các suy nghĩ và hành động của con người.",
+        "example": "Tai nghe chuông vào lớp → Bộ não xử lí → Em quyết định đi vào lớp."
+      },
+      "sort_order": 2
+    },
+    {
+      "item_key": "station_2",
+      "item_type": "station",
+      "kind": "single",
+      "title": "TỪ THÔNG TIN ĐẾN QUYẾT ĐỊNH",
+      "intro": "Con người: THU NHẬN THÔNG TIN → XỬ LÍ THÔNG TIN → QUYẾT ĐỊNH.",
+      "question": "Nhìn thấy trời mưa → Hiểu rằng có thể bị ướt → Quyết định mang áo mưa.",
+      "hint": "Trình tự: Thu nhận → Xử lí → Quyết định.",
+      "content_payload": {
+        "icon": "🚦",
+        "station_index": 2,
+        "theory": "Con người: THU NHẬN THÔNG TIN → XỬ LÍ THÔNG TIN → QUYẾT ĐỊNH.",
+        "example": "Nhìn thấy trời mưa → Hiểu rằng có thể bị ướt → Quyết định mang áo mưa."
+      },
+      "sort_order": 3
+    },
+    {
+      "item_key": "station_3",
+      "item_type": "station",
+      "kind": "single",
+      "title": "THIẾT BỊ THÔNG MINH",
+      "intro": "Có nhiều thiết bị tiếp nhận thông tin để quyết định hành động.",
+      "question": "Đèn tự động nhận biết trời tối và bật sáng; cửa tự động phát hiện người đến gần và mở cửa.",
+      "hint": "Thiết bị thông minh tiếp nhận thông tin để tự động hành động.",
+      "content_payload": {
+        "icon": "🤖",
+        "station_index": 3,
+        "theory": "Có nhiều thiết bị tiếp nhận thông tin để quyết định hành động.",
+        "example": "Đèn tự động nhận biết trời tối và bật sáng; cửa tự động phát hiện người đến gần và mở cửa."
+      },
+      "sort_order": 4
+    },
+    {
+      "item_key": "stage_0",
+      "item_type": "task",
+      "kind": "order",
+      "title": "THU NHẬN VÀ XỬ LÍ",
+      "intro": "Bộ xử lí bị lỗi! Hãy sắp xếp đúng trình tự từ thu nhận thông tin đến quyết định.",
+      "question": "Sắp xếp: Con người nhìn thấy đèn giao thông màu đỏ.",
+      "hint": "Thu nhận → Xử lí → Quyết định.",
+      "content_payload": {
+        "stage_index": 0,
+        "items": [
+          "Quyết định dừng lại",
+          "Nhìn thấy đèn đỏ",
+          "Nhận biết đèn đỏ phải dừng"
+        ],
+        "correct": [1, 2, 0],
+        "feedback": "Thu nhận → Xử lí → Quyết định."
+      },
+      "sort_order": 5
+    },
+    {
+      "item_key": "stage_1",
+      "item_type": "task",
+      "kind": "multi",
+      "title": "KÍCH HOẠT BỘ NÃO",
+      "intro": "Kích hoạt bộ não xử lí thông tin bằng cách xác định các chức năng chính.",
+      "question": "Chọn các nhận định đúng về bộ não:",
+      "hint": "Bộ não có nhiều chức năng, không chỉ nghe âm thanh.",
+      "content_payload": {
+        "stage_index": 1,
+        "answers": [
+          "Bộ não là nơi xử lí thông tin",
+          "Bộ não tạo ra quyết định",
+          "Bộ não điều khiển suy nghĩ và hành động",
+          "Bộ não chỉ tiếp nhận âm thanh"
+        ],
+        "correct": [0, 1, 2],
+        "feedback": "Bộ não có nhiều chức năng, không chỉ nghe âm thanh."
+      },
+      "sort_order": 6
+    },
+    {
+      "item_key": "stage_2",
+      "item_type": "task",
+      "kind": "match",
+      "title": "QUYẾT ĐỊNH PHÙ HỢP",
+      "intro": "Ghép nối các thông tin tiếp nhận được với quyết định hành động tương ứng.",
+      "question": "Nối thông tin với quyết định phù hợp",
+      "hint": "Hãy suy nghĩ em nên làm gì trong tình huống này.",
+      "content_payload": {
+        "stage_index": 2,
+        "left": [
+          "🌧️ Trời bắt đầu mưa",
+          "⏰ Chuông báo thức reo",
+          "💧 Em cảm thấy khát nước"
+        ],
+        "right": [
+          "🥤 Uống nước",
+          "🧥 Mang áo mưa",
+          "🌅 Thức dậy"
+        ],
+        "correct": [1, 2, 0],
+        "feedback": "Hãy suy nghĩ em nên làm gì trong tình huống này."
+      },
+      "sort_order": 7
+    },
+    {
+      "item_key": "stage_3",
+      "item_type": "task",
+      "kind": "match",
+      "title": "THIẾT BỊ THÔNG MINH",
+      "intro": "Hoàn thành chặng cuối để khôi phục 100% hệ thống.",
+      "question": "Nối thiết bị với hành động phù hợp",
+      "hint": "Hãy quan sát thông tin mà từng thiết bị tiếp nhận.",
+      "content_payload": {
+        "stage_index": 3,
+        "left": [
+          "💡 Đèn tự động nhận biết trời tối",
+          "🚪 Cửa tự động phát hiện người đến gần",
+          "🤖 Robot hút bụi phát hiện vật cản"
+        ],
+        "right": [
+          "↪️ Đổi hướng di chuyển",
+          "✨ Bật sáng",
+          "🚪 Mở cửa"
+        ],
+        "correct": [1, 2, 0],
+        "feedback": "Hãy quan sát thông tin mà từng thiết bị tiếp nhận."
+      },
+      "sort_order": 8
+    }
+  ]
+}
+

@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+<body>
+<canvas id="c" width="1672" height="941"></canvas>
+<script>
+window.onload = () => {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+  const img = new Image();
+  img.onload = () => {
+    ctx.drawImage(img, 0, 0);
+    function getLum(x, y) {
+      const d = ctx.getImageData(x, y, 1, 1).data;
+      return `${d[0]},${d[1]},${d[2]}`;
+    }
+    console.log('Pt A 420,640:', getLum(420, 640));
+    console.log('Pt B 700,640:', getLum(700, 640));
+    console.log('Center 836,470:', getLum(836, 470));
+    document.title = 'SAMPLED: A=' + getLum(420,640) + ' B=' + getLum(700,640);
+  };
+  img.src = '/assets/room3_4/nen_room.png';
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+const fs = require('fs');
+const { spawnSync } = require('child_process');
+
+const html = `<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;background:#000;">
+<canvas id="c" width="1672" height="941" style="display:block;"></canvas>
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+
+const img = new Image();
+img.onload = () => {
+  ctx.drawImage(img, 0, 0);
+
+  // Accurate walls and obstacles matching nen_grid.png:
+  const obstacles = [
+    // Outer walls:
+    { name: 'outer_top', x: 0, y: 0, w: 1672, h: 105 },
+    { name: 'outer_bot', x: 0, y: 925, w: 1672, h: 20 },
+    { name: 'outer_left', x: 0, y: 0, w: 45, h: 941 },
+    { name: 'outer_right', x: 1640, y: 0, w: 35, h: 941 },
+
+    // Top window sill & wall:
+    { name: 'window_wall', x: 380, y: 0, w: 310, h: 180 },
+
+    // Middle Hologram Globe Pedestal:
+    // Center at (420, 630), circular base radius ~90
+    { name: 'globe_pedestal', circle: true, x: 420, y: 640, r: 85 },
+
+    // 1. Khoang trên trái (Trạm 2):
+    // Bàn trạm 2 (x: 80 to 280, y: 220 to 280)
+    { name: 'desk2', x: 75, y: 235, w: 220, h: 60 },
+    // Vách ngăn ngang dưới khoang 2 (từ x: 90 đến 340, y: 370 đến 430)
+    { name: 'wall_c2_bot', x: 90, y: 370, w: 250, h: 60 },
+
+    // 2. Khoang giữa trái (Trạm 1):
+    // Bàn trạm 1 (x: 80 to 280, y: 550 to 610)
+    { name: 'desk1', x: 75, y: 550, w: 220, h: 60 },
+    // Vách ngăn góc dưới khoang 1 (x: 90 to 175, y: 620 to 710)
+    { name: 'wall_c1_bot', x: 90, y: 620, w: 85, h: 90 },
+
+    // Máy móc góc dưới trái:
+    { name: 'machines_bot_left', x: 95, y: 810, w: 290, h: 115 },
+
+    // 3. Khoang phía trên bên phải (Lục giác: x: 485 to 745, y: 175 to 550):
+    // Bàn trạm 3 bên trong khoang:
+    { name: 'desk3', x: 505, y: 335, w: 220, h: 60 },
+    // Vách trên khoang 3:
+    { name: 'c3_top', x: 485, y: 175, w: 240, h: 55 },
+    // Vách trái khoang 3:
+    { name: 'c3_left', x: 485, y: 175, w: 45, h: 330 },
+    // Vách dưới khoang 3 (có cửa vào ở bên phải):
+    { name: 'c3_bot', x: 485, y: 505, w: 150, h: 45 },
+    // Vách chéo / góc phải khoang 3:
+    { name: 'c3_right', x: 710, y: 175, w: 35, h: 170 },
+    { name: 'c3_diag', poly: [[710, 345], [745, 380], [745, 420], [710, 385]] },
+
+    // 4. Khoang dưới bên phải (x: 540 to 890, y: 645 to 920):
+    // Bàn trạm 4 bên trong khoang:
+    { name: 'desk4', x: 610, y: 790, w: 220, h: 60 },
+    // Vách trên khoang 4:
+    { name: 'c4_top', x: 540, y: 645, w: 290, h: 50 },
+    // Vách trái khoang 4:
+    { name: 'c4_left', x: 540, y: 780, w: 45, h: 145 },
+
+    // 5. Cụm Server & Tường hành lang dẫn lên cửa thoát:
+    // Tường ngăn hành lang bên phải khoang 3:
+    { name: 'corridor_wall_c3_r', x: 795, y: 390, w: 35, h: 250 },
+    // Dãy tủ server (x: 870 to 1010, y: 440 to 650):
+    { name: 'servers_rack', x: 870, y: 445, w: 140, h: 205 },
+
+    // 6. Cửa thoát (hốc trên cùng bên phải):
+    // Cửa khi đóng: chặn lối thoát (x: 1350 to 1470, y: 160 to 220)
+    { name: 'vault_door_closed', x: 1350, y: 155, w: 120, h: 65, door: true }
+  ];
+
+  ctx.fillStyle = 'rgba(0, 255, 120, 0.45)';
+  ctx.strokeStyle = '#00ffcc';
+  ctx.lineWidth = 2;
+
+  obstacles.forEach(o => {
+    if (o.circle) {
+      ctx.beginPath();
+      ctx.arc(o.x, o.y, o.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    } else if (o.poly) {
+      ctx.beginPath();
+      ctx.moveTo(o.poly[0][0], o.poly[0][1]);
+      for (let i = 1; i < o.poly.length; i++) ctx.lineTo(o.poly[i][0], o.poly[i][1]);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.fillRect(o.x, o.y, o.w, o.h);
+      ctx.strokeRect(o.x, o.y, o.w, o.h);
+    }
+  });
+
+  document.title = 'ACCURATE_COLLISION';
+};
+img.src = '/assets/room3_4/nen_room.png';
+</script>
+</body>
+</html>`;
+
+fs.writeFileSync('scripts/accurate_collision.html', html, 'utf8');
+
+const brainDir = 'C:\\Users\\ADMIN\\.gemini\\antigravity\\brain\\20185340-8473-464a-990c-a1ae8d8bfdcb';
+spawnSync('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', [
+  '--headless=new',
+  '--window-size=1672,941',
+  '--virtual-time-budget=2000',
+  `--screenshot=${brainDir}\\accurate_collision.png`,
+  'http://localhost:3000/scripts/accurate_collision.html'
+]);
+console.log('Capture accurate_collision DONE');
+

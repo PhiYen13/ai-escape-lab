@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;background:#000;">
+<canvas id="c" width="1672" height="941" style="display:block;"></canvas>
+<script>
+window.onload = async () => {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+
+  const load = src => new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error('Failed ' + src));
+    im.src = src;
+  });
+
+  const bg = await load('/assets/room3_4/nen_room.png');
+  ctx.drawImage(bg, 0, 0);
+
+  const t1 = await load('/assets/room3_4/tram1.png');
+  const t2 = await load('/assets/room3_4/tram2.png');
+  const t3 = await load('/assets/room3_4/tram3.png');
+  const t4 = await load('/assets/room3_4/tram4.png');
+  const door = await load('/assets/room3_4/cua_khoa.png');
+
+  const STATIONS = [
+    { id: 0, x: 150, y: 320, w: 260, h: 173, cx: 280, cy: 515, label: 'Trạm 1: Kho dữ liệu' },
+    { id: 1, x: 330, y: 80,  w: 260, h: 173, cx: 460, cy: 275, label: 'Trạm 2: Bộ ĐK liên kết' },
+    { id: 2, x: 950, y: 150, w: 260, h: 173, cx: 1080, cy: 345, label: 'Trạm 3: HT bảo mật' },
+    { id: 3, x: 950, y: 600, w: 260, h: 173, cx: 1080, cy: 795, label: 'Trạm 4: Kho tri thức' }
+  ];
+
+  // Draw stations
+  STATIONS.forEach((s, i) => {
+    const img = [t1, t2, t3, t4][i];
+    ctx.drawImage(img, s.x, s.y, s.w, s.h);
+  });
+
+  // Draw door
+  ctx.drawImage(door, 1280, 75, 260, 195);
+
+  // Draw grid
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+  ctx.lineWidth = 1;
+  ctx.font = '10px monospace';
+  for (let x = 0; x <= 1672; x += 50) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 941); ctx.stroke();
+    if (x % 100 === 0) {
+      ctx.fillStyle = 'yellow';
+      ctx.fillText(x, x + 2, 12);
+      ctx.fillText(x, x + 2, 935);
+    }
+  }
+  for (let y = 0; y <= 941; y += 50) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(1672, y); ctx.stroke();
+    if (y % 100 === 0) {
+      ctx.fillStyle = 'yellow';
+      ctx.fillText(y, 2, y + 10);
+      ctx.fillText(y, 1635, y + 10);
+    }
+  }
+
+  // Draw current collision boxes in RED
+  ctx.fillStyle = 'rgba(255, 0, 0, 0.45)';
+  ctx.strokeStyle = '#ff0055';
+  ctx.lineWidth = 2;
+
+  function drawBox(x, y, w, h, label) {
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
+    if (label) {
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.fillText(label, x + 4, y + 14);
+      ctx.fillStyle = 'rgba(255, 0, 0, 0.45)';
+    }
+  }
+
+  // 1. Mép ngoài
+  drawBox(0, 0, 65, 941, 'left');
+  drawBox(1615, 0, 57, 941, 'right');
+  drawBox(0, 905, 1672, 36, 'bottom');
+  drawBox(0, 0, 1335, 125, 'top_left');
+  drawBox(1485, 0, 187, 125, 'top_right');
+
+  // Cửa khi đóng:
+  drawBox(1330, 90, 160, 125, 'door_closed');
+  drawBox(1220, 125, 115, 90, 'door_left_wall');
+  drawBox(1485, 125, 65, 90, 'door_right_wall');
+
+  // Bệ quả địa cầu
+  ctx.beginPath();
+  ctx.arc(700, 640, 95, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Bàn 4 trạm:
+  STATIONS.forEach(s => {
+    drawBox(s.x + 25, s.y + 50, 210, 105, 'desk_' + s.id);
+  });
+
+  // Current architecture walls in room3_grade4.js:
+  // Vách ngăn ngang giữa Khoang 2 và Khoang 1
+  drawBox(150, 350, 450, 100, 'wall_c2_c1 (150..600, 350..450)');
+  // Vách góc dưới Khoang 1
+  drawBox(130, 635, 45, 85, 'wall_c1_bot');
+  // Cụm máy móc góc dưới bên trái
+  drawBox(65, 780, 320, 125, 'machines_bot_left');
+  // Vách trên Khoang 4
+  drawBox(880, 520, 520, 70, 'wall_c4_top (880..1400, 520..590)');
+  // Vách dọc trái Khoang 3
+  drawBox(880, 120, 50, 155, 'wall_c3_left');
+  // Vách ngăn hành lang bên phải Khoang 3
+  drawBox(1220, 125, 45, 335, 'wall_c3_right');
+
+  // Draw player spawn point
+  ctx.fillStyle = '#00ff00';
+  ctx.beginPath();
+  ctx.arc(540, 640, 12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 14px sans-serif';
+  ctx.fillText('SPAWN (540, 640)', 540 - 50, 640 - 18);
+
+  // Draw cx, cy of stations
+  STATIONS.forEach(s => {
+    ctx.fillStyle = '#00ffff';
+    ctx.beginPath();
+    ctx.arc(s.cx, s.cy, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText(s.label + ' E-point', s.cx - 40, s.cy + 20);
+  });
+
+  document.title = 'COLLISION_DEBUG_DONE';
+};
+</script>
+</body>
+</html>
