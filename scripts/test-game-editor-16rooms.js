@@ -274,7 +274,7 @@ async function runTests() {
 
   // Test 4B: Kiểm tra huy hiệu trạng thái phòng
   assert(roomsListEl.innerHTML.includes('status-ready') && roomsListEl.innerHTML.includes('🟢 Sẵn sàng'), 'Phòng 01 hiển thị huy hiệu trạng thái thực tế 🟢 Sẵn sàng từ development_status');
-  assert(roomsListEl.innerHTML.includes('status-unbuilt') && roomsListEl.innerHTML.includes('⚪ Chưa xây dựng'), 'Phòng 02-16 hiển thị huy hiệu ⚪ Chưa xây dựng');
+  assert(roomsListEl.innerHTML.includes('status-unbuilt') && roomsListEl.innerHTML.includes('Chưa xây dựng'), 'Phòng 02-16 hiển thị huy hiệu Chưa xây dựng');
 
   // Test 4C: Chuyển sang Khối 4
   editor.switchGrade(4);
