@@ -1,0 +1,228 @@
+{
+  "room": {
+    "room_number": 3,
+    "grade": 3,
+    "topic": "Học sinh và mê cung máy tính",
+    "theme": "Phòng thí nghiệm mê cung máy tính",
+    "passcode": "MAZE_SOLVED",
+    "module_id": "computer_maze_adventure_v1",
+    "development_status": "ready",
+    "engine_config": {
+      "background": "assets/room3_maze.png",
+      "stage_count": 4,
+      "devices_coords": [
+        { "name": "Màn hình", "x": 31.0, "y": 42.0, "file": "01_man_hinh.png", "working": true },
+        { "name": "Thân máy", "x": 58.0, "y": 42.0, "file": "02_than_may.png", "working": true },
+        { "name": "Bàn phím", "x": 5.4, "y": 37.0, "file": "03_ban_phim.png", "working": true },
+        { "name": "Chuột", "x": 65.0, "y": 45.0, "file": "04_chuot.png", "working": true },
+        { "name": "Loa", "x": 94.0, "y": 34.0, "file": "05_loa.png", "working": true },
+        { "name": "Máy in", "x": 68.2, "y": 43.0, "file": "06_may_in.png", "working": true },
+        { "name": "Tai nghe", "x": 96.1, "y": 43.0, "file": "07_tai_nghe.png", "working": true },
+        { "name": "Webcam", "x": 38.0, "y": 44.5, "file": "08_webcam.png", "working": true }
+      ],
+      "interact_radius": 8,
+      "unlock_target_room": 4
+    },
+    "story": "Phòng thí nghiệm đang gặp sự cố. Hãy tìm đủ 4 bộ phận máy tính còn hoạt động, sau đó đến bàn lắp ráp để tạo thành một bộ máy tính hoàn chỉnh. Tiếp theo, hoàn thành ba trạm điều khiển, sửa băng chuyền và bảo đảm an toàn điện."
+  },
+  "items": [
+    {
+      "item_key": "area_assembly",
+      "item_type": "task",
+      "kind": "sequence",
+      "title": "BÀN LẮP RÁP MÁY TÍNH",
+      "intro": "Chọn đúng bộ phận theo chức năng để lắp thành bộ máy tính hoàn chỉnh.",
+      "question": "Xác định chức năng 4 bộ phận cơ bản của máy tính để bàn:",
+      "hint": "Màn hình hiển thị; Thân máy xử lí; Bàn phím nhập chữ; Chuột điều khiển con trỏ.",
+      "content_payload": {
+        "zone_index": 0,
+        "items": [
+          {
+            "question": "Thiết bị hiển thị kết quả làm việc?",
+            "answers": ["Màn hình", "Thân máy", "Bàn phím", "Chuột"],
+            "correct": 0
+          },
+          {
+            "question": "Bộ phận chứa bộ xử lí điều khiển máy tính?",
+            "answers": ["Màn hình", "Thân máy", "Bàn phím", "Chuột"],
+            "correct": 1
+          },
+          {
+            "question": "Thiết bị nhập chữ vào máy tính?",
+            "answers": ["Màn hình", "Thân máy", "Bàn phím", "Chuột"],
+            "correct": 2
+          },
+          {
+            "question": "Thiết bị giúp điều khiển máy tính thuận tiện?",
+            "answers": ["Màn hình", "Thân máy", "Bàn phím", "Chuột"],
+            "correct": 3
+          }
+        ],
+        "feedback": "Chúc mừng! Em đã lắp ráp thành công bộ máy tính hoàn chỉnh."
+      },
+      "sort_order": 1
+    },
+    {
+      "item_key": "station_touchpad",
+      "item_type": "task",
+      "kind": "single",
+      "title": "HỆ THỐNG AN NINH (TOUCHPAD)",
+      "intro": "Hệ thống an ninh đang bị khóa! Laptop không có chuột rời. Em hãy sử dụng vùng cảm ứng chuột để điều khiển con trỏ đến ổ khóa.",
+      "question": "Kéo con trỏ chuột trên Touchpad vào ổ khóa trên màn hình",
+      "hint": "Vùng cảm ứng chuột (touchpad) giúp điều khiển con trỏ trên laptop mà không cần chuột rời.",
+      "content_payload": {
+        "zone_index": 1,
+        "device_type": "laptop",
+        "feedback": "Vùng cảm ứng chuột (touchpad) giúp điều khiển con trỏ trên laptop mà không cần chuột rời."
+      },
+      "sort_order": 2
+    },
+    {
+      "item_key": "station_light",
+      "item_type": "task",
+      "kind": "single",
+      "title": "HỆ THỐNG CHIẾU SÁNG (MÀN CẢM ỨNG)",
+      "intro": "Hành lang đang thiếu ánh sáng! Em hãy chạm vào biểu tượng bóng đèn trên màn hình cảm ứng của máy tính bảng.",
+      "question": "Chạm vào biểu tượng bóng đèn trên màn hình cảm ứng máy tính bảng",
+      "hint": "Máy tính bảng có màn hình cảm ứng: em chạm trực tiếp vào biểu tượng để thực hiện lệnh.",
+      "content_payload": {
+        "zone_index": 1,
+        "device_type": "tablet",
+        "feedback": "Máy tính bảng có màn hình cảm ứng: em chạm trực tiếp vào biểu tượng để thực hiện lệnh."
+      },
+      "sort_order": 3
+    },
+    {
+      "item_key": "station_auth",
+      "item_type": "task",
+      "kind": "single",
+      "title": "HỆ THỐNG XÁC THỰC (BÀN PHÍM ẢO)",
+      "intro": "Hệ thống cần xác nhận quyền truy cập. Em hãy dùng bàn phím ảo của điện thoại thông minh để nhập mật mã BYTE.",
+      "question": "Nhập đúng mã B-Y-T-E trên bàn phím ảo điện thoại thông minh",
+      "hint": "Điện thoại thông minh có bàn phím ảo giúp nhập chữ bằng cách chạm vào màn hình.",
+      "content_payload": {
+        "zone_index": 1,
+        "device_type": "smartphone",
+        "target_code": "BYTE",
+        "feedback": "Điện thoại thông minh có bàn phím ảo giúp nhập chữ bằng cách chạm vào màn hình."
+      },
+      "sort_order": 4
+    },
+    {
+      "item_key": "area_conveyor",
+      "item_type": "task",
+      "kind": "match",
+      "title": "BĂNG CHUYỀN PHÂN LOẠI THIẾT BỊ",
+      "intro": "Hãy kéo thiết bị đang chạy trên băng chuyền vào khu vực đúng với chức năng của nó.",
+      "question": "Nối thiết bị với chức năng tương ứng trên băng chuyền:",
+      "hint": "Bàn phím nhập; Màn hình hiển thị; Loa phát âm thanh; Chuột điều khiển con trỏ; Máy in in ra giấy.",
+      "content_payload": {
+        "zone_index": 2,
+        "left": [
+          "⌨️ Bàn phím",
+          "🖥️ Màn hình",
+          "🔊 Loa",
+          "🖱️ Chuột",
+          "🖨️ Máy in"
+        ],
+        "right": [
+          "Nhập thông tin",
+          "Hiển thị thông tin",
+          "Phát âm thanh",
+          "Điều khiển con trỏ",
+          "In ra giấy"
+        ],
+        "correct": [0, 1, 2, 3, 4],
+        "tips": [
+          "Bàn phím dùng để nhập chữ, số và kí hiệu.",
+          "Màn hình hiển thị hình ảnh, chữ và kết quả làm việc.",
+          "Loa giúp nghe âm thanh từ máy tính.",
+          "Chuột giúp di chuyển con trỏ và lựa chọn đối tượng.",
+          "Máy in đưa thông tin từ máy tính ra giấy."
+        ],
+        "feedback": "Em đã phân loại đúng 5 thiết bị theo chức năng trên băng chuyền!"
+      },
+      "sort_order": 5
+    },
+    {
+      "item_key": "hazard_socket",
+      "item_type": "task",
+      "kind": "single",
+      "title": "Ổ CẮM ĐIỆN BỊ LỎNG",
+      "intro": "Phát hiện nguy cơ mất an toàn tại ổ cắm điện trong phòng máy.",
+      "question": "Khi thấy ổ cắm điện bị lỏng, em nên làm gì?",
+      "hint": "Không tự ý xử lí các sự cố về điện; luôn báo người lớn.",
+      "content_payload": {
+        "zone_index": 3,
+        "hazard_index": 0,
+        "answers": [
+          "Báo thầy cô hoặc người lớn",
+          "Tự cắm lại dây điện"
+        ],
+        "correct": 0,
+        "feedback": "Đúng! Khi có nguy cơ về điện, tuyệt đối không tự ý xử lí mà phải báo thầy cô."
+      },
+      "sort_order": 6
+    },
+    {
+      "item_key": "hazard_water",
+      "item_type": "task",
+      "kind": "single",
+      "title": "CỐC NƯỚC CẠNH MÁY TÍNH",
+      "intro": "Phát hiện cốc nước đặt cạnh bàn phím máy tính.",
+      "question": "Khi thấy cốc nước cạnh máy tính, hành động an toàn là gì?",
+      "hint": "Nước đổ vào máy tính có thể gây chập điện và hỏng thiết bị.",
+      "content_payload": {
+        "zone_index": 3,
+        "hazard_index": 1,
+        "answers": [
+          "Giữ đồ uống cách xa máy tính",
+          "Tiếp tục để cốc nước bên cạnh"
+        ],
+        "correct": 0,
+        "feedback": "Chính xác! Luôn để đồ uống và thức ăn cách xa máy tính để phòng ngừa đổ nước."
+      },
+      "sort_order": 7
+    },
+    {
+      "item_key": "hazard_dust",
+      "item_type": "task",
+      "kind": "single",
+      "title": "BÀN PHÍM BÁM BỤI",
+      "intro": "Phát hiện bàn phím máy tính bám nhiều bụi bẩn sau thời gian dài sử dụng.",
+      "question": "Khi thấy bàn phím bám bụi bẩn, em nên vệ sinh thế nào?",
+      "hint": "Dùng chổi phủi bụi chuyên dụng hoặc khăn mềm khô, tuyệt đối không dùng khăn ướt.",
+      "content_payload": {
+        "zone_index": 3,
+        "hazard_index": 2,
+        "answers": [
+          "Dùng chổi phủi bụi hoặc khăn mềm phù hợp",
+          "Dùng khăn ướt lau bàn phím"
+        ],
+        "correct": 0,
+        "feedback": "Chính xác! Dùng chổi phủi bụi hoặc khăn mềm khô để tránh nước lọt vào bàn phím."
+      },
+      "sort_order": 8
+    },
+    {
+      "item_key": "hazard_cable",
+      "item_type": "task",
+      "kind": "single",
+      "title": "DÂY ĐIỆN KHÔNG AN TOÀN",
+      "intro": "Phát hiện dây điện cắm không an toàn hoặc bị hở trong phòng máy.",
+      "question": "Khi phát hiện dây điện không an toàn, em xử lí thế nào?",
+      "hint": "Không chạm vào dây điện; báo ngay cho giáo viên quản lý phòng máy.",
+      "content_payload": {
+        "zone_index": 3,
+        "hazard_index": 3,
+        "answers": [
+          "Không tự ý chạm vào dây điện; báo giáo viên",
+          "Tự kéo dây điện để sửa"
+        ],
+        "correct": 0,
+        "feedback": "Rất tốt! Luôn ghi nhớ quy tắc an toàn điện trong phòng máy tính."
+      },
+      "sort_order": 9
+    }
+  ]
+}

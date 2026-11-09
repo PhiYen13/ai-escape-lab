@@ -1,0 +1,176 @@
+const fs = require('fs');
+const path = require('path');
+const { spawnSync } = require('child_process');
+
+const html = `<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;background:#000;">
+<canvas id="c" width="1672" height="941" style="display:block;"></canvas>
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+
+const imgBg = new Image();
+imgBg.src = 'http://localhost:3000/assets/room3_4/nen_room.png';
+
+const deskImgs = [
+  'http://localhost:3000/assets/room3_4/tram1.png',
+  'http://localhost:3000/assets/room3_4/tram2.png',
+  'http://localhost:3000/assets/room3_4/tram3.png',
+  'http://localhost:3000/assets/room3_4/tram4.png'
+].map(src => {
+  const i = new Image();
+  i.src = src;
+  return i;
+});
+
+const doorImg = new Image();
+doorImg.src = 'http://localhost:3000/assets/room3_4/cua_khoa.png';
+
+let loaded = 0;
+const total = 6;
+function checkReady() {
+  loaded++;
+  if (loaded >= total) drawAll();
+}
+
+imgBg.onload = checkReady;
+doorImg.onload = checkReady;
+deskImgs.forEach(img => img.onload = checkReady);
+
+function drawAll() {
+  ctx.drawImage(imgBg, 0, 0, 1672, 941);
+
+  // Door
+  ctx.drawImage(doorImg, 1280, 75, 260, 195);
+
+  // Desks
+  const STATIONS = [
+    { id: 0, x: 150, y: 320, w: 260, h: 173, cx: 280, cy: 515, label: 'Trạm 1: Kho dữ liệu' },
+    { id: 1, x: 330, y: 80,  w: 260, h: 173, cx: 460, cy: 275, label: 'Trạm 2: Bộ ĐK liên kết' },
+    { id: 2, x: 950, y: 150, w: 260, h: 173, cx: 1080, cy: 345, label: 'Trạm 3: Hệ thống bảo mật' },
+    { id: 3, x: 950, y: 600, w: 260, h: 173, cx: 1080, cy: 795, label: 'Trạm 4: Kho tri thức' }
+  ];
+
+  STATIONS.forEach((s, idx) => {
+    ctx.drawImage(deskImgs[idx], s.x, s.y, s.w, s.h);
+  });
+
+  // Collision Boxes (Red Semi-transparent)
+  ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
+  ctx.strokeStyle = '#ef4444';
+  ctx.lineWidth = 3;
+
+  function drawBox(x, y, w, h, label) {
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeRect(x, y, w, h);
+    if (label) {
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px sans-serif';
+      ctx.fillText(label, x + 8, y + 24);
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.4)';
+    }
+  }
+
+  // Desks collision feet
+  STATIONS.forEach((s) => {
+    drawBox(s.x + 25, s.y + 50, 210, 105, 'Bàn ' + (s.id + 1));
+  });
+
+  // Walls
+  drawBox(65, 365, 490, 60, 'Vách C2-C1 (x:65..555, chừa lối đi x:560..650)');
+  drawBox(65, 635, 110, 85, 'Vách góc dưới C1');
+  drawBox(65, 780, 320, 125, 'Cụm máy móc góc dưới');
+  drawBox(880, 520, 280, 45, 'Vách C4 (chừa lối vào C4)');
+  drawBox(880, 120, 50, 155, 'Vách dọc C3');
+  drawBox(1210, 125, 45, 335, 'Vách hành lang C3');
+  drawBox(1220, 125, 115, 90, 'Vách trái cửa');
+  drawBox(1485, 125, 65, 90, 'Vách phải cửa');
+  drawBox(1330, 125, 160, 90, 'Cửa kho (khi đóng)');
+
+  // Globe
+  ctx.beginPath();
+  ctx.arc(700, 640, 85, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  // Interaction circles (Cyan)
+  STATIONS.forEach(s => {
+    ctx.strokeStyle = '#38bdf8';
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(s.cx, s.cy, 95, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Center point
+    ctx.fillStyle = '#38bdf8';
+    ctx.beginPath();
+    ctx.arc(s.cx, s.cy, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 18px sans-serif';
+    ctx.fillText('Điểm đứng E (' + s.cx + ',' + s.cy + ')', s.cx - 60, s.cy + 30);
+  });
+
+  // Paths (Green)
+  ctx.strokeStyle = '#22c55e';
+  ctx.lineWidth = 5;
+  ctx.setLineDash([10, 6]);
+
+  const paths = [
+    { name: 'Trạm 1', pts: [[540, 640], [350, 580], [280, 515]] },
+    { name: 'Trạm 2', pts: [[540, 640], [600, 480], [600, 280], [460, 275]] },
+    { name: 'Trạm 3', pts: [[540, 640], [700, 480], [850, 350], [1080, 345]] },
+    { name: 'Trạm 4', pts: [[540, 640], [700, 780], [950, 780], [1080, 795]] },
+    { name: 'Cửa kho', pts: [[540, 640], [700, 480], [1300, 480], [1410, 350], [1410, 220]] },
+    { name: 'Ngôi sao', pts: [[540, 640], [540, 450], [700, 450]] }
+  ];
+
+  paths.forEach(p => {
+    ctx.beginPath();
+    ctx.moveTo(p.pts[0][0], p.pts[0][1]);
+    for (let i = 1; i < p.pts.length; i++) {
+      ctx.lineTo(p.pts[i][0], p.pts[i][1]);
+    }
+    ctx.stroke();
+  });
+  ctx.setLineDash([]);
+
+  // Spawn point
+  ctx.fillStyle = '#eab308';
+  ctx.beginPath();
+  ctx.arc(540, 640, 14, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 20px sans-serif';
+  ctx.fillText('Xuất phát (540, 640)', 440, 675);
+
+  document.title = 'READY_TO_CAPTURE';
+}
+</script>
+</body>
+</html>`;
+
+const htmlPath = path.join(__dirname, 'final_collision_preview.html');
+fs.writeFileSync(htmlPath, html, 'utf8');
+
+const artifactPath = path.resolve('C:/Users/ADMIN/.gemini/antigravity/brain/20185340-8473-464a-990c-a1ae8d8bfdcb/ban_do_va_cham_room03_lop4.png');
+
+const chromePath = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const args = [
+  '--headless=new',
+  '--disable-gpu',
+  '--no-sandbox',
+  '--window-size=1672,941',
+  `--screenshot=${artifactPath}`,
+  `http://localhost:3000/scripts/final_collision_preview.html`
+];
+
+setTimeout(() => {
+  const res = spawnSync(chromePath, args);
+  console.log('Capture result:', res.status, 'File written to:', artifactPath);
+}, 2000);
+

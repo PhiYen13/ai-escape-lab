@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Visual Room 3 Grade 4</title>
+</head>
+<body style="margin:0;padding:0;background:#000;">
+  <iframe id="game-frame" src="http://localhost:3000/index.html" style="width:100vw;height:100vh;border:none;"></iframe>
+  <script>
+    const iframe = document.getElementById('game-frame');
+    iframe.onload = () => {
+      const win = iframe.contentWindow;
+      const doc = iframe.contentDocument;
+
+      // Giả lập chọn khối lớp 4 và vào Room 3
+      localStorage.setItem('ai-escape-lab-avatar', 'boy');
+      win.grade = 4;
+      if (typeof win.openRoom3Grade4 === 'function') {
+        win.openRoom3Grade4();
+      }
+
+      // Đóng intro modal nếu có để thấy canvas
+      setTimeout(() => {
+        const btnOk = doc.getElementById('r3g4-btn-intro-ok');
+        if (btnOk) btnOk.click();
+        document.title = 'ROOM3_G4_VISUAL_READY';
+      }, 500);
+    };
+  </script>
+</body>
+</html>

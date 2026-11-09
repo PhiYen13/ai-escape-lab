@@ -1,0 +1,54 @@
+const { spawnSync } = require('child_process');
+const fs = require('fs');
+
+const html = `<!doctype html>
+<html>
+<body>
+<canvas id="c" width="1672" height="941"></canvas>
+<pre id="out"></pre>
+<script>
+window.onload = async () => {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+  const out = document.getElementById('out');
+
+  const im = new Image();
+  await new Promise(r => { im.onload = r; im.src = '/assets/room3_4/nen_room.png'; });
+  ctx.drawImage(im, 0, 0);
+
+  function getPix(x, y) {
+    const d = ctx.getImageData(Math.round(x), Math.round(y), 1, 1).data;
+    return { x, y, r: d[0], g: d[1], b: d[2], lum: Math.round(0.299*d[0] + 0.587*d[1] + 0.114*d[2]) };
+  }
+
+  // Horizontal scan across wall between Chamber 2 and 1 at y = 400:
+  const wall_horiz = [];
+  for (let x = 60; x <= 650; x += 15) {
+    wall_horiz.push(getPix(x, 400));
+  }
+
+  // Horizontal scan across Chamber 4 top wall at y = 540:
+  const c4_horiz = [];
+  for (let x = 800; x <= 1400; x += 20) {
+    c4_horiz.push(getPix(x, 540));
+  }
+
+  out.textContent = JSON.stringify({ wall_horiz, c4_horiz }, null, 2);
+  document.title = 'HORIZ_SCAN_DONE';
+};
+</script>
+</body>
+</html>`;
+
+fs.writeFileSync('scripts/horiz_scan.html', html, 'utf8');
+
+const res = spawnSync('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', [
+  '--headless=new',
+  '--dump-dom',
+  '--virtual-time-budget=2000',
+  'http://localhost:3000/scripts/horiz_scan.html'
+], { encoding: 'utf8' });
+
+const match = res.stdout.match(/<pre id="out">([\s\S]*?)<\/pre>/);
+if (match) console.log(match[1]);
+

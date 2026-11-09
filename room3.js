@@ -1,7 +1,61 @@
 /* Room 03 – Lớp 3: Học sinh giải cứu mê cung máy tính. */
+window.R3_PUBLISHED_DATA = null;
+window.applyRoom3PublishedData = function(roomData) {
+  if (!roomData) return;
+  window.R3_PUBLISHED_DATA = {
+    title: roomData.topic || 'Học sinh và mê cung máy tính',
+    story: roomData.story || '',
+    items: roomData.items || []
+  };
+
+  let rawItems = [];
+  if (Array.isArray(roomData.items)) {
+    rawItems = roomData.items;
+  } else {
+    if (roomData.tasks && typeof roomData.tasks === 'object') {
+      Object.keys(roomData.tasks).forEach(function(k) {
+        rawItems.push(Object.assign({ item_key: k, item_type: 'task' }, roomData.tasks[k]));
+      });
+    }
+    if (roomData.secrets && typeof roomData.secrets === 'object') {
+      Object.keys(roomData.secrets).forEach(function(k) {
+        rawItems.push(Object.assign({ item_key: k, item_type: 'secret' }, roomData.secrets[k]));
+      });
+    }
+  }
+
+  rawItems.forEach(it => {
+    const k = it.item_key;
+    const p = it.content_payload || it;
+    if (k === 'area_assembly') {
+      window.R3_PUBLISHED_DATA.assembly = {
+        title: it.title,
+        intro: it.intro,
+        items: p.items,
+        feedback: p.feedback
+      };
+    } else if (k === 'station_touchpad') {
+      window.R3_PUBLISHED_DATA.touchpad = { title: it.title, hint: it.hint, feedback: p.feedback };
+    } else if (k === 'station_light') {
+      window.R3_PUBLISHED_DATA.light = { title: it.title, hint: it.hint, feedback: p.feedback };
+    } else if (k === 'station_auth') {
+      window.R3_PUBLISHED_DATA.auth = { title: it.title, hint: it.hint, target_code: p.target_code || 'BYTE', feedback: p.feedback };
+    } else if (k === 'area_conveyor') {
+      window.R3_PUBLISHED_DATA.conveyor = { title: it.title, tips: p.tips, feedback: p.feedback };
+    } else if (k === 'hazard_socket') {
+      window.R3_PUBLISHED_DATA.hazard_socket = { title: it.title, question: it.question, answers: p.answers, correct: p.correct, feedback: p.feedback };
+    } else if (k === 'hazard_water') {
+      window.R3_PUBLISHED_DATA.hazard_water = { title: it.title, question: it.question, answers: p.answers, correct: p.correct, feedback: p.feedback };
+    } else if (k === 'hazard_dust') {
+      window.R3_PUBLISHED_DATA.hazard_dust = { title: it.title, question: it.question, answers: p.answers, correct: p.correct, feedback: p.feedback };
+    } else if (k === 'hazard_cable') {
+      window.R3_PUBLISHED_DATA.hazard_cable = { title: it.title, question: it.question, answers: p.answers, correct: p.correct, feedback: p.feedback };
+    }
+  });
+};
 (()=>{'use strict';
 const $=id=>document.getElementById(id),screen=$('room3'),world=$('r3-world'),dialog=$('r3-dialog');
-const KEY='ai-escape-lab-room3-grade-3';
+const getR3Key=()=>(window.AI_ESCAPE_STORAGE&&typeof window.AI_ESCAPE_STORAGE.getRoom3Key==='function')?window.AI_ESCAPE_STORAGE.getRoom3Key(3):('ai-escape-lab-room3-'+((window.AI_ESCAPE_STORAGE&&window.AI_ESCAPE_STORAGE.getCampaignCode())||'MASTER')+'-grade-3');
 const fresh=()=>({stage:0,found:[],placed:[],assemblyDone:false,gates:0,gateDone:[],conveyor:0,conveyorOrder:[],safe:[],mistakes:0,done:false});
 let data=fresh(),x=50,y=58,keys=new Set(),busy=false,near=null,last=0,laserUntil=0,conveyorStarted=0, facing='down',stepFrame=0;
 // Tọa độ theo phần trăm của ảnh nền Khu A: thiết bị được đặt trên mặt bàn / kệ.
@@ -34,8 +88,21 @@ const devices=[
 const R3_STAGE1_INTERACT_RADIUS=8; // Chỉ hiện E khi nhân vật ở sát đúng thiết bị trong Hoạt động 1.
 const zoneNames=['Kho thiết bị','Khôi phục hệ thống điều khiển','Băng chuyền thiết bị','Kiểm tra an toàn điện'];
 let introSeen=false;
-function save(){localStorage.setItem(KEY,JSON.stringify(data))}
-function load(){try{const d={...fresh(),...JSON.parse(localStorage.getItem(KEY)||'{}')};if(!Array.isArray(d.gateDone))d.gateDone=[];if(!d.gateDone.length&&d.gates>0)d.gateDone=[0,1,2].slice(0,Math.min(3,d.gates));d.gates=d.gateDone.length;return d}catch{return fresh()}}
+function save(){localStorage.setItem(getR3Key(),JSON.stringify(data))}
+function load(){
+  try{
+    const k=getR3Key();
+    let raw=localStorage.getItem(k);
+    if(!raw&&(!window.AI_ESCAPE_PUBLISHED_LOADER||!window.AI_ESCAPE_PUBLISHED_LOADER.hasCode())){
+      raw=localStorage.getItem('ai-escape-lab-room3-grade-3');
+    }
+    const d={...fresh(),...JSON.parse(raw||'{}')};
+    if(!Array.isArray(d.gateDone))d.gateDone=[];
+    if(!d.gateDone.length&&d.gates>0)d.gateDone=[0,1,2].slice(0,Math.min(3,d.gates));
+    d.gates=d.gateDone.length;
+    return d;
+  }catch{return fresh()}
+}
 function completeGate(i){
  if(!data.gateDone.includes(i))data.gateDone.push(i);
  data.gates=data.gateDone.length;save();close();render();
@@ -52,7 +119,22 @@ function msg(t){$('r3-msg').textContent=t}
 function modal(html){busy=true;keys.clear();dialog.classList.remove('hidden');dialog.innerHTML=`<div class="r3-card">${html}</div>`}
 function close(){busy=false;keys.clear();dialog.classList.add('hidden');dialog.innerHTML='';if(!screen.classList.contains('hidden'))world.focus({preventScroll:true})}
 function byteChat(title,body,onDone,label='TIẾP TỤC'){
- modal(`<div class="r3-byte-dialog"><div class="r3-byte-avatar"><div class="r3-byte-robot">🤖</div><strong>ROBOT BYTE</strong></div><div class="r3-byte-speech"><div class="r3-byte-tag">${title}</div><p>${body}</p><button class="r3-btn" id="r3-byte-next">${label} ➜</button></div></div>`);
+ modal(`
+  <div class="r3-byte-dialog">
+    <div class="r3-byte-avatar">
+      <div class="r3-byte-duo">
+        <img src="assets/mascot/02_nhiem_vu.png" alt="Én Én" class="r3-byte-enen-img">
+        <span class="r3-byte-subrobot" aria-hidden="true">🤖</span>
+      </div>
+      <strong>ÉN ÉN & BYTE</strong>
+    </div>
+    <div class="r3-byte-speech">
+      <div class="r3-byte-tag">${title}</div>
+      <p>${body}</p>
+      <button class="r3-btn" id="r3-byte-next">${label} ➜</button>
+    </div>
+  </div>
+ `);
  $('r3-byte-next').onclick=()=>{close();if(onDone)onDone()};
 }
 function gateStory(i){
@@ -69,7 +151,29 @@ function corridorIntro(){
  byteChat('⚠️ TÍN HIỆU KHẨN CẤP','Ba hệ thống của phòng thí nghiệm đang mất kết nối: an ninh, chiếu sáng và xác thực.',()=>byteChat('🧩 NHIỆM VỤ CỦA EM','Hãy dùng laptop, máy tính bảng và điện thoại thông minh để khôi phục ba hệ thống. Em có thể chọn trạm nào trước cũng được!',null,'KHÁM PHÁ HÀNH LANG'));
 }
 function btn(label,fn){const b=document.createElement('button');b.className='r3-btn';b.textContent=label;b.onclick=fn;return b}
-function choice(title,body,options){modal(`<h2>${title}</h2><p>${body}</p><div id="r3-choices" class="r3-choices"></div>`);options.forEach(([label,ok,feedback,callback])=>$('r3-choices').append(btn(label,()=>{if(ok){if(callback)callback();else close()}else{data.mistakes++;save();$('r3-response').textContent=feedback||'Hãy thử lại nhé!'}})));const p=document.createElement('p');p.id='r3-response';p.className='r3-response';$('r3-choices').after(p)}
+function choice(title,body,options){
+  const choiceHeader = window.EnEn ? window.EnEn.header('thinking', title, 'Thử thách an toàn phòng máy') : `<h2>${title}</h2>`;
+  modal(`${choiceHeader}<p>${body}</p><div id="r3-choices" class="r3-choices"></div>`);
+  options.forEach(([label,ok,feedback,callback])=>$('r3-choices').append(btn(label,()=>{
+    if(ok){
+      if(callback)callback();
+      else close();
+    } else {
+      data.mistakes++;
+      save();
+      const res = $('r3-response');
+      if(res){
+        res.innerHTML = window.EnEn
+          ? window.EnEn.speech('cheer', feedback || 'Chưa chính xác rồi. Em hãy bình tĩnh quan sát và thử lại nhé!', 'Én Én cổ vũ')
+          : (feedback || 'Hãy thử lại nhé!');
+      }
+    }
+  })));
+  const p=document.createElement('div');
+  p.id='r3-response';
+  p.className='r3-response';
+  $('r3-choices').after(p);
+}
 function positionPlayer(){const el=$('r3-byte');if(!el)return;el.style.left=x+'%';el.style.top=y+'%';const moving=keys.size>0;const frame=moving?Math.floor(stepFrame*7)%3:0;el.style.backgroundImage=`url("assets/${(localStorage.getItem('ai-escape-lab-avatar')==='girl'?'girl_':'')+facing+frame}.png")`;}
 function addObject(icon,name,px,py,cb,extra='',filename=''){
  const b=document.createElement('button');b.className='r3-object '+extra+(filename?' r3-device-sprite':'');
@@ -89,7 +193,11 @@ if(data.stage===0){
   if(data.found.includes(i))return;
   const take=()=>{
    if(i<4){data.found.push(i);save();render();msg(data.found.length===4?'🎉 Đã đủ 4 bộ phận! Hãy đến BÀN LẮP RÁP phía dưới, nhấn E để lắp thành bộ máy tính hoàn chỉnh.':'✓ Đã thu thập '+name+'! ('+data.found.length+'/4)')}
-   else{modal(`<h2>${name}</h2><p>${working?'Đây là thiết bị máy tính còn hoạt động, nhưng không thuộc bốn bộ phận cần thu thập.':'Thiết bị này đã hư hỏng. Không sử dụng để lắp ráp máy tính. Hãy tìm thiết bị còn hoạt động nhé!'}</p><button class="r3-btn" id="r3-ok">Tiếp tục</button>`);$('r3-ok').onclick=close}
+   else{
+     const dHeader = window.EnEn ? window.EnEn.header('thinking', name, 'Thiết bị phụ trợ') : `<h2>${name}</h2>`;
+     modal(`${dHeader}<p>${working?'Đây là thiết bị máy tính còn hoạt động, nhưng không thuộc bốn bộ phận cần thu thập.':'Thiết bị này đã hư hỏng. Không sử dụng để lắp ráp máy tính. Hãy tìm thiết bị còn hoạt động nhé!'}</p><button class="r3-btn" id="r3-ok">Tiếp tục</button>`);
+     $('r3-ok').onclick=close;
+   }
   };
   objs.push(addObject(icon,name,px,py,take,working?'r3-good-device':'r3-broken-device',file));
  });
@@ -142,8 +250,13 @@ function assemble(){
  if(data.assemblyDone){msg('✓ Đã lắp ráp thành công! Hãy đến cửa ở phía trên bên phải để tiếp tục.');return}
  if(data.found.length<4){msg('Hãy tìm đủ màn hình, thân máy, bàn phím và chuột trước khi đến bàn lắp ráp.');return}
  const names=['Màn hình','Thân máy','Bàn phím','Chuột'];
- modal('<h2>🛠️ LẮP RÁP MÁY TÍNH</h2><p>Chọn đúng bộ phận theo chức năng. Sau khi hoàn thành, em sẽ thấy hình ảnh một bộ máy tính được sắp xếp đúng vị trí.</p><div id="r3-assemble"></div>');
- let index=0;const prompts=['Thiết bị hiển thị kết quả làm việc?','Bộ phận chứa bộ xử lí điều khiển máy tính?','Thiết bị nhập chữ vào máy tính?','Thiết bị giúp điều khiển máy tính thuận tiện?'];
+ const pubAss = window.R3_PUBLISHED_DATA && window.R3_PUBLISHED_DATA.assembly;
+ const assHeader = window.EnEn ? window.EnEn.header('mission', '🛠️ LẮP RÁP MÁY TÍNH', 'Cấu tạo máy tính để bàn') : '<h2>🛠️ LẮP RÁP MÁY TÍNH</h2>';
+ modal(`${assHeader}<p>Chọn đúng bộ phận theo chức năng. Sau khi hoàn thành, em sẽ thấy hình ảnh một bộ máy tính được sắp xếp đúng vị trí.</p><div id="r3-assemble"></div>`);
+ let index=0;
+ const prompts=(pubAss && Array.isArray(pubAss.items) && pubAss.items.length === 4)
+   ? pubAss.items.map(sub => sub.question)
+   : ['Thiết bị hiển thị kết quả làm việc?','Bộ phận chứa bộ xử lí điều khiển máy tính?','Thiết bị nhập chữ vào máy tính?','Thiết bị giúp điều khiển máy tính thuận tiện?'];
  function step(){
   if(index===4){showAssembledComputer();return}
   const area=$('r3-assemble');area.innerHTML=`<h3>Câu ${index+1}/4 · ${prompts[index]}</h3>`;
@@ -152,19 +265,27 @@ function assemble(){
 }
 function gate(i){
  if(i===0){
-  modal(`<h2>💻 TRẠM ĐIỀU KHIỂN CON TRỎ</h2><p>Nhấn giữ và kéo ngón tay trên <b>vùng cảm ứng dưới bàn phím</b> để đưa con trỏ đến ổ khóa trên màn hình.</p><div class="r3-laptop-device"><div class="r3-laptop-display"><div class="r3-laptop-wallpaper"><span class="r3-laptop-hint">DI CHUYỂN CON TRỎ ĐẾN Ổ KHÓA</span><div class="r3-laptop-lock" id="r3-laptop-lock">🔒</div><div class="r3-laptop-cursor" id="r3-laptop-cursor"></div></div></div><div class="r3-laptop-base"><div class="r3-laptop-keys">${['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'].map(row=>`<div>${[...row].map(c=>`<span>${c}</span>`).join('')}</div>`).join('')}</div><div class="r3-laptop-touchpad" id="r3-touchpad" role="application" aria-label="Vùng cảm ứng chuột; kéo để di chuyển con trỏ"><span>TOUCHPAD · KÉO Ở ĐÂY</span><i></i></div></div></div><p id="r3-response" class="r3-response">Đặt ngón tay hoặc con trỏ chuột vào vùng touchpad và kéo.</p>`);
+  const gate0Header = window.EnEn ? window.EnEn.header('mission', '💻 TRẠM ĐIỀU KHIỂN CON TRỎ', 'Vùng cảm ứng chuột trên laptop') : '<h2>💻 TRẠM ĐIỀU KHIỂN CON TRỎ</h2>';
+  modal(`${gate0Header}<p>Nhấn giữ và kéo ngón tay trên <b>vùng cảm ứng dưới bàn phím</b> để đưa con trỏ đến ổ khóa trên màn hình.</p><div class="r3-laptop-device"><div class="r3-laptop-display"><div class="r3-laptop-wallpaper"><span class="r3-laptop-hint">DI CHUYỂN CON TRỎ ĐẾN Ổ KHÓA</span><div class="r3-laptop-lock" id="r3-laptop-lock">🔒</div><div class="r3-laptop-cursor" id="r3-laptop-cursor"></div></div></div><div class="r3-laptop-base"><div class="r3-laptop-keys">${['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'].map(row=>`<div>${[...row].map(c=>`<span>${c}</span>`).join('')}</div>`).join('')}</div><div class="r3-laptop-touchpad" id="r3-touchpad" role="application" aria-label="Vùng cảm ứng chuột; kéo để di chuyển con trỏ"><span>TOUCHPAD · KÉO Ở ĐÂY</span><i></i></div></div></div><p id="r3-response" class="r3-response">Đặt ngón tay hoặc con trỏ chuột vào vùng touchpad và kéo.</p>`);
   const pad=$('r3-touchpad'),cursor=$('r3-laptop-cursor'),lock=$('r3-laptop-lock');let dragging=false,cx=12,cy=75,lastX=0,lastY=0;const paint=()=>{cursor.style.left=cx+'%';cursor.style.top=cy+'%'};paint();
   pad.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;pad.setPointerCapture(e.pointerId);pad.classList.add('active');e.preventDefault()});
   pad.addEventListener('pointermove',e=>{if(!dragging)return;const r=pad.getBoundingClientRect();cx=Math.max(2,Math.min(98,cx+(e.clientX-lastX)/r.width*100));cy=Math.max(3,Math.min(97,cy+(e.clientY-lastY)/r.height*100));lastX=e.clientX;lastY=e.clientY;paint();if(cx>69&&cx<94&&cy<42){dragging=false;lock.textContent='🔓';$('r3-response').textContent='✓ Em đã điều khiển con trỏ bằng vùng cảm ứng!';setTimeout(()=>{completeGate(0)},550)}});
   pad.addEventListener('pointerup',()=>{dragging=false;pad.classList.remove('active')});pad.addEventListener('pointercancel',()=>{dragging=false;pad.classList.remove('active')});return;
  }
  if(i===1){
-  modal('<h2>💡 KHÔI PHỤC HỆ THỐNG CHIẾU SÁNG</h2><p>Chạm vào <b>biểu tượng bóng đèn</b> trên màn hình máy tính bảng để bật đèn hành lang.</p><div class="r3-tablet-device"><div class="r3-tablet-camera"></div><div class="r3-tablet-screen"><div class="r3-tablet-heading">BẢNG ĐIỀU KHIỂN THÔNG MINH</div><div class="r3-tablet-apps"><button id="r3-tablet-light">💡<small>CHIẾU SÁNG</small></button><button id="r3-tablet-fan">🌀<small>QUẠT GIÓ</small></button><button id="r3-tablet-music">🎵<small>ÂM NHẠC</small></button><button id="r3-tablet-door">🚪<small>CỬA RA VÀO</small></button></div><div class="r3-tablet-foot">CHẠM VÀO BIỂU TƯỢNG ĐỂ ĐIỀU KHIỂN</div></div></div><p id="r3-response" class="r3-response">Hãy tìm biểu tượng giúp hành lang sáng lên.</p>');
+  const gate1Header = window.EnEn ? window.EnEn.header('mission', '💡 KHÔI PHỤC HỆ THỐNG CHIẾU SÁNG', 'Màn hình cảm ứng máy tính bảng') : '<h2>💡 KHÔI PHỤC HỆ THỐNG CHIẾU SÁNG</h2>';
+  modal(`${gate1Header}<p>Chạm vào <b>biểu tượng bóng đèn</b> trên màn hình máy tính bảng để bật đèn hành lang.</p><div class="r3-tablet-device"><div class="r3-tablet-camera"></div><div class="r3-tablet-screen"><div class="r3-tablet-heading">BẢNG ĐIỀU KHIỂN THÔNG MINH</div><div class="r3-tablet-apps"><button id="r3-tablet-light">💡<small>CHIẾU SÁNG</small></button><button id="r3-tablet-fan">🌀<small>QUẠT GIÓ</small></button><button id="r3-tablet-music">🎵<small>ÂM NHẠC</small></button><button id="r3-tablet-door">🚪<small>CỬA RA VÀO</small></button></div><div class="r3-tablet-foot">CHẠM VÀO BIỂU TƯỢNG ĐỂ ĐIỀU KHIỂN</div></div></div><p id="r3-response" class="r3-response">Hãy tìm biểu tượng giúp hành lang sáng lên.</p>`);
   $('r3-tablet-light').onclick=()=>{$('r3-response').textContent='✓ Đèn hành lang đã bật!';setTimeout(()=>completeGate(1),450)};
   ['fan','music','door'].forEach(n=>$('r3-tablet-'+n).onclick=()=>{data.mistakes++;save();$('r3-response').textContent='Chưa đúng! Em cần bật hệ thống chiếu sáng.'});return;
  }
- modal('<h2>📱 TRẠM GIẢI MÃ BÀN PHÍM</h2><p>Chạm các phím trên điện thoại để nhập mã <b>BYTE</b> theo đúng thứ tự.</p><div class="r3-smartphone"><div class="r3-phone-notch"></div><div class="r3-phone-screen"><div class="r3-phone-title">🔐 NHẬP MÃ MỞ CỔNG</div><div id="r3-typed" class="r3-phone-entry">_ _ _ _</div><div class="r3-phone-keyboard" id="r3-virtual"></div><button class="r3-phone-delete" id="r3-delete" type="button">⌫ Xóa ký tự</button></div><div class="r3-phone-home"></div></div><p id="r3-response" class="r3-response">Hãy nhấn B → Y → T → E.</p>');
- let typed='';const update=()=>{$('r3-typed').textContent=typed.padEnd(4,'_').split('').join(' ')};const rows=['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];rows.forEach(row=>{const line=document.createElement('div');line.className='r3-phone-keyrow';[...row].forEach(c=>{const key=document.createElement('button');key.type='button';key.className='r3-phone-key';key.textContent=c;key.onclick=()=>{typed+=c;update();if(!'BYTE'.startsWith(typed)){data.mistakes++;save();$('r3-response').textContent='Chưa đúng thứ tự! Em hãy xóa hoặc thử lại.';typed='';setTimeout(()=>{if($('r3-typed'))update()},450)}else if(typed==='BYTE'){$('r3-response').textContent='✓ Đúng mã BYTE!';setTimeout(()=>completeGate(2),450)}else $('r3-response').textContent='Đúng rồi, tiếp tục nhập ký tự kế tiếp!'};line.append(key)});$('r3-virtual').append(line)});$('r3-delete').onclick=()=>{typed=typed.slice(0,-1);update();$('r3-response').textContent='Em có thể nhập lại mã BYTE.'};
+  const pubAuth = window.R3_PUBLISHED_DATA && window.R3_PUBLISHED_DATA.auth;
+  const targetCode = (pubAuth && typeof pubAuth.target_code === 'string' && pubAuth.target_code.trim()) ? pubAuth.target_code.trim().toUpperCase() : 'BYTE';
+  const targetLen = targetCode.length;
+  const placeholder = Array(targetLen).fill('_').join(' ');
+  const codeGuide = targetCode.split('').join(' → ');
+  const gate2Header = window.EnEn ? window.EnEn.header('mission', '📱 TRẠM GIẢI MÃ BÀN PHÍM', 'Bàn phím ảo trên điện thoại thông minh') : '<h2>📱 TRẠM GIẢI MÃ BÀN PHÍM</h2>';
+  modal(`${gate2Header}<p>Chạm các phím trên điện thoại để nhập mã <b>${targetCode}</b> theo đúng thứ tự.</p><div class="r3-smartphone"><div class="r3-phone-notch"></div><div class="r3-phone-screen"><div class="r3-phone-title">🔐 NHẬP MÃ MỞ CỔNG</div><div id="r3-typed" class="r3-phone-entry">${placeholder}</div><div class="r3-phone-keyboard" id="r3-virtual"></div><button class="r3-phone-delete" id="r3-delete" type="button">⌫ Xóa ký tự</button></div><div class="r3-phone-home"></div></div><p id="r3-response" class="r3-response">Hãy nhấn ${codeGuide}.</p>`);
+  let typed='';const update=()=>{$('r3-typed').textContent=typed.padEnd(targetLen,'_').split('').join(' ')};const rows=['QWERTYUIOP','ASDFGHJKL','ZXCVBNM'];rows.forEach(row=>{const line=document.createElement('div');line.className='r3-phone-keyrow';[...row].forEach(c=>{const key=document.createElement('button');key.type='button';key.className='r3-phone-key';key.textContent=c;key.onclick=()=>{typed+=c;update();if(!targetCode.startsWith(typed)){data.mistakes++;save();$('r3-response').textContent='Chưa đúng thứ tự! Em hãy xóa hoặc thử lại.';typed='';setTimeout(()=>{if($('r3-typed'))update()},450)}else if(typed===targetCode){$('r3-response').textContent='✓ Đúng mã '+targetCode+'!';setTimeout(()=>completeGate(2),450)}else $('r3-response').textContent='Đúng rồi, tiếp tục nhập ký tự kế tiếp!'};line.append(key)});$('r3-virtual').append(line)});$('r3-delete').onclick=()=>{typed=typed.slice(0,-1);update();$('r3-response').textContent='Em có thể nhập lại mã '+targetCode+'.'};
 }
 
 const conveyorItems=[
@@ -207,12 +328,104 @@ function conveyor(){
  moving.onclick=select;
 }
 const situations=[['Ổ cắm điện bị lỏng','Báo thầy cô hoặc người lớn','Tự cắm lại dây điện'],['Cốc nước đặt cạnh máy tính','Giữ đồ uống cách xa máy tính','Tiếp tục để cốc nước bên cạnh'],['Bàn phím bám bụi','Dùng chổi phủi bụi hoặc khăn mềm phù hợp','Dùng khăn ướt lau bàn phím'],['Dây điện cắm không an toàn','Không tự ý chạm vào dây điện; báo giáo viên','Tự kéo dây điện để sửa']];
-function safety(i){const [title,correct,wrong]=situations[i];choice('🚨 PHÁT HIỆN NGUY CƠ: '+title,'Em hãy chọn hành động an toàn.',[[wrong,false,'Không an toàn! Khi có nguy cơ về điện, không tự ý xử lí.'],[correct,true,'',()=>{data.safe.push(i);save();close();render()}]])}
-function finish(){if(!data.done){data.done=true;save();if(typeof recordUnlock==='function')recordUnlock(3,4);if(typeof hud==='function')hud();render()}modal(`<div class="r3-win">🏆</div><h2>CHÚC MỪNG! EM ĐÃ HOÀN THÀNH ROOM 03</h2><p>⭐ Đã hoàn thành 4/4 hoạt động · 🔓 Room 04 đã mở khóa!</p><p>🤖 Byte: Em đã hoàn thành các hoạt động khám phá, lắp ráp, phân loại và an toàn trong phòng máy!</p><button class="r3-btn" id="r3-back-map">🗺️ VỀ BẢN ĐỒ</button>`);$('r3-back-map').onclick=()=>{close();show('map')}}
-function open(){introSeen=false;if(grade!==3){openModal('<h2>🚧 ROOM 03</h2><p>Phiên bản thử nghiệm này mới có nội dung Room 03 lớp 3. Lớp 4 và 5 sẽ được bổ sung sau.</p>');return}if(unlockedThrough(3)<3&&new URLSearchParams(location.search).get('teacher')!=='1'){openModal('<h2>🔒 ROOM 03 CHƯA MỞ</h2><p>Hãy hoàn thành Room 02 trước.</p>');return}data=load();x=50;y=58;keys.clear();facing='down';close();show('room3');render();if(data.stage===1){x=50;y=81;positionPlayer();corridorIntro();}if(!data.done&&data.stage===0)modal('<h2>🚨 ROOM 03: HỌC SINH VÀ MÊ CUNG MÁY TÍNH</h2><p>Phòng thí nghiệm đang gặp sự cố. Hãy tìm đủ 4 bộ phận máy tính còn hoạt động, sau đó đến bàn lắp ráp để tạo thành một bộ máy tính hoàn chỉnh. Tiếp theo, hoàn thành ba trạm điều khiển, sửa băng chuyền và bảo đảm an toàn điện.</p><p><b>WASD / ↑ ↓ ← →</b>: di chuyển · <b>E</b>: tương tác gần vật thể.</p><button class="r3-btn" id="r3-go">🚀 BẮT ĐẦU GIẢI CỨU</button>'),$('r3-go').onclick=close}
+function safety(i){
+  const hazardKeys=['hazard_socket','hazard_water','hazard_dust','hazard_cable'];
+  const pubHazard = (hazardKeys[i] && window.R3_PUBLISHED_DATA && window.R3_PUBLISHED_DATA[hazardKeys[i]]) || null;
+  let title = situations[i][0];
+  let correct = situations[i][1];
+  let wrong = situations[i][2];
+  let qText = 'Em hãy chọn hành động an toàn.';
+  if(pubHazard){
+    if(pubHazard.title) title = pubHazard.title;
+    if(pubHazard.question) qText = pubHazard.question;
+    if(Array.isArray(pubHazard.answers) && pubHazard.answers.length >= 2){
+      const cIdx = typeof pubHazard.correct === 'number' ? pubHazard.correct : 0;
+      correct = pubHazard.answers[cIdx] || correct;
+      wrong = pubHazard.answers[1 - cIdx] || wrong;
+    }
+  }
+  choice('🚨 PHÁT HIỆN NGUY CƠ: '+title, qText, [[wrong,false,'Không an toàn! Khi có nguy cơ về điện, không tự ý xử lí.'],[correct,true,'',()=>{data.safe.push(i);save();close();render()}]]);
+}
+function finish(){
+  if(!data.done){
+    data.done=true;
+    save();
+    if(typeof recordUnlock==='function')recordUnlock(3,4);
+    if(typeof hud==='function')hud();
+    render();
+  }
+  modal(`
+    <div class="enen-celebrate-box">
+      <img src="assets/mascot/05_chuc_mung.png" alt="Én Én ăn mừng" class="enen-celebrate-img">
+    </div>
+    <h2>CHÚC MỪNG! EM ĐÃ HOÀN THÀNH ROOM 03</h2>
+    <p>⭐ Đã hoàn thành 4/4 hoạt động · 🔓 Room 04 đã mở khóa!</p>
+    <p>🤖 <b>Én Én & Byte:</b> Em đã hoàn thành xuất sắc các hoạt động khám phá, lắp ráp, phân loại và an toàn trong phòng máy!</p>
+    <button class="r3-btn" id="r3-back-map">🗺️ VỀ BẢN ĐỒ</button>
+  `);
+  $('r3-back-map').onclick=()=>{close();show('map')};
+}
+function open(){
+  introSeen=false;
+  if(grade!==3){openModal(window.EnEn ? window.EnEn.header('thinking', 'ROOM 03 – LỚP ' + grade, 'Đang được phát triển') + '<p>Phiên bản thử nghiệm này mới có nội dung Room 03 lớp 3. Lớp 4 và 5 sẽ được bổ sung sau em nhé!</p>' : '<h2>🚧 ROOM 03</h2><p>Phiên bản thử nghiệm này mới có nội dung Room 03 lớp 3. Lớp 4 và 5 sẽ được bổ sung sau.</p>');return}
+  if(typeof AI_ESCAPE_PUBLISHED_LOADER !== 'undefined' && AI_ESCAPE_PUBLISHED_LOADER && typeof AI_ESCAPE_PUBLISHED_LOADER.hasCode === 'function' && AI_ESCAPE_PUBLISHED_LOADER.hasCode()){
+    if(typeof AI_ESCAPE_PUBLISHED_LOADER.hasPublishedRoom === 'function' && !AI_ESCAPE_PUBLISHED_LOADER.hasPublishedRoom(grade, 3)){
+      openModal(window.EnEn ? window.EnEn.header('thinking', 'PHÒNG CHƯA CÓ NỘI DUNG', 'Thông báo từ giáo viên') + '<p>Phòng 03 chưa có nội dung trong bộ đề của giáo viên. Hãy chọn phòng khác hoặc liên hệ giáo viên em nhé!</p>' : '<h2>🔒 PHÒNG CHƯA CÓ NỘI DUNG</h2><p>Phòng 03 chưa có nội dung trong bộ đề của giáo viên. Hãy chọn phòng khác hoặc liên hệ giáo viên.</p>');
+      return;
+    }
+  }
+  if(unlockedThrough(3)<3&&new URLSearchParams(location.search).get('teacher')!=='1'){openModal(window.EnEn ? window.EnEn.header('thinking', 'ROOM 03 CHƯA MỞ KHÓA', 'Thử thách tiếp theo') + '<p>Hãy hoàn thành Room 02 trước để mở khóa Room 03 em nhé!</p>' : '<h2>🔒 ROOM 03 CHƯA MỞ</h2><p>Hãy hoàn thành Room 02 trước.</p>');return}
+  data=load();x=50;y=58;keys.clear();facing='down';close();show('room3');render();if(data.stage===1){x=50;y=81;positionPlayer();corridorIntro();}
+  if(!data.done&&data.stage===0)modal(`
+    <div class="enen-dialog-header">
+      <div class="enen-avatar-bubble">
+        <img src="assets/mascot/02_nhiem_vu.png" alt="Én Én" class="enen-avatar-img">
+      </div>
+      <div class="enen-header-text">
+        <span class="enen-speaker-badge">Nhiệm Vụ Khẩn Cấp</span>
+        <h2>ROOM 03: MÊ CUNG MÁY TÍNH</h2>
+        <div class="enen-header-sub">Khám phá và khôi phục an toàn</div>
+      </div>
+    </div>
+    <p>Phòng thí nghiệm đang gặp sự cố. Hãy tìm đủ 4 bộ phận máy tính còn hoạt động, sau đó đến bàn lắp ráp để tạo thành một bộ máy tính hoàn chỉnh. Tiếp theo, hoàn thành ba trạm điều khiển, sửa băng chuyền và bảo đảm an toàn điện.</p>
+    <p><b>WASD / ↑ ↓ ← →</b>: di chuyển · <b>E</b>: tương tác gần vật thể.</p>
+    <button class="r3-btn" id="r3-go">🚀 BẮT ĐẦU GIẢI CỨU</button>
+  `),$('r3-go').onclick=close;
+}
 window.openRoom3=open;window.room3Done=g=>g===3&&load().done===true;
-window.resetCurrentRoom3=function(){if(!confirm('Chỉ xóa tiến độ Room 03 lớp 3? Các phòng khác và quyền mở khóa đã đạt được sẽ được giữ nguyên.'))return;localStorage.removeItem(KEY);data=fresh();close();open()};
-$('r3-map').onclick=()=>{close();show('map')};$('r3-reset').onclick=()=>window.resetCurrentRoom3();$('r3-help').onclick=()=>{modal('<h2>❔ HƯỚNG DẪN</h2><p>'+([data.assemblyDone?'Em đã lắp ráp xong. Hãy đến cửa ở góc trên bên phải và nhấn E để sang hoạt động 2.':'Thu thập 4 bộ phận còn hoạt động, đến bàn lắp ráp ở phía dưới và nhấn E. Sau khi lắp ráp xong, hãy tự đi đến cửa để tiếp tục.','Khôi phục ba hệ thống an ninh, chiếu sáng và xác thực theo thứ tự bất kỳ. Đến gần từng trạm rồi nhấn E. Hoàn thành đủ ba trạm để mở cửa.','Kéo thả thiết bị vào thùng đúng chức năng trên băng chuyền.','Tìm và xử lí các tình huống không an toàn trong phòng máy tính.'][data.stage])+'</p><p><b>WASD / phím mũi tên</b>: di chuyển · <b>E</b>: tương tác.</p><button class="r3-btn" id="r3-understood">ĐÃ HIỂU</button>');$('r3-understood').onclick=close;};
+window.resetCurrentRoom3=function(force=false){
+  function performReset(){
+    localStorage.removeItem(getR3Key());
+    localStorage.removeItem('ai-escape-lab-room3-grade-3');
+    data=fresh();
+    if(typeof hud==='function')hud();
+    if(typeof closeModal==='function')closeModal();
+    close();
+    open();
+  }
+  if(force===true){
+    performReset();
+    return;
+  }
+  modal((window.EnEn ? window.EnEn.header('thinking', 'CHƠI LẠI ROOM 03 – LỚP 3?', 'Xác nhận thiết lập lại') : '<h2>↻ CHƠI LẠI ROOM 03 – LỚP 3?</h2>') + '<p>Chỉ xóa tiến độ của <b>Room 03 – Lớp 3</b>. Phòng 01, Phòng 02 và các lớp khác vẫn giữ nguyên toàn bộ dữ liệu.</p><div style="display:flex;gap:12px;margin-top:16px"><button class="r3-btn" id="r3-reset-cancel">HỦY</button><button class="r3-btn" id="r3-reset-confirm" style="background:#e11d48">CHƠI LẠI ROOM 03</button></div>');
+  const cBtn=$('r3-reset-cancel');if(cBtn)cBtn.onclick=close;
+  const okBtn=$('r3-reset-confirm');if(okBtn)okBtn.onclick=performReset;
+};
+$('r3-map').onclick=()=>{close();show('map')};$('r3-reset').onclick=()=>window.resetCurrentRoom3();$('r3-help').onclick=()=>{
+  const helpHeader = window.EnEn ? window.EnEn.header('mission', 'HƯỚNG DẪN HOẠT ĐỘNG', `ROOM 03 · CHẶNG ${data.stage+1}/4`) : '<h2>❔ HƯỚNG DẪN</h2>';
+  modal(helpHeader + '<p>'+([data.assemblyDone?'Em đã lắp ráp xong. Hãy đến cửa ở góc trên bên phải và nhấn E để sang hoạt động 2.':'Thu thập 4 bộ phận còn hoạt động, đến bàn lắp ráp ở phía dưới và nhấn E. Sau khi lắp ráp xong, hãy tự đi đến cửa để tiếp tục.','Khôi phục ba hệ thống an ninh, chiếu sáng và xác thực theo thứ tự bất kỳ. Đến gần từng trạm rồi nhấn E. Hoàn thành đủ ba trạm để mở cửa.','Kéo thả thiết bị vào thùng đúng chức năng trên băng chuyền.','Tìm và xử lí các tình huống không an toàn trong phòng máy tính.'][data.stage])+'</p><p><b>WASD / phím mũi tên</b>: di chuyển · <b>E</b>: tương tác.</p><button class="r3-btn" id="r3-understood">ĐÃ HIỂU</button>');
+  $('r3-understood').onclick=close;
+};
+
+// Nạp sẵn dữ liệu đã tải từ Supabase nếu có trước khi room3.js được nạp
+if(window.AI_ESCAPE_LAST_PUBLISHED_RECORD&&window.AI_ESCAPE_LAST_PUBLISHED_RECORD.published_payload){
+  const rooms=window.AI_ESCAPE_LAST_PUBLISHED_RECORD.published_payload.rooms||[];
+  rooms.forEach(r=>{
+    if(r.module_id==='computer_maze_adventure_v1'){
+      window.applyRoom3PublishedData(r);
+    }
+  });
+}
 window.addEventListener('keydown',e=>{if(screen.classList.contains('hidden')||busy||(e.target instanceof Element && e.target.matches('input,textarea,[contenteditable=true]')))return;const k=e.key.toLowerCase();if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){keys.add(k);e.preventDefault()}if(k==='e'&&!e.repeat&&near){const n=near.filter(o=>Math.hypot((o.x-x)*1.65,(o.y-y)*1.2)<(data.stage===0?R3_STAGE1_INTERACT_RADIUS:24)).sort((a,b)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b.x-x,b.y-y))[0];if(n)n.cb();else msg('Hãy đến gần thiết bị để tương tác. Thu thập đủ 4 bộ phận thì đến bàn lắp ráp.')}});
 window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));window.addEventListener('blur',()=>keys.clear());
 function loop(t){const dt=Math.min(.045,(t-last)/1000||0);last=t;if(!screen.classList.contains('hidden')&&!busy){let dx=0,dy=0;if(keys.has('a')||keys.has('arrowleft'))dx--;if(keys.has('d')||keys.has('arrowright'))dx++;if(keys.has('w')||keys.has('arrowup'))dy--;if(keys.has('s')||keys.has('arrowdown'))dy++;if(dx||dy){facing=Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');stepFrame+=dt;const m=Math.hypot(dx,dy);const nx=Math.max(8,Math.min(92,x+dx/m*24*dt)),ny=Math.max(20,Math.min(85,y+dy/m*32*dt));if(data.stage===1&&nx>59&&nx<77&&ny>36&&ny<66&&data.gateDone.length<3){msg('🔒 Cửa an ninh còn khóa! Hãy khôi phục đủ ba hệ thống.')}else{x=nx;y=ny}positionPlayer();updateNearby()}else{stepFrame=0;positionPlayer();updateNearby()}}requestAnimationFrame(loop)}requestAnimationFrame(loop);

@@ -1,5 +1,7 @@
 'use strict';
 /* Room 02 - interactive exploration and repair; standalone offline browser game. */
+window.R2_PUBLISHED_DATA = { 3: null, 4: null, 5: null };
+
 const R2DATA={
 3:{title:'TRUNG TÂM XỬ LÍ THÔNG TIN',story:'Bộ xử lí thông tin bị lỗi! Hãy tìm hiểu cách con người thu nhận, xử lí thông tin và đưa ra quyết định để kích hoạt các thiết bị.',stations:[
 ['THU NHẬN THÔNG TIN','👁️','Con người thu nhận thông tin từ môi trường xung quanh bằng các giác quan như mắt, tai, mũi, lưỡi và da.','Nhìn thấy đèn đỏ, nghe tiếng chuông vào lớp là những ví dụ về thu nhận thông tin.'],
@@ -19,8 +21,19 @@ stages:['BỘ ĐIỀU KHIỂN NGÓN TAY','SỬA HÀNG PHÍM SỐ','NHẬP VĂN B
 ['TRUNG TÂM CHIA SẺ TRI THỨC','📁','Các thành viên cần hợp tác, chia sẻ thông tin để hoàn thành công việc chung. Có thể chia sẻ tệp qua thư điện tử, mạng xã hội hoặc thiết bị lưu trữ.','Tìm kiếm → Đọc và chọn lọc → Lưu trữ → Chia sẻ.'],
 ['TRẠM TRUYỀN DỮ LIỆU USB','💾','USB có thể dùng để sao chép và chuyển tệp giữa các máy tính. Sau khi sao chép xong, cần ngắt kết nối an toàn trước khi rút USB.','Kết nối → Sao chép → Dán → Eject (ngắt kết nối an toàn) → Rút USB.']],
 stages:['CẤU TRÚC WEBSITE','TRUY TÌM TÀI LIỆU','KHO DỮ LIỆU CHUNG','CHIA SẺ QUA USB']}}
-const r2key=g=>'ai-escape-lab-room2-grade-'+g;
-function r2load(g){let a={};try{a=JSON.parse(localStorage.getItem(r2key(g)))||{}}catch{}return {step:Math.min(4,Math.max(0,Number(a.step)||0)),wrong:Number(a.wrong)||0,hints:Number(a.hints)||0,seen:Array.isArray(a.seen)?a.seen:[]}}
+const r2key=g=>(window.AI_ESCAPE_STORAGE&&typeof window.AI_ESCAPE_STORAGE.getRoom2Key==='function')?window.AI_ESCAPE_STORAGE.getRoom2Key(g):('ai-escape-lab-room2-'+((window.AI_ESCAPE_STORAGE&&window.AI_ESCAPE_STORAGE.getCampaignCode())||'MASTER')+'-grade-'+g);
+function r2load(g){
+  let a={};
+  try{
+    const k=r2key(g);
+    let raw=localStorage.getItem(k);
+    if(!raw&&(!window.AI_ESCAPE_PUBLISHED_LOADER||!window.AI_ESCAPE_PUBLISHED_LOADER.hasCode())){
+      raw=localStorage.getItem('ai-escape-lab-room2-grade-'+g);
+    }
+    a=JSON.parse(raw)||{};
+  }catch{}
+  return {step:Math.min(4,Math.max(0,Number(a.step)||0)),wrong:Number(a.wrong)||0,hints:Number(a.hints)||0,seen:Array.isArray(a.seen)?a.seen:[]};
+}
 window.room2Done=g=>r2load(g).step===4;
 let r2state,r2x=50,r2y=84,r2keys=new Set(),r2dialog=false,r2intro=true,r2frame=0,r2grade=3,r2dir='down',r2walk=0;
 const r2=document.getElementById('room2');
@@ -34,7 +47,14 @@ function r2move(){if(!r2.classList.contains('hidden')&&!r2dialog&&!r2intro){let 
 function r2nearest(){let best=-1,dist=1e9;stations.forEach((p,i)=>{let dd=Math.hypot((p.x-r2x)*1.2,p.y-r2y);if(dd<dist){dist=dd;best=i}});return dist<17?best:-1}
 function r2open(html){r2dialog=true;$r('r2-dialog').classList.remove('hidden');$r('r2-dialog-content').innerHTML=html}
 function r2close(){r2dialog=false;$r('r2-dialog').classList.add('hidden');r2update()}
-function r2say(t,bad=false){const el=$r('r2-feedback');if(el){el.textContent=t;el.className=bad?'r2-error':'r2-good'}if(bad){r2state.wrong++;r2save()}}
+function r2say(t,bad=false){
+  const el=$r('r2-feedback');
+  if(el){
+    el.innerHTML=`<div class="enen-speech-card" style="margin:8px 0;padding:8px 10px"><div class="enen-speech-mascot" style="width:42px;height:42px"><img src="${bad?'assets/mascot/04_co_vu.png':'assets/mascot/03_suy_nghi.png'}" alt="Én Én" style="width:38px;height:38px;object-fit:contain"></div><div class="enen-speech-bubble"><strong class="enen-speech-kicker" style="font-size:10.5px">${bad?'Én Én động viên:':'Én Én gợi ý:'}</strong><div class="enen-speech-body" style="font-size:12.5px">${t}</div></div></div>`;
+    el.className=bad?'r2-error':'r2-good';
+  }
+  if(bad){r2state.wrong++;r2save()}
+}
 function r2btn(text,fn){let b=document.createElement('button');b.className='r2-action';b.textContent=text;b.onclick=fn;return b}
 function r2choices(question,options,correct,tip,success){const area=$r('r2-work');area.innerHTML='<h3>'+question+'</h3>';options.forEach((o,i)=>area.appendChild(r2btn(o,()=>i===correct?success():r2say(tip,true))))}
 function r2multi(question,options,answers,tip,success){const area=$r('r2-work');area.innerHTML='<h3>'+question+'</h3>';const sel=new Set();options.forEach((o,i)=>{const b=r2btn(o,()=>{sel.has(i)?sel.delete(i):sel.add(i);b.classList.toggle('r2-selected',sel.has(i))});area.appendChild(b)});area.appendChild(r2btn('✓ KIỂM TRA',()=>sel.size===answers.length&&answers.every(i=>sel.has(i))?success():r2say(tip,true)))}
@@ -46,8 +66,8 @@ function r2match(title,left,right,pairs,tip,success){
  left.forEach((v,i)=>{const b=r2btn(v,()=>{if(done.has(i))return;selected=i;l.querySelectorAll('button').forEach(n=>n.classList.remove('r2-selected'));b.classList.add('r2-selected')});b.dataset.row=i;l.appendChild(b)});
  right.forEach((v,j)=>{const b=r2btn(v,()=>{if(selected<0){$r('r2-mstatus').textContent='Hãy chọn thông tin ở cột trái trước.';return}if(pairs[selected]===j){done.add(selected);l.querySelector(`[data-row="${selected}"]`).classList.add('r2-matched');l.querySelector(`[data-row="${selected}"]`).disabled=true;b.classList.add('r2-matched');b.disabled=true;selected=-1;$r('r2-mstatus').textContent='✓ Đã nối '+done.size+'/'+left.length+' cặp';if(done.size===left.length)success()}else{r2say(tip,true)}});r.appendChild(b)})
 }
-function r2fingers(success){
- const a=$r('r2-work');const digits=[4,8,1,0,6],correct=['Trỏ trái','Giữa phải','Út trái','Út phải','Trỏ phải'];let n=0;
+function r2fingers(success, customDigits, customCorrect){
+ const a=$r('r2-work');const digits=(Array.isArray(customDigits)&&customDigits.length)?customDigits:[4,8,1,0,6],correct=(Array.isArray(customCorrect)&&customCorrect.length===digits.length)?customCorrect:['Trỏ trái','Giữa phải','Út trái','Út phải','Trỏ phải'];let n=0;
  a.innerHTML='<h3>CHỌN NGÓN TAY GÕ PHÍM SỐ</h3><p>Quan sát hai bàn tay và nhấn trực tiếp vào ngón tay phù hợp. Không có số gợi ý trên các ngón.</p><div id="r2-finger-prompt" class="r2-finger-question"></div><div class="r2-real-hands" id="r2-real-hands"></div><div class="r2-info" id="r2-finger-status">Đúng 0/5 lượt</div>';
  // Each hand is a coherent SVG silhouette with independently clickable finger regions.
  function hand(side){
@@ -72,31 +92,46 @@ function r2fingers(success){
   return box;
  }
  $r('r2-real-hands').append(hand('trái'),hand('phải'));
- function update(){$r('r2-finger-prompt').innerHTML=`Phím cần gõ: <span class="r2-big-digit">${digits[n]}</span>`;$r('r2-finger-status').textContent=`Đúng ${n}/5 lượt`;}update();
+ function update(){$r('r2-finger-prompt').innerHTML=`Phím cần gõ: <span class="r2-big-digit">${digits[n]}</span>`;$r('r2-finger-status').textContent=`Đúng ${n}/${digits.length} lượt`;}update();
 }
-function r2websiteMission(success){const a=$r('r2-work');let fixed=new Set();const entries=[['🏠','TRANG CHỦ','home'],['📚','CHỦ ĐỀ','topics'],['🔍','TÌM KIẾM','search']];
+function r2websiteMission(success, customEntries){const a=$r('r2-work');let fixed=new Set();const entries=(Array.isArray(customEntries)&&customEntries.length===3)?customEntries:[['🏠','TRANG CHỦ','home'],['📚','CHỦ ĐỀ','topics'],['🔍','TÌM KIẾM','search']];
  a.innerHTML='<h3>Gắn lại ba nút bị mất trên website</h3><p>Hệ thống đã mất các nút điều hướng. Chọn chức năng ở bên dưới rồi nhấn vào vị trí thích hợp trên thanh website.</p><div class="r2-mock-browser"><div class="r2-mock-menu" id="r2-mission-slots"></div><div class="r2-web-content">📰 BẢN TIN TRI THỨC SỐ<br><small>Trang web học tập dành cho học sinh</small></div></div><div class="r2-web-parts" id="r2-mission-parts"></div><div class="r2-info" id="r2-mission-msg">Đã sửa 0/3 nút</div>';
  let selected=null;entries.forEach(([icon,name,id])=>{const b=r2btn(icon+' '+name,()=>{selected=id;a.querySelectorAll('#r2-mission-parts button').forEach(el=>el.classList.remove('r2-selected'));b.classList.add('r2-selected')});$r('r2-mission-parts').appendChild(b)});
  entries.forEach(([icon,name,id])=>{const b=document.createElement('button');b.textContent='❔ NÚT BỊ LỖI';b.className='r2-web-slot';b.onclick=()=>{if(selected===id){fixed.add(id);b.textContent=icon+' '+name;b.classList.add('r2-matched');b.disabled=true;$r('r2-mission-msg').textContent=`Đã sửa ${fixed.size}/3 nút`;if(fixed.size===3)success()}else r2say('Nút vừa chọn chưa đúng với vị trí này. Hãy thử lại!',true)};$r('r2-mission-slots').appendChild(b)})
 }
-function r2searchMission(success){const a=$r('r2-work');let step=0;
- a.innerHTML='<h3>TRUY TÌM BẢN TIN CỨU HỘ</h3><p>Máy chủ cần khôi phục bài viết <b>“Cách phòng tránh đuối nước”</b> trong website <b>Tri thức học đường</b>. Hãy tìm đúng bài, đọc thông tin rồi chuyển về kho dữ liệu.</p><div class="r2-mock-browser"><div class="r2-mock-menu"><button id="r2-rescue-home">🏠 TRANG CHỦ</button><button id="r2-rescue-life">🛟 KĨ NĂNG SỐNG</button><button id="r2-rescue-sports">⚽ THỂ THAO</button><button id="r2-rescue-search">🔍 TÌM KIẾM</button></div><div id="r2-rescue-view" class="r2-web-content"></div></div>';
+function r2searchMission(success, customSearch){const a=$r('r2-work');let step=0;
+ const artTitle = (customSearch && customSearch.article_title) || 'Cách phòng tránh đuối nước';
+ const catName = (customSearch && customSearch.category) || 'KĨ NĂNG SỐNG';
+ const qList = (customSearch && Array.isArray(customSearch.keywords) && customSearch.keywords.length) ? customSearch.keywords : ['duoi nuoc', 'phong tranh'];
+ const questText = (customSearch && customSearch.question) || 'Chọn thông tin đúng để lưu vào kho tri thức:';
+ const ansList = (customSearch && Array.isArray(customSearch.answers) && customSearch.answers.length >= 2) ? customSearch.answers : ['Gọi người lớn và lực lượng cứu hộ khi có người gặp nạn', 'Tự nhảy xuống nước để cứu người'];
+ const corrIdx = (customSearch && typeof customSearch.correct === 'number') ? customSearch.correct : 0;
+ a.innerHTML=`<h3>TRUY TÌM BẢN TIN CỨU HỘ</h3><p>Máy chủ cần khôi phục bài viết <b>“${artTitle}”</b> trong website <b>Tri thức học đường</b>. Hãy tìm đúng bài, đọc thông tin rồi chuyển về kho dữ liệu.</p><div class="r2-mock-browser"><div class="r2-mock-menu"><button id="r2-rescue-home">🏠 TRANG CHỦ</button><button id="r2-rescue-life">🛟 ${catName}</button><button id="r2-rescue-sports">⚽ THỂ THAO</button><button id="r2-rescue-search">🔍 TÌM KIẾM</button></div><div id="r2-rescue-view" class="r2-web-content"></div></div>`;
  const v=$r('r2-rescue-view');const showHome=()=>{v.innerHTML='<h3>📰 TRI THỨC HỌC ĐƯỜNG</h3><p>Chọn chuyên mục hoặc tìm bài viết trong website.</p>'};
- const showList=()=>{v.innerHTML='<h3>🛟 KĨ NĂNG SỐNG</h3><div id="r2-rescue-list"></div>';const l=$r('r2-rescue-list');l.appendChild(r2btn('📄 Cách phòng tránh đuối nước',showArticle));l.appendChild(r2btn('📄 Chuẩn bị cặp sách đến trường',()=>r2say('Đây không phải bài viết cần khôi phục.',true)))};
- const showArticle=()=>{v.innerHTML='<h3>📄 Cách phòng tránh đuối nước</h3><p>Không chơi gần ao, hồ, sông, suối khi không có người lớn. Khi thấy người gặp nạn, cần gọi người lớn và lực lượng cứu hộ, không tự ý nhảy xuống nước.</p><h4>Chọn thông tin đúng để lưu vào kho tri thức:</h4>';v.appendChild(r2btn('Gọi người lớn và lực lượng cứu hộ khi có người gặp nạn',success));v.appendChild(r2btn('Tự nhảy xuống nước để cứu người',()=>r2say('Hành động này nguy hiểm. Em hãy đọc lại bài viết.',true)))};
- $r('r2-rescue-home').onclick=showHome;$r('r2-rescue-life').onclick=showList;$r('r2-rescue-sports').onclick=()=>{v.innerHTML='<p>⚽ Tin thể thao không chứa tài liệu cần tìm.</p>'};$r('r2-rescue-search').onclick=()=>{v.innerHTML='<label for="r2-rescue-input">Tìm kiếm trong website</label><input id="r2-rescue-input" placeholder="Nhập từ khóa"><button id="r2-rescue-go">🔍 Tìm</button>';$r('r2-rescue-go').onclick=()=>{const q=$r('r2-rescue-input').value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');if(q.includes('duoi nuoc')||q.includes('phong tranh'))showList();else r2say('Hãy dùng từ khóa liên quan đến phòng tránh đuối nước.',true)}};showHome()
+ const showList=()=>{v.innerHTML=`<h3>🛟 ${catName}</h3><div id="r2-rescue-list"></div>`;const l=$r('r2-rescue-list');l.appendChild(r2btn('📄 '+artTitle,showArticle));l.appendChild(r2btn('📄 Chuẩn bị cặp sách đến trường',()=>r2say('Đây không phải bài viết cần khôi phục.',true)))};
+ const showArticle=()=>{v.innerHTML=`<h3>📄 ${artTitle}</h3><p>Không chơi gần ao, hồ, sông, suối khi không có người lớn. Khi thấy người gặp nạn, cần gọi người lớn và lực lượng cứu hộ, không tự ý nhảy xuống nước.</p><h4>${questText}</h4>`;ansList.forEach((ans,idx)=>{v.appendChild(r2btn(ans,()=>idx===corrIdx?success():r2say('Hành động này chưa an toàn hoặc chưa đúng. Em hãy đọc lại bài viết.',true)))});};
+ $r('r2-rescue-home').onclick=showHome;$r('r2-rescue-life').onclick=showList;$r('r2-rescue-sports').onclick=()=>{v.innerHTML='<p>⚽ Tin thể thao không chứa tài liệu cần tìm.</p>'};$r('r2-rescue-search').onclick=()=>{v.innerHTML='<label for="r2-rescue-input">Tìm kiếm trong website</label><input id="r2-rescue-input" placeholder="Nhập từ khóa"><button id="r2-rescue-go">🔍 Tìm</button>';$r('r2-rescue-go').onclick=()=>{const q=$r('r2-rescue-input').value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');const matched=qList.some(kw=>{const nkw=kw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');return q.includes(nkw);});if(matched)showList();else r2say('Hãy dùng từ khóa liên quan đến nội dung cần tìm.',true)}};showHome()
 }
-function r2shareMission(success){const a=$r('r2-work');let chosen=new Set();const needed=[0,2,3];const files=['📄 Tin quảng cáo đồ chơi','📄 Kết quả bóng đá','📄 Thời gian tổ chức ngày hội','🖼️ Hình ảnh hoạt động ngày hội','📄 Nội dung các hoạt động ngày hội'];const correct=[2,3,4];
- a.innerHTML='<h3>KHÔI PHỤC THƯ MỤC DỰ ÁN CHUNG</h3><p>Nhóm cần chuẩn bị bài giới thiệu Ngày hội Trạng Nguyên nhỏ tuổi. Hãy chọn <b>3 tệp phù hợp</b> để đưa vào thư mục chung.</p><div id="r2-files" class="r2-file-grid"></div><div class="r2-info" id="r2-file-status">Đã chọn 0 tệp</div>';
+function r2shareMission(success, customFiles, customCorrect){const a=$r('r2-work');let chosen=new Set();
+ const files=(Array.isArray(customFiles)&&customFiles.length>=2)?customFiles:['📄 Tin quảng cáo đồ chơi','📄 Kết quả bóng đá','📄 Thời gian tổ chức ngày hội','🖼️ Hình ảnh hoạt động ngày hội','📄 Nội dung các hoạt động ngày hội'];
+ const correct=(Array.isArray(customCorrect)&&customCorrect.length)?customCorrect:[2,3,4];
+ a.innerHTML=`<h3>KHÔI PHỤC THƯ MỤC DỰ ÁN CHUNG</h3><p>Nhóm cần chuẩn bị tài liệu dự án. Hãy chọn <b>đúng ${correct.length} tệp phù hợp</b> để đưa vào thư mục chung.</p><div id="r2-files" class="r2-file-grid"></div><div class="r2-info" id="r2-file-status">Đã chọn 0 tệp</div>`;
  files.forEach((name,i)=>{const b=r2btn(name,()=>{chosen.has(i)?chosen.delete(i):chosen.add(i);b.classList.toggle('r2-selected',chosen.has(i));$r('r2-file-status').textContent=`Đã chọn ${chosen.size} tệp`});$r('r2-files').appendChild(b)});
- a.appendChild(r2btn('📁 LƯU VÀO THƯ MỤC CHUNG',()=>chosen.size===3&&correct.every(x=>chosen.has(x))?success():r2say('Hãy chọn đúng ba tệp liên quan đến dự án của nhóm.',true)))
+ a.appendChild(r2btn('📁 LƯU VÀO THƯ MỤC CHUNG',()=>chosen.size===correct.length&&correct.every(x=>chosen.has(x))?success():r2say('Hãy chọn đúng các tệp liên quan đến dự án của nhóm.',true)))
 }
-function r2station(i){const d=R2DATA[r2grade].stations[i];if(!r2state.seen.includes(i)){r2state.seen.push(i);r2save()}r2open(`<div class="r2-kicker">📘 TRẠM KIẾN THỨC ${i+1}/4</div><h2>${d[1]} ${d[0]}</h2><p>${d[2]}</p><div class="r2-info">${d[3]}</div><div id="r2-work"></div><p id="r2-feedback"></p>`);const a=$r('r2-work');if(r2grade===4&&i===1){a.innerHTML='<h3>Chạm vào một phím số để xem ngón tay phụ trách</h3><div class="r2-digit-row"></div><p id="r2-digit-info">Chọn phím số từ 0 đến 9.</p>';const names=['út phải','út trái','áp út trái','giữa trái','trỏ trái','trỏ trái','trỏ phải','trỏ phải','giữa phải','áp út phải'];'1234567890'.split('').forEach(c=>a.querySelector('.r2-digit-row').appendChild(r2btn(c,()=>{$r('r2-digit-info').textContent=`Phím ${c}: ngón ${names[Number(c)]}. Sau khi gõ, đưa ngón tay về hàng phím cơ sở.`}))) }else if(r2grade===5&&i===0){a.innerHTML='<div class="r2-mock-browser"><div class="r2-mock-menu"><button data-info="Trang chủ là trang đầu tiên của website.">⌂ TRANG CHỦ</button><button data-info="Các chủ đề nhóm các bài viết theo nội dung.">CHỦ ĐỀ</button><button data-info="Nhấn kính lúp để tìm kiếm trong website.">🔍</button></div><div id="r2-browser-info">Hãy nhấn vào từng thành phần.</div></div>';a.querySelectorAll('[data-info]').forEach(b=>b.onclick=()=>{$r('r2-browser-info').textContent=b.dataset.info})}else if(r2grade===5&&i===1){r2search(a,()=>r2say('🌟 Em đã tìm được bài viết bằng công cụ tìm kiếm của website!'))}else if(r2grade===5&&i===3){r2usb(a,()=>r2say('✓ Em đã thực hành ngắt kết nối USB an toàn!'))}else if(r2grade===4&&i===3){r2typing('Luyện gõ thử (không tính tiến độ)',['12345','67890','Em yeu truong em'],'Hãy gõ đúng theo mẫu.',()=>r2say('✓ Em đã hoàn thành luyện gõ!'))}else{a.appendChild(r2btn('✓ ĐÃ HIỂU – QUAY LẠI PHÒNG',r2close))}}
+function r2station(i){
+  const d=R2DATA[r2grade].stations[i];
+  if(!r2state.seen.includes(i)){r2state.seen.push(i);r2save()}
+  const headerHtml = window.EnEn
+    ? window.EnEn.header('mission', `${d[1]} ${d[0]}`, `TRẠM KIẾN THỨC ${i+1}/4 · LỚP ${r2grade}`)
+    : `<div class="r2-kicker">📘 TRẠM KIẾN THỨC ${i+1}/4</div><h2>${d[1]} ${d[0]}</h2>`;
+  r2open(`${headerHtml}<p>${d[2]}</p><div class="r2-info">${d[3]}</div><div id="r2-work"></div><p id="r2-feedback"></p>`);
+  const a=$r('r2-work');if(r2grade===4&&i===1){a.innerHTML='<h3>Chạm vào một phím số để xem ngón tay phụ trách</h3><div class="r2-digit-row"></div><p id="r2-digit-info">Chọn phím số từ 0 đến 9.</p>';const names=['út phải','út trái','áp út trái','giữa trái','trỏ trái','trỏ trái','trỏ phải','trỏ phải','giữa phải','áp út phải'];'1234567890'.split('').forEach(c=>a.querySelector('.r2-digit-row').appendChild(r2btn(c,()=>{$r('r2-digit-info').textContent=`Phím ${c}: ngón ${names[Number(c)]}. Sau khi gõ, đưa ngón tay về hàng phím cơ sở.`}))) }else if(r2grade===5&&i===0){a.innerHTML='<div class="r2-mock-browser"><div class="r2-mock-menu"><button data-info="Trang chủ là trang đầu tiên của website.">⌂ TRANG CHỦ</button><button data-info="Các chủ đề nhóm các bài viết theo nội dung.">CHỦ ĐỀ</button><button data-info="Nhấn kính lúp để tìm kiếm trong website.">🔍</button></div><div id="r2-browser-info">Hãy nhấn vào từng thành phần.</div></div>';a.querySelectorAll('[data-info]').forEach(b=>b.onclick=()=>{$r('r2-browser-info').textContent=b.dataset.info})}else if(r2grade===5&&i===1){r2search(a,()=>r2say('🌟 Em đã tìm được bài viết bằng công cụ tìm kiếm của website!'))}else if(r2grade===5&&i===3){r2usb(a,()=>r2say('✓ Em đã thực hành ngắt kết nối USB an toàn!'))}else if(r2grade===4&&i===3){r2typing('Luyện gõ thử (không tính tiến độ)',['12345','67890','Em yeu truong em'],'Hãy gõ đúng theo mẫu.',()=>r2say('✓ Em đã hoàn thành luyện gõ!'))}else{a.appendChild(r2btn('✓ ĐÃ HIỂU – QUAY LẠI PHÒNG',r2close))}}
 function r2search(area,success){area.innerHTML='<div class="r2-mock-browser"><div class="r2-mock-menu"><button id="r2-topic">📚 HỌC ĐƯỜNG</button><button id="r2-other">⚽ THỂ THAO</button><button id="r2-search-toggle">🔍 TÌM KIẾM</button></div><div id="r2-results" class="r2-web-content">Tìm bài viết “Ngày hội Trạng Nguyên nhỏ tuổi” bằng chủ đề hoặc từ khóa.</div><input id="r2-search-input" placeholder="Nhập từ khóa trên website" aria-label="Từ khóa"><button id="r2-search-go">🔍 Tìm kiếm</button></div>';const res=$r('r2-results');const found=()=>{res.innerHTML='<h3>📚 KẾT QUẢ TÌM KIẾM</h3>';res.appendChild(r2btn('📄 Ngày hội Trạng Nguyên nhỏ tuổi',success));res.appendChild(r2btn('⚽ Giải bóng đá thiếu nhi',()=>r2say('Bài viết này không đúng chủ đề.',true)))};$r('r2-topic').onclick=found;$r('r2-other').onclick=()=>res.textContent='Chủ đề Thể thao không có bài viết cần tìm.';$r('r2-search-toggle').onclick=()=>$r('r2-search-input').focus();$r('r2-search-go').onclick=()=>{const val=$r('r2-search-input').value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d');if(val.includes('trang nguyen'))found();else r2say('Hãy dùng từ khóa liên quan đến “Trạng Nguyên nhỏ tuổi”.',true)};$r('r2-search-input').onkeydown=e=>{if(e.key==='Enter'){$r('r2-search-go').click();e.preventDefault()}}}
-function r2usbRescue(success){
+function r2usbRescue(success, customFiles, customNeed){
  const a=$r('r2-work');let phase=0;let selected=new Set();let copied=false;let pasted=false;let safe=false;let restored=new Set();
- const files=[['BaoVeMoiTruong.docx','📄',true],['BongDa.docx','⚽',false],['HinhAnhMoiTruong.png','🖼️',true],['TroChoi.exe','🎮',false],['GhiChuCaNhan.txt','📝',false],['NhacNen.mp3','🎵',false]];
- const need=[0,2];const msg=(t,bad=false)=>{const el=$r('r2-usb-msg');if(el){el.textContent=t;el.className=bad?'r2-error':'r2-info'}if(bad){r2state.wrong++;r2save()}};
+ const files=(Array.isArray(customFiles)&&customFiles.length>=2)?customFiles:[['BaoVeMoiTruong.docx','📄',true],['BongDa.docx','⚽',false],['HinhAnhMoiTruong.png','🖼️',true],['TroChoi.exe','🎮',false],['GhiChuCaNhan.txt','📝',false],['NhacNen.mp3','🎵',false]];
+ const need=(Array.isArray(customNeed)&&customNeed.length)?customNeed:[0,2];const msg=(t,bad=false)=>{const el=$r('r2-usb-msg');if(el){el.textContent=t;el.className=bad?'r2-error':'r2-info'}if(bad){r2state.wrong++;r2save()}};
  function draw(){
  const titles=['1. CHỌN TÀI LIỆU CẦN CỨU','2. KẾT NỐI VÀ SAO CHÉP','3. NGẮT KẾT NỐI AN TOÀN','4. KHÔI PHỤC MÁY TÍNH DỰ PHÒNG'];
  a.innerHTML=`<div class="r2-rescue"><div class="r2-rescue-progress">${titles.map((t,i)=>`<span class="${i===phase?'active':i<phase?'done':''}">${i+1}</span>`).join('')}</div><h3>🚨 GIẢI CỨU DỮ LIỆU QUAN TRỌNG</h3><p>${titles[phase]}</p><div id="r2-usb-scene"></div><div id="r2-usb-msg" class="r2-info">Chọn thao tác phù hợp để tiếp tục.</div></div>`;
@@ -109,23 +144,274 @@ function r2usbRescue(success){
  draw();
 }
 function r2usb(area,success){let stage=0;const labels=['🔌 Kết nối USB vào máy tính','📄 Chọn tệp TrangNguyen.docx và Sao chép','📁 Mở USB và Dán tệp','⏏️ Chọn Eject (ngắt kết nối an toàn)','💾 Rút USB khỏi máy tính'];function draw(){area.innerHTML=`<div class="r2-info">TRẠNG THÁI USB: ${stage===0?'Chưa kết nối':stage===5?'Đã tháo an toàn':`Bước ${stage}/5`}</div>`;if(stage===5){success();return}area.appendChild(r2btn(labels[stage],()=>{stage++;draw()}));if(stage===3)area.appendChild(r2btn('❌ Rút USB ngay',()=>r2say('Hãy ngắt kết nối USB an toàn trước khi rút.',true)))}draw()}
-function r2task(){const step=r2state.step,d=R2DATA[r2grade];if(step===4){r2open(`<h2>🎉 HỆ THỐNG ĐÃ KHÔI PHỤC!</h2><p>🤖 Robot trợ lý: Em đã khôi phục thành công ${R2DATA[r2grade].title.toLowerCase()}! Cả bốn mô-đun đã hoạt động trở lại.</p><p>⚡ Khôi phục hệ thống: <b>100%</b></p><p>🔓 <b>Room 03 đã mở khóa!</b></p><button class="r2-action" id="r2-win-map">▣ VỀ BẢN ĐỒ</button>`);$r('r2-win-map').onclick=()=>{r2close();show('map')};return}r2open(`<div class="r2-kicker">⚡ KHÔI PHỤC HỆ THỐNG · ${step+1}/4</div><h2>${d.stages[step]}</h2><p>Hoàn thành thử thách để khôi phục thêm 25% hệ thống.</p><div id="r2-work"></div><p id="r2-feedback"></p><button id="r2-hint" class="r2-action">💡 Gợi ý kiến thức</button><button id="r2-study" class="r2-action">📘 Quay lại khám phá trạm kiến thức</button>`);$r('r2-hint').onclick=()=>{r2state.hints++;r2save();r2say(d.stations[step][2])};$r('r2-study').onclick=r2close;const win=()=>{r2state.step++;r2save();r2open(`<h2>🌟 KHÔI PHỤC THÀNH CÔNG!</h2><p>Đã sửa chữa: <b>${d.stages[step]}</b>.</p><p>Tiến độ hiện tại: <b>${r2state.step*25}%</b></p><button class="r2-action" id="r2-continue">${r2state.step===4?'🎉 XEM KẾT QUẢ':'▶ TIẾP TỤC KHÁM PHÁ'}</button>`);$r('r2-continue').onclick=()=>r2state.step===4?r2task():r2close()};
-if(r2grade===3){if(step===0)r2order('Sắp xếp: Con người nhìn thấy đèn giao thông màu đỏ.',['Quyết định dừng lại','Nhìn thấy đèn đỏ','Nhận biết đèn đỏ phải dừng'],[1,2,0],'Thu nhận → Xử lí → Quyết định.',win);if(step===1)r2multi('Chọn các nhận định đúng về bộ não:',['Bộ não là nơi xử lí thông tin','Bộ não tạo ra quyết định','Bộ não điều khiển suy nghĩ và hành động','Bộ não chỉ tiếp nhận âm thanh'],[0,1,2],'Bộ não có nhiều chức năng, không chỉ nghe âm thanh.',win);if(step===2)r2match('Nối thông tin với quyết định phù hợp',['🌧️ Trời bắt đầu mưa','⏰ Chuông báo thức reo','💧 Em cảm thấy khát nước'],['🥤 Uống nước','🧥 Mang áo mưa','🌅 Thức dậy'],[1,2,0],'Hãy suy nghĩ em nên làm gì trong tình huống này.',win);if(step===3)r2match('Nối thiết bị với hành động phù hợp',['💡 Đèn tự động nhận biết trời tối','🚪 Cửa tự động phát hiện người đến gần','🤖 Robot hút bụi phát hiện vật cản'],['↪️ Đổi hướng di chuyển','✨ Bật sáng','🚪 Mở cửa'],[1,2,0],'Hãy quan sát thông tin mà từng thiết bị tiếp nhận.',win)}
-if(r2grade===4){if(step===0)r2fingers(win);if(step===1)r2typing('Sửa chữa hàng phím số',['13579','24680','1234567890'],'Hãy kiểm tra thứ tự từng phím số.',win);if(step===2)r2typing('Gõ đoạn thơ (không dấu)',['Lam anh that kho','Nhung ma that vui','Ai yeu em be','Thi lam duoc thoi.'],'Đối chiếu từng chữ, dấu cách và dấu chấm.',win);if(step===3)r2typing('Nhập các số điện thoại khẩn cấp',['111 - Bao ve tre em','112 - Tim kiem, cuu nan','113 - Cong an','114 - Cuu hoa','115 - Cap cuu'],'Kiểm tra số, chữ, dấu phẩy và khoảng trắng.',win)}
-if(r2grade===5){if(step===0)r2websiteMission(win);if(step===1)r2searchMission(win);if(step===2)r2shareMission(win);if(step===3)r2usbRescue(win)}}
+function r2task(){
+  const step=r2state.step,d=R2DATA[r2grade];
+  if(step===4){
+    r2open(`
+      <div class="enen-celebrate-box">
+        <img src="assets/mascot/05_chuc_mung.png" alt="Én Én chúc mừng" class="enen-celebrate-img">
+      </div>
+      <h2>🎉 HỆ THỐNG ĐÃ KHÔI PHỤC 100%!</h2>
+      <p>🌟 <b>Én Én chúc mừng:</b> Em đã khôi phục thành công ${R2DATA[r2grade].title.toLowerCase()}! Cả bốn mô-đun đã hoạt động trở lại bình thường.</p>
+      <p>⚡ Khôi phục hệ thống: <b>100%</b> · 🔓 <b>Room 03 đã mở khóa!</b></p>
+      <button class="r2-action" id="r2-win-map">▣ VỀ BẢN ĐỒ</button>
+    `);
+    $r('r2-win-map').onclick=()=>{r2close();show('map')};
+    return;
+  }
+  const pubStage = window.R2_PUBLISHED_DATA && window.R2_PUBLISHED_DATA[r2grade] && window.R2_PUBLISHED_DATA[r2grade].stages && window.R2_PUBLISHED_DATA[r2grade].stages[step];
+  const stageTitle = (pubStage && pubStage.title) || d.stages[step];
+  const taskHeader = window.EnEn
+    ? window.EnEn.header('thinking', stageTitle, `KHÔI PHỤC HỆ THỐNG · CHẶNG ${step+1}/4`)
+    : `<div class="r2-kicker">⚡ KHÔI PHỤC HỆ THỐNG · ${step+1}/4</div><h2>${stageTitle}</h2>`;
+  r2open(`${taskHeader}<p>Hoàn thành thử thách để khôi phục thêm 25% hệ thống.</p><div id="r2-work"></div><p id="r2-feedback"></p><button id="r2-hint" class="r2-action">💡 Gợi ý kiến thức</button><button id="r2-study" class="r2-action">📘 Quay lại khám phá trạm kiến thức</button>`);
+  $r('r2-hint').onclick=()=>{
+    r2state.hints++;
+    r2save();
+    const hintMsg = (pubStage && pubStage.hint) || (d.stations[step] ? d.stations[step][2] : 'Hãy xem lại trạm kiến thức tương ứng.');
+    r2say(hintMsg);
+  };
+  $r('r2-study').onclick=r2close;
+  const win=()=>{
+    r2state.step++;
+    r2save();
+    r2open(`
+      <div class="enen-dialog-header">
+        <div class="enen-avatar-bubble">
+          <img src="assets/mascot/05_chuc_mung.png" alt="Én Én" class="enen-avatar-img">
+        </div>
+        <div class="enen-header-text">
+          <span class="enen-speaker-badge">Hoàn thành chặng</span>
+          <h2>${stageTitle}</h2>
+          <div class="enen-header-sub">Tiến độ hiện tại: ${r2state.step*25}%</div>
+        </div>
+      </div>
+      <p>🌟 Xuất sắc! Em đã hoàn thành thử thách và khôi phục thêm 25% hệ thống.</p>
+      <button class="r2-action" id="r2-continue">${r2state.step===4?'🎉 XEM KẾT QUẢ':'▶ TIẾP TỤC KHÁM PHÁ'}</button>
+    `);
+    $r('r2-continue').onclick=()=>r2state.step===4?r2task():r2close();
+  };
+
+  if(r2grade===3){
+    if(pubStage){
+      const p = pubStage.content_payload || {};
+      const fb = p.feedback || pubStage.hint || 'Chính xác! Hệ thống đang dần khôi phục.';
+      if(step===0){
+        const items = Array.isArray(p.items) && p.items.length ? p.items : ['Quyết định dừng lại','Nhìn thấy đèn đỏ','Nhận biết đèn đỏ phải dừng'];
+        const corr = Array.isArray(p.correct) ? p.correct : [1,2,0];
+        const q = pubStage.question || 'Sắp xếp: Con người nhìn thấy đèn giao thông màu đỏ.';
+        r2order(q, items, corr, fb, win);
+        return;
+      }
+      if(step===1){
+        const ans = Array.isArray(p.answers) && p.answers.length ? p.answers : ['Bộ não là nơi xử lí thông tin','Bộ não tạo ra quyết định','Bộ não điều khiển suy nghĩ và hành động','Bộ não chỉ tiếp nhận âm thanh'];
+        const corr = Array.isArray(p.correct) ? p.correct : [0,1,2];
+        const q = pubStage.question || 'Chọn các nhận định đúng về bộ não:';
+        r2multi(q, ans, corr, fb, win);
+        return;
+      }
+      if(step===2){
+        const left = Array.isArray(p.left) && p.left.length ? p.left : ['🌧️ Trời bắt đầu mưa','⏰ Chuông báo thức reo','💧 Em cảm thấy khát nước'];
+        const right = Array.isArray(p.right) && p.right.length ? p.right : ['🥤 Uống nước','🧥 Mang áo mưa','🌅 Thức dậy'];
+        const corr = Array.isArray(p.correct) ? p.correct : [1,2,0];
+        const q = pubStage.question || 'Nối thông tin với quyết định phù hợp';
+        r2match(q, left, right, corr, fb, win);
+        return;
+      }
+      if(step===3){
+        const left = Array.isArray(p.left) && p.left.length ? p.left : ['💡 Đèn tự động nhận biết trời tối','🚪 Cửa tự động phát hiện người đến gần','🤖 Robot hút bụi phát hiện vật cản'];
+        const right = Array.isArray(p.right) && p.right.length ? p.right : ['↪️ Đổi hướng di chuyển','✨ Bật sáng','🚪 Mở cửa'];
+        const corr = Array.isArray(p.correct) ? p.correct : [1,2,0];
+        const q = pubStage.question || 'Nối thiết bị với hành động phù hợp';
+        r2match(q, left, right, corr, fb, win);
+        return;
+      }
+    }
+    // Dữ liệu mặc định (offline hoặc chưa xuất bản động)
+    if(step===0)r2order('Sắp xếp: Con người nhìn thấy đèn giao thông màu đỏ.',['Quyết định dừng lại','Nhìn thấy đèn đỏ','Nhận biết đèn đỏ phải dừng'],[1,2,0],'Thu nhận → Xử lí → Quyết định.',win);
+    if(step===1)r2multi('Chọn các nhận định đúng về bộ não:',['Bộ não là nơi xử lí thông tin','Bộ não tạo ra quyết định','Bộ não điều khiển suy nghĩ và hành động','Bộ não chỉ tiếp nhận âm thanh'],[0,1,2],'Bộ não có nhiều chức năng, không chỉ nghe âm thanh.',win);
+    if(step===2)r2match('Nối thông tin với quyết định phù hợp',['🌧️ Trời bắt đầu mưa','⏰ Chuông báo thức reo','💧 Em cảm thấy khát nước'],['🥤 Uống nước','🧥 Mang áo mưa','🌅 Thức dậy'],[1,2,0],'Hãy suy nghĩ em nên làm gì trong tình huống này.',win);
+    if(step===3)r2match('Nối thiết bị với hành động phù hợp',['💡 Đèn tự động nhận biết trời tối','🚪 Cửa tự động phát hiện người đến gần','🤖 Robot hút bụi phát hiện vật cản'],['↪️ Đổi hướng di chuyển','✨ Bật sáng','🚪 Mở cửa'],[1,2,0],'Hãy quan sát thông tin mà từng thiết bị tiếp nhận.',win);
+  }
+  if(r2grade===4){
+    const p = (pubStage && pubStage.content_payload) || {};
+    if(step===0){ r2fingers(win, p.digits, p.correct); return; }
+    if(step===1){
+      const lines = (Array.isArray(p.lines) && p.lines.length) ? p.lines : ['13579','24680','1234567890'];
+      const tip = p.tip || 'Hãy kiểm tra thứ tự từng phím số.';
+      r2typing(stageTitle, lines, tip, win);
+      return;
+    }
+    if(step===2){
+      const lines = (Array.isArray(p.lines) && p.lines.length) ? p.lines : ['Lam anh that kho','Nhung ma that vui','Ai yeu em be','Thi lam duoc thoi.'];
+      const tip = p.tip || 'Đối chiếu từng chữ, dấu cách và dấu chấm.';
+      r2typing(stageTitle, lines, tip, win);
+      return;
+    }
+    if(step===3){
+      const lines = (Array.isArray(p.lines) && p.lines.length) ? p.lines : ['111 - Bao ve tre em','112 - Tim kiem, cuu nan','113 - Cong an','114 - Cuu hoa','115 - Cap cuu'];
+      const tip = p.tip || 'Kiểm tra số, chữ, dấu phẩy và khoảng trắng.';
+      r2typing(stageTitle, lines, tip, win);
+      return;
+    }
+  }
+  if(r2grade===5){
+    const p = (pubStage && pubStage.content_payload) || {};
+    if(step===0){ r2websiteMission(win, p.entries); return; }
+    if(step===1){ r2searchMission(win, p); return; }
+    if(step===2){ r2shareMission(win, p.files, p.correct); return; }
+    if(step===3){ r2usbRescue(win, p.files, p.needed_indices); return; }
+  }
+}
+
+/* Nạp dữ liệu động từ bộ đề xuất bản vào Room 2 */
+window.applyRoom2PublishedData=function(gradeNum, roomData){
+  const g = Number(gradeNum) || 3;
+  if (!roomData || !R2DATA[g]) return;
+
+  if (roomData.topic) {
+    R2DATA[g].title = String(roomData.topic).trim().toUpperCase();
+  }
+  if (roomData.story) {
+    R2DATA[g].story = String(roomData.story).trim();
+  }
+
+  // Thu thập danh sách items từ roomData (hỗ trợ cả roomData.items, hoặc roomData.tasks + roomData.secrets)
+  let rawItems = [];
+  if (Array.isArray(roomData.items)) {
+    rawItems = roomData.items;
+  } else {
+    if (roomData.tasks && typeof roomData.tasks === 'object') {
+      Object.keys(roomData.tasks).forEach(k => {
+        rawItems.push(Object.assign({ item_key: k, item_type: 'task' }, roomData.tasks[k]));
+      });
+    }
+    if (roomData.secrets && typeof roomData.secrets === 'object') {
+      Object.keys(roomData.secrets).forEach(k => {
+        rawItems.push(Object.assign({ item_key: k, item_type: 'station' }, roomData.secrets[k]));
+      });
+    }
+  }
+
+  // 1. Cập nhật 4 trạm kiến thức lý thuyết
+  for (let sIdx = 0; sIdx < 4; sIdx++) {
+    const sKey = 'station_' + sIdx;
+    const item = rawItems.find(it => it.item_key === sKey || (it.item_type === 'station' && it.content_payload && it.content_payload.station_index === sIdx));
+    if (item && R2DATA[g].stations && R2DATA[g].stations[sIdx]) {
+      const def = R2DATA[g].stations[sIdx];
+      const p = item.content_payload || {};
+      const title = item.title || def[0];
+      const icon = p.icon || def[1];
+      const theory = item.intro || p.theory || def[2];
+      const example = item.question || p.example || def[3];
+      R2DATA[g].stations[sIdx] = [title, icon, theory, example];
+    }
+  }
+
+  // 2. Cập nhật 4 chặng sửa chữa tại Hệ thống trung tâm
+  window.R2_PUBLISHED_DATA[g] = { stages: [] };
+  for (let stgIdx = 0; stgIdx < 4; stgIdx++) {
+    const stgKey = 'stage_' + stgIdx;
+    const item = rawItems.find(it => it.item_key === stgKey || (it.item_type === 'task' && it.content_payload && it.content_payload.stage_index === stgIdx));
+    if (item) {
+      if (item.title && R2DATA[g].stages && R2DATA[g].stages[stgIdx]) {
+        R2DATA[g].stages[stgIdx] = item.title;
+      }
+      const p = item.content_payload || {};
+      window.R2_PUBLISHED_DATA[g].stages[stgIdx] = {
+        title: item.title || (R2DATA[g].stages && R2DATA[g].stages[stgIdx]) || ('Chặng ' + (stgIdx + 1)),
+        kind: item.kind || 'single',
+        question: item.question || p.question || '',
+        hint: item.hint || p.feedback || '',
+        content_payload: p
+      };
+    }
+  }
+};
+
 function r2interact(i){if(i===4)r2task();else r2station(i)}
-window.openRoom2=function(){if(typeof unlockedThrough==='function'&&unlockedThrough(grade)<2){openModal('<h2>🔒 Phòng 02 chưa mở</h2><p>Hãy hoàn thành Phòng 01 trước nhé!</p>');return}r2grade=grade;r2state=r2load(grade);r2x=50;r2y=84;r2dir='down';r2walk=0;r2keys.clear();$r('r2-bg').src='assets/room2_grade'+grade+'.png';show('room2');r2update();r2intro=true;r2open(`<div class="r2-kicker">🤖 ROBOT TRỢ LÝ · PHÒNG 02</div><h2>${R2DATA[grade].title}</h2><p>Chào mừng em đến Phòng 02! ${R2DATA[grade].story}</p><p>Em hãy di chuyển bằng <b>WASD hoặc phím mũi tên</b>, đến gần bốn trạm kiến thức và nhấn <b>E</b> để khám phá. Đến hệ thống trung tâm để thực hiện bốn nhiệm vụ sửa chữa.</p><p>Khám phá kiến thức không bắt buộc và em có thể quay lại bất cứ lúc nào.</p><button class="r2-action" id="r2-start">🚀 BẮT ĐẦU KHÁM PHÁ</button>`);$r('r2-start').onclick=()=>{r2intro=false;r2close()};if(!r2frame)r2move()};
+
+window.openRoom2=function(skipIntro=false){
+  if(typeof unlockedThrough==='function'&&unlockedThrough(grade)<2){
+    openModal(window.EnEn ? window.EnEn.header('thinking', 'PHÒNG 02 CHƯA MỞ', 'Thử thách tiếp theo') + '<p>Hãy hoàn thành Phòng 01 trước nhé!</p>' : '<h2>🔒 Phòng 02 chưa mở</h2><p>Hãy hoàn thành Phòng 01 trước nhé!</p>');
+    return;
+  }
+
+  // Nếu đang chơi bộ đề chia sẻ (?set=CODE), kiểm tra xem bộ đề có Phòng 02 của khối này không
+  if(typeof window.AI_ESCAPE_PUBLISHED_LOADER !== 'undefined' &&
+     typeof window.AI_ESCAPE_PUBLISHED_LOADER.getRequestedShareCode === 'function' &&
+     window.AI_ESCAPE_PUBLISHED_LOADER.getRequestedShareCode()){
+    const hasR2 = typeof window.AI_ESCAPE_PUBLISHED_LOADER.hasPublishedRoom === 'function'
+      ? window.AI_ESCAPE_PUBLISHED_LOADER.hasPublishedRoom(grade, 2)
+      : false;
+    if(!hasR2){
+      if(typeof openModal === 'function'){
+        openModal(window.EnEn ? window.EnEn.header('thinking', 'PHÒNG 02 CHƯA CÓ NỘI DUNG', 'Thông báo từ giáo viên') + '<p>Bộ câu hỏi của giáo viên cho mã này chưa phát hành nội dung cho Phòng 02.</p>' : '<h2>🔒 Phòng 02 chưa có nội dung</h2><p>Bộ câu hỏi của giáo viên cho mã này chưa phát hành nội dung cho Phòng 02.</p>');
+      } else {
+        alert('Phòng 02 chưa có nội dung trong bộ đề này của giáo viên.');
+      }
+      return;
+    }
+  }
+
+  r2grade=grade;
+  r2state=r2load(grade);
+  r2x=50;
+  r2y=84;
+  r2dir='down';
+  r2walk=0;
+  r2keys.clear();
+  $r('r2-bg').src='assets/room2_grade'+grade+'.png';
+  show('room2');
+  r2update();
+  if(skipIntro){
+    r2intro=false;
+    r2close();
+  }else{
+    r2intro=true;
+    const introHeader = window.EnEn
+      ? window.EnEn.header('welcome', R2DATA[grade].title, `LỚP ${grade} · TRUNG TÂM PHÒNG THÍ NGHIỆM`)
+      : `<div class="r2-kicker">🤖 ROBOT TRỢ LÝ · PHÒNG 02</div><h2>${R2DATA[grade].title}</h2>`;
+    r2open(`${introHeader}<p>Chào mừng em đến Phòng 02! ${R2DATA[grade].story}</p><p>Em hãy di chuyển bằng <b>WASD hoặc phím mũi tên</b>, đến gần bốn trạm kiến thức và nhấn <b>E</b> để khám phá. Đến hệ thống trung tâm để thực hiện bốn nhiệm vụ sửa chữa.</p><p>Khám phá kiến thức không bắt buộc và em có thể quay lại bất cứ lúc nào.</p><button class="r2-action" id="r2-start">🚀 BẮT ĐẦU KHÁM PHÁ</button>`);
+    $r('r2-start').onclick=()=>{r2intro=false;r2close()};
+  }
+  if(!r2frame)r2move();
+};
 window.addEventListener('keydown',e=>{if(r2.classList.contains('hidden'))return;if(r2dialog)return;const k=e.key.toLowerCase();if(['arrowup','arrowdown','arrowleft','arrowright','w','a','s','d'].includes(k)){r2keys.add(k);e.preventDefault()}if(k==='e'){const n=r2nearest();if(n>=0){r2interact(n);e.preventDefault()}}});window.addEventListener('keyup',e=>r2keys.delete(e.key.toLowerCase()));
 $r('r2-hotspots').addEventListener('click',e=>{const b=e.target.closest('[data-station]');if(!b||r2dialog)return;const i=Number(b.dataset.station);if(Math.hypot((stations[i].x-r2x)*1.2,stations[i].y-r2y)<17)r2interact(i);else{$r('r2-prompt').classList.remove('hidden');$r('r2-prompt').textContent='Hãy di chuyển nhân vật đến gần trạm rồi nhấn E.'}});
-$r('r2-close').onclick=()=>{if(!r2intro)r2close()};$r('r2-map').onclick=()=>{r2close();show('map')};$r('r2-home').onclick=()=>{r2close();show('welcome')};$r('r2-help').onclick=()=>r2open('<h2>❔ HƯỚNG DẪN</h2><p>Dùng WASD hoặc phím mũi tên để di chuyển. Đến gần thiết bị, nhấn E để tương tác. Khám phá 4 trạm kiến thức và sửa 4 mô-đun ở trung tâm. Có thể quay lại các trạm bất cứ lúc nào.</p>');$r('r2-log').onclick=()=>r2open(`<h2>📖 NHẬT KÝ PHÒNG 02 · LỚP ${r2grade}</h2><p>Trạm kiến thức đã khám phá: ${r2state.seen.length}/4.</p><p>Nhiệm vụ khôi phục: ${r2state.step}/4 (${r2state.step*25}%).</p><p>Trả lời sai: ${r2state.wrong} lần. Gợi ý đã sử dụng: ${r2state.hints} lần.</p>`);$r('r2-reset').onclick=()=>window.resetCurrentRoom2();
+$r('r2-close').onclick=()=>{if(!r2intro)r2close()};$r('r2-map').onclick=()=>{r2close();show('map')};$r('r2-home').onclick=()=>{r2close();show('welcome')};$r('r2-help').onclick=()=>r2open((window.EnEn ? window.EnEn.header('mission', 'HƯỚNG DẪN PHÒNG 02', 'Cùng Én Én khám phá') : '<h2>❔ HƯỚNG DẪN</h2>') + '<p>Dùng WASD hoặc phím mũi tên để di chuyển. Đến gần thiết bị, nhấn E để tương tác. Khám phá 4 trạm kiến thức và sửa 4 mô-đun ở trung tâm. Có thể quay lại các trạm bất cứ lúc nào.</p>');$r('r2-log').onclick=()=>r2open((window.EnEn ? window.EnEn.header('thinking', `NHẬT KÝ PHÒNG 02 · LỚP ${r2grade}`, 'Tiến độ sửa chữa hệ thống') : `<h2>📖 NHẬT KÝ PHÒNG 02 · LỚP ${r2grade}</h2>`) + `<p>Trạm kiến thức đã khám phá: ${r2state.seen.length}/4.</p><p>Nhiệm vụ khôi phục: ${r2state.step}/4 (${r2state.step*25}%).</p><p>Trả lời sai: ${r2state.wrong} lần. Gợi ý đã sử dụng: ${r2state.hints} lần.</p>`);$r('r2-reset').onclick=()=>window.resetCurrentRoom2();
 
 /* Chỉ reset Room 02 của khối đang chơi; giữ nguyên Room 01 và các khối khác. */
-window.resetCurrentRoom2=function(){
+window.resetCurrentRoom2=function(force=false){
  const g=(typeof r2grade==='number'&&r2grade>=3&&r2grade<=5)?r2grade:grade;
- const msg=`Chỉ xóa tiến độ 4 trạm, 4 nhiệm vụ, lần sai và gợi ý của Phòng 02 – Lớp ${g}. Phòng 01 và các lớp khác được giữ nguyên. Tiếp tục?`;
- if(!window.confirm(msg))return;
- localStorage.removeItem(r2key(g));
- r2grade=g;r2state=r2load(g);
- if(typeof hud==='function')hud();
- r2close();window.openRoom2();
+ function performReset(){
+  localStorage.removeItem(r2key(g));
+  localStorage.removeItem('ai-escape-lab-room2-grade-'+g);
+  r2grade=g;r2state=r2load(g);
+  if(typeof hud==='function')hud();
+  if(typeof closeModal==='function')closeModal();
+  r2close();
+  // Tải lại Room 02 tại chỗ, bảo toàn trạng thái Room 01 và không bị văng về Room 01
+  window.openRoom2(true);
+ }
+ if(force===true){
+  performReset();
+  return;
+ }
+ r2open((window.EnEn ? window.EnEn.header('thinking', `CHƠI LẠI PHÒNG 02 – LỚP ${g}?`, 'Xác nhận thiết lập lại') : `<h2>↻ CHƠI LẠI PHÒNG 02 – LỚP ${g}?</h2>`) + `<p>Chỉ xóa tiến độ 4 trạm kiến thức và 4 nhiệm vụ khôi phục của <b>Phòng 02 – Lớp ${g}</b>. Phòng 01, các phòng khác và các khối lớp khác vẫn giữ nguyên toàn bộ dữ liệu.</p><div style="display:flex;gap:12px;margin-top:16px"><button class="r2-action" id="r2-reset-cancel">HỦY</button><button class="r2-action" id="r2-reset-confirm" style="background:#e11d48;border-color:#fb7185">CHƠI LẠI PHÒNG 02</button></div>`);
+ const cancelBtn=$r('r2-reset-cancel');if(cancelBtn)cancelBtn.onclick=()=>r2close();
+ const confirmBtn=$r('r2-reset-confirm');if(confirmBtn)confirmBtn.onclick=()=>performReset();
 };
+
+const r2TopReset=document.getElementById('reset-game-room2');
+if(r2TopReset)r2TopReset.onclick=()=>window.resetCurrentRoom2();
+
+// Nạp sẵn dữ liệu đã tải từ Supabase nếu có trước khi room2.js được nạp
+if(window.AI_ESCAPE_LAST_PUBLISHED_RECORD&&window.AI_ESCAPE_LAST_PUBLISHED_RECORD.published_payload){
+ const rooms=window.AI_ESCAPE_LAST_PUBLISHED_RECORD.published_payload.rooms||[];
+ rooms.forEach(r=>{
+  if(r.module_id==='lab_exploration_repair_v1'){
+   window.applyRoom2PublishedData(Number(r.grade),r);
+  }
+ });
+}

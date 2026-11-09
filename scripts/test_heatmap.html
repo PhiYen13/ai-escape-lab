@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;background:#000;">
+<canvas id="c" width="1672" height="941" style="display:block;"></canvas>
+<script>
+window.onload = async () => {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+
+  const load = src => new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error('Failed ' + src));
+    im.src = src;
+  });
+
+  const bg = await load('/assets/room3_4/nen_room.png');
+  ctx.drawImage(bg, 0, 0);
+
+  const t1 = await load('/assets/room3_4/tram1.png');
+  const t2 = await load('/assets/room3_4/tram2.png');
+  const t3 = await load('/assets/room3_4/tram3.png');
+  const t4 = await load('/assets/room3_4/tram4.png');
+  const door = await load('/assets/room3_4/cua_khoa.png');
+
+  const STATIONS = [
+    { id: 0, x: 150, y: 320, w: 260, h: 173, cx: 280, cy: 515, label: 'Trạm 1' },
+    { id: 1, x: 330, y: 80,  w: 260, h: 173, cx: 460, cy: 275, label: 'Trạm 2' },
+    { id: 2, x: 950, y: 150, w: 260, h: 173, cx: 1080, cy: 345, label: 'Trạm 3' },
+    { id: 3, x: 950, y: 600, w: 260, h: 173, cx: 1080, cy: 795, label: 'Trạm 4' }
+  ];
+
+  STATIONS.forEach((s, i) => {
+    const img = [t1, t2, t3, t4][i];
+    ctx.drawImage(img, s.x, s.y, s.w, s.h);
+  });
+
+  ctx.drawImage(door, 1280, 75, 260, 195);
+
+  let opened = false;
+
+  function isBlocked(x, y) {
+    if (x < 65 || x > 1615) return true;
+    if (y > 905) return true;
+
+    // Top wall & Door
+    if (y < 125) {
+      if (x >= 1335 && x <= 1485) {
+        if (!opened) return true;
+        if (y < 95) return true;
+        return false;
+      }
+      return true;
+    }
+
+    if (!opened) {
+      if (x >= 1330 && x <= 1490 && y < 215) return true;
+    }
+    if (y < 215) {
+      if (x >= 1220 && x < 1335) return true;
+      if (x > 1485 && x <= 1550) return true;
+    }
+
+    // Globe
+    if (Math.hypot(x - 700, y - 640) < 85) return true;
+
+    // Desks
+    for (let i = 0; i < STATIONS.length; i++) {
+      const s = STATIONS[i];
+      if (x >= s.x + 25 && x <= s.x + 235 && y >= s.y + 50 && y <= s.y + 155) return true;
+    }
+
+    // Walls
+    if (x >= 65 && x <= 555 && y >= 365 && y <= 425) return true; // C2-C1 dividing wall
+    if (x >= 65 && x <= 175 && y >= 635 && y <= 720) return true; // C1 bottom corner
+    if (x >= 65 && x <= 385 && y >= 780 && y <= 905) return true; // machines bot-left
+    if (x >= 880 && x <= 1160 && y >= 520 && y <= 565) return true; // C4 top wall
+    if (x >= 880 && x <= 930 && y >= 120 && y <= 275) return true;  // C3 left wall
+    if (x >= 1210 && x <= 1255 && y >= 125 && y <= 460) return true; // C3 right wall
+
+    return false;
+  }
+
+  // Draw heatmap of blocked areas
+  const imgData = ctx.getImageData(0, 0, 1672, 941);
+  for (let y = 0; y < 941; y += 4) {
+    for (let x = 0; x < 1672; x += 4) {
+      if (isBlocked(x, y)) {
+        for (let dy = 0; dy < 4 && y + dy < 941; dy++) {
+          for (let dx = 0; dx < 4 && x + dx < 1672; dx++) {
+            const idx = ((y + dy) * 1672 + (x + dx)) * 4;
+            imgData.data[idx] = Math.min(255, imgData.data[idx] + 120);     // Red overlay
+            imgData.data[idx + 1] = Math.round(imgData.data[idx + 1] * 0.4);
+            imgData.data[idx + 2] = Math.round(imgData.data[idx + 2] * 0.4);
+          }
+        }
+      }
+    }
+  }
+  ctx.putImageData(imgData, 0, 0);
+
+  // Draw walkable paths from spawn (540, 640) to all targets:
+  function drawPath(points, col) {
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(points[0][0], points[0][1]);
+    for (let i = 1; i < points.length; i++) ctx.lineTo(points[i][0], points[i][1]);
+    ctx.stroke();
+
+    // Check every point along the path
+    for (let i = 0; i < points.length - 1; i++) {
+      const p1 = points[i], p2 = points[i+1];
+      const steps = Math.hypot(p2[0] - p1[0], p2[1] - p1[1]);
+      for (let s = 0; s <= steps; s += 5) {
+        const cx = p1[0] + (p2[0] - p1[0]) * (s / steps);
+        const cy = p1[1] + (p2[1] - p1[1]) * (s / steps);
+        if (isBlocked(cx, cy)) {
+          ctx.fillStyle = '#ffff00';
+          ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI*2); ctx.fill();
+        }
+      }
+    }
+  }
+
+  // Path to Trạm 1 (280, 515)
+  drawPath([[540, 640], [350, 580], [280, 515]], '#00ffcc');
+  // Path to Trạm 2 (460, 275) via walkway at x=600
+  drawPath([[540, 640], [600, 480], [600, 280], [460, 275]], '#00ffcc');
+  // Path to Trạm 3 (1080, 345) via opening at x=910, y=340
+  drawPath([[540, 640], [700, 480], [850, 350], [1080, 345]], '#00ffcc');
+  // Path to Trạm 4 (1080, 795) via opening at x=1220, y=650
+  drawPath([[540, 640], [700, 780], [950, 780], [1080, 795]], '#00ffcc');
+  // Path to Vault Door (1410, 220) via open corridor
+  drawPath([[540, 640], [700, 480], [1300, 480], [1410, 350], [1410, 220]], '#00ffcc');
+
+  document.title = 'HEATMAP_TEST_DONE';
+};
+</script>
+</body>
+</html>

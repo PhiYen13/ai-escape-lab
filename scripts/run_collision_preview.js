@@ -1,0 +1,105 @@
+const fs = require('fs');
+const { spawnSync } = require('child_process');
+
+const html = `<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;background:#000;">
+<canvas id="c" width="1672" height="941" style="display:block;"></canvas>
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+
+const img = new Image();
+img.onload = () => {
+  ctx.drawImage(img, 0, 0);
+
+  // Define obstacles (rectangles)
+  const rects = [
+    // Top boundary wall
+    { name: 'top_wall', x: 0, y: 0, w: 1672, h: 100 },
+    // Bottom boundary wall
+    { name: 'bot_wall', x: 0, y: 920, w: 1672, h: 30 },
+    // Left boundary wall
+    { name: 'left_wall', x: 0, y: 0, w: 50, h: 941 },
+    // Right boundary wall
+    { name: 'right_wall', x: 1640, y: 0, w: 40, h: 941 },
+
+    // Middle Globe pedestal (circle x: 420, y: 550, r: 120 or rect)
+    { name: 'globe_base', x: 345, y: 620, w: 155, h: 90 },
+
+    // Chamber 2 (top-left) desk
+    { name: 'desk2', x: 140, y: 220, w: 200, h: 60 },
+    // Wall below Chamber 2:
+    { name: 'wall_c2_bot', x: 90, y: 360, w: 260, h: 50 },
+
+    // Chamber 1 (mid-left) desk
+    { name: 'desk1', x: 130, y: 550, w: 200, h: 60 },
+    // Wall below Chamber 1:
+    { name: 'wall_c1_bot', x: 90, y: 620, w: 90, h: 70 },
+
+    // Bot-left machinery / servers
+    { name: 'bot_left_machines', x: 165, y: 810, w: 200, h: 110 },
+
+    // Chamber 3 (hexagon mid-top):
+    // Table 3 desk:
+    { name: 'desk3', x: 510, y: 340, w: 200, h: 60 },
+    // Wall around Chamber 3:
+    // Left wall of C3:
+    { name: 'c3_w_left', x: 480, y: 175, w: 45, h: 350 },
+    // Top wall of C3:
+    { name: 'c3_w_top', x: 480, y: 175, w: 240, h: 45 },
+    // Right-top diagonal & wall of C3:
+    { name: 'c3_w_right', x: 710, y: 175, w: 35, h: 170 },
+    // Bottom wall of C3:
+    { name: 'c3_w_bot', x: 480, y: 505, w: 150, h: 45 },
+
+    // Chamber 4 (bot-right):
+    // Table 4 desk:
+    { name: 'desk4', x: 620, y: 790, w: 200, h: 60 },
+    // Wall of C4:
+    // Top wall:
+    { name: 'c4_w_top', x: 550, y: 640, w: 280, h: 45 },
+    // Left entrance wall:
+    { name: 'c4_w_left', x: 535, y: 780, w: 40, h: 140 },
+
+    // Right side server room:
+    { name: 'server_racks', x: 865, y: 440, w: 140, h: 210 },
+    // Wall above server corridor
+    { name: 'corridor_wall_r', x: 790, y: 390, w: 35, h: 250 },
+
+    // Vault door when locked:
+    { name: 'door_block', x: 1350, y: 160, w: 120, h: 60 }
+  ];
+
+  ctx.fillStyle = 'rgba(255, 0, 0, 0.4)';
+  ctx.strokeStyle = '#ffff00';
+  ctx.lineWidth = 2;
+  rects.forEach(r => {
+    ctx.fillRect(r.x, r.y, r.w, r.h);
+    ctx.strokeRect(r.x, r.y, r.w, r.h);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '12px sans-serif';
+    ctx.fillText(r.name, r.x + 4, r.y + 14);
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.4)';
+  });
+
+  document.title = 'COLLISION_DRAWN';
+};
+img.src = '/assets/room3_4/nen_room.png';
+</script>
+</body>
+</html>`;
+
+fs.writeFileSync('scripts/collision_preview.html', html, 'utf8');
+
+const brainDir = 'C:\\Users\\ADMIN\\.gemini\\antigravity\\brain\\20185340-8473-464a-990c-a1ae8d8bfdcb';
+spawnSync('C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe', [
+  '--headless=new',
+  '--window-size=1672,941',
+  '--virtual-time-budget=2000',
+  `--screenshot=${brainDir}\\collision_preview.png`,
+  'http://localhost:3000/scripts/collision_preview.html'
+]);
+console.log('Capture collision_preview DONE');
+

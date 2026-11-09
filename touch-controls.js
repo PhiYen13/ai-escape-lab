@@ -11,6 +11,6 @@ root.querySelectorAll('[data-key]').forEach(button=>{
  for(const type of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(type,e=>{release(e.pointerId);button.classList.remove('pressed')});
  button.addEventListener('contextmenu',e=>e.preventDefault());
 });
-function update(){const active=['room','room2','room3'].some(id=>{const el=document.getElementById(id);return el&&!el.classList.contains('hidden')});const modal=!!document.querySelector('#modal:not(.hidden),#r2-dialog:not(.hidden),#r3-dialog:not(.hidden),#r2-intro:not(.hidden),#avatar-picker:not(.hidden)');const touch=matchMedia('(pointer:coarse)').matches||navigator.maxTouchPoints>0;const visible=touch&&active&&!modal;root.classList.toggle('tc-visible',visible);if(!visible)releaseAll()}
+function update(){const active=['room','room2','room3','room3-grade4'].some(id=>{const el=document.getElementById(id);return el&&!el.classList.contains('hidden')});const modal=!!document.querySelector('#modal:not(.hidden),#r2-dialog:not(.hidden),#r3-dialog:not(.hidden),#r2-intro:not(.hidden),#avatar-picker:not(.hidden),#r3g4-overlay:not(.hide)');const touch=matchMedia('(pointer:coarse)').matches||navigator.maxTouchPoints>0;const visible=touch&&active&&!modal;root.classList.toggle('tc-visible',visible);if(!visible)releaseAll()}
 new MutationObserver(update).observe(document.body,{attributes:true,attributeFilter:['class'],subtree:true});window.addEventListener('blur',releaseAll);window.addEventListener('pagehide',releaseAll);window.addEventListener('resize',update);update();
 })();

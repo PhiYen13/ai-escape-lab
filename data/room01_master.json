@@ -1,0 +1,740 @@
+{
+  "campaign": {
+    "title": "AI Escape Lab - Bộ câu hỏi chuẩn Bộ GD&ĐT (Master)",
+    "share_code": "MASTER",
+    "is_template": true,
+    "is_published": true,
+    "version": 1,
+    "metadata": {
+      "description": "Bộ câu hỏi Escape Room chuẩn cho học sinh lớp 3, 4, 5",
+      "author": "Sky-Line School",
+      "admin_email": "yenttp@skylineschool.edu.vn"
+    }
+  },
+  "rooms": [
+    {
+      "room_number": 1,
+      "grade": 3,
+      "topic": "Thông tin và quyết định",
+      "passcode": "4279",
+      "theme": "Phòng thí nghiệm thông tin",
+      "accent_color": "#77e6a0",
+      "items": [
+        {
+          "item_key": "map",
+          "item_type": "task",
+          "kind": "match",
+          "title": "THÔNG TIN QUANH EM",
+          "intro": null,
+          "question": "Ghép mỗi thông tin với quyết định phù hợp.",
+          "digit": "4",
+          "hint": null,
+          "content_payload": {
+            "question": "Ghép mỗi thông tin với quyết định phù hợp.",
+            "feedback": "Thông tin giúp em đưa ra quyết định phù hợp. Hãy đọc kỹ từng tình huống nhé!",
+            "left": [
+              "🔔 Tiếng chuông báo vào lớp",
+              "🌧️ Trời đang mưa",
+              "🚦 Đèn giao thông màu đỏ"
+            ],
+            "right": [
+              "Dừng lại",
+              "Chuẩn bị vào lớp học",
+              "Mang theo áo mưa"
+            ],
+            "correct": [
+              1,
+              2,
+              0
+            ]
+          },
+          "sort_order": 1
+        },
+        {
+          "item_key": "computer",
+          "item_type": "task",
+          "kind": "sequence",
+          "title": "THÁM TỬ THÔNG TIN",
+          "intro": null,
+          "question": "Chọn giác quan giúp em tiếp nhận thông tin.",
+          "digit": "2",
+          "hint": null,
+          "content_payload": {
+            "question": "Chọn giác quan giúp em tiếp nhận thông tin.",
+            "feedback": "Hãy nghĩ xem em nhìn thấy hay nghe thấy thông tin này.",
+            "items": [
+              {
+                "question": "Lan nhìn thấy biển báo “Không chạy nhảy”.",
+                "answers": [
+                  "👁️ Mắt",
+                  "👂 Tai"
+                ],
+                "correct": 0
+              },
+              {
+                "question": "Minh nghe tiếng trống báo giờ ra chơi.",
+                "answers": [
+                  "👁️ Mắt",
+                  "👂 Tai"
+                ],
+                "correct": 1
+              },
+              {
+                "question": "An đọc được thông báo ngày mai lớp đi tham quan.",
+                "answers": [
+                  "👁️ Mắt",
+                  "👂 Tai"
+                ],
+                "correct": 0
+              }
+            ]
+          },
+          "sort_order": 2
+        },
+        {
+          "item_key": "library",
+          "item_type": "task",
+          "kind": "sequence",
+          "title": "QUYẾT ĐỊNH THÔNG MINH",
+          "intro": "Ngày mai, lớp 3A tổ chức hoạt động trồng cây. Cô giáo thông báo: “Các em nhớ mang theo một chai nước nhỏ và đội mũ khi tham gia hoạt động ngoài trời.”",
+          "question": "",
+          "digit": "7",
+          "hint": null,
+          "content_payload": {
+            "question": "",
+            "feedback": "Hãy đọc lại thông báo và tìm những việc cô giáo nhắc em chuẩn bị.",
+            "items": [
+              {
+                "question": "Em nhận được thông tin gì từ thông báo của cô giáo?",
+                "answers": [
+                  "Ngày mai lớp được nghỉ học.",
+                  "Ngày mai lớp tham gia hoạt động ngoài trời và cần chuẩn bị nước, mũ.",
+                  "Ngày mai lớp đi bơi."
+                ],
+                "correct": 1
+              },
+              {
+                "question": "Dựa vào thông tin đó, em sẽ quyết định làm gì?",
+                "answers": [
+                  "Chuẩn bị chai nước và mũ.",
+                  "Không cần chuẩn bị gì.",
+                  "Chỉ mang đồ chơi."
+                ],
+                "correct": 0
+              }
+            ]
+          },
+          "sort_order": 3
+        },
+        {
+          "item_key": "station",
+          "item_type": "task",
+          "kind": "multi",
+          "title": "MỘT THÔNG TIN – NHIỀU QUYẾT ĐỊNH",
+          "intro": "Robot nghiên cứu nhận được thông tin: “Ngoài trời đang mưa rất to.”",
+          "question": "Những quyết định nào phù hợp với thông tin trên?",
+          "digit": "9",
+          "hint": null,
+          "content_payload": {
+            "question": "Những quyết định nào phù hợp với thông tin trên?",
+            "feedback": "Một thông tin có thể dẫn đến nhiều quyết định phù hợp. Em hãy chọn tất cả quyết định an toàn.",
+            "answers": [
+              "Bạn An mang áo mưa khi ra ngoài.",
+              "Bạn Bình chạy ra sân chơi.",
+              "Bạn Chi đóng cửa sổ để tránh nước mưa hắt vào phòng."
+            ],
+            "correct": [
+              0,
+              2
+            ]
+          },
+          "sort_order": 4
+        },
+        {
+          "item_key": "robot",
+          "item_type": "secret",
+          "kind": "single",
+          "title": "ROBOT CẦN EM GIÚP!",
+          "intro": null,
+          "question": "Pin của robot chỉ còn 5%. Robot nên làm gì?",
+          "digit": null,
+          "hint": "Chữ số đầu tiên là số chẵn lớn hơn 2.",
+          "content_payload": {
+            "question": "Pin của robot chỉ còn 5%. Robot nên làm gì?",
+            "feedback": "",
+            "answers": [
+              "Tiếp tục hoạt động đến khi hết pin.",
+              "Di chuyển đến trạm sạc pin.",
+              "Tăng tốc độ di chuyển."
+            ],
+            "correct": 1
+          },
+          "sort_order": 5
+        },
+        {
+          "item_key": "plant",
+          "item_type": "secret",
+          "kind": "single",
+          "title": "GIẢI CỨU CÂY XANH",
+          "intro": null,
+          "question": "Cảm biến phát hiện đất trong chậu đang khô. Hệ thống nên làm gì?",
+          "digit": null,
+          "hint": "Chữ số thứ hai là số nhỏ nhất trong bốn chữ số.",
+          "content_payload": {
+            "question": "Cảm biến phát hiện đất trong chậu đang khô. Hệ thống nên làm gì?",
+            "feedback": "",
+            "answers": [
+              "Bật hệ thống tưới nước.",
+              "Tắt hệ thống tưới nước.",
+              "Bật đèn trang trí."
+            ],
+            "correct": 0
+          },
+          "sort_order": 6
+        },
+        {
+          "item_key": "book",
+          "item_type": "secret",
+          "kind": "single",
+          "title": "AI ĐƯA RA QUYẾT ĐỊNH ĐÚNG?",
+          "intro": "Nam nghe thấy tiếng chuông báo cháy và chen lấn để chạy ra ngoài. Mai bình tĩnh làm theo hướng dẫn của giáo viên.",
+          "question": "Bạn nào đưa ra quyết định phù hợp?",
+          "digit": null,
+          "hint": "Chữ số cuối cùng là số lớn nhất trong bốn chữ số.",
+          "content_payload": {
+            "question": "Bạn nào đưa ra quyết định phù hợp?",
+            "feedback": "",
+            "answers": [
+              "Nam.",
+              "Mai.",
+              "Cả hai bạn."
+            ],
+            "correct": 1
+          },
+          "sort_order": 7
+        },
+        {
+          "item_key": "chest",
+          "item_type": "secret",
+          "kind": "multi",
+          "title": "GIẢI MÃ THÔNG ĐIỆP",
+          "intro": "Ngày mai trường tổ chức ngày hội thể thao. Học sinh cần mặc trang phục thể thao và mang theo nước uống.",
+          "question": "Em cần chuẩn bị những gì?",
+          "digit": null,
+          "hint": "Chữ số thứ ba lớn hơn chữ số đầu tiên.",
+          "content_payload": {
+            "question": "Em cần chuẩn bị những gì?",
+            "feedback": "",
+            "answers": [
+              "Trang phục thể thao.",
+              "Nước uống.",
+              "Đồ chơi điện tử.",
+              "Sách truyện."
+            ],
+            "correct": [
+              0,
+              1
+            ]
+          },
+          "sort_order": 8
+        }
+      ]
+    },
+    {
+      "room_number": 1,
+      "grade": 4,
+      "topic": "Phần cứng và phần mềm máy tính",
+      "passcode": "8631",
+      "theme": "Xưởng công nghệ máy tính",
+      "accent_color": "#65c8ff",
+      "items": [
+        {
+          "item_key": "map",
+          "item_type": "task",
+          "kind": "sort",
+          "title": "PHÂN LOẠI THIẾT BỊ",
+          "intro": null,
+          "question": "Kéo các thẻ vào nhóm PHẦN CỨNG hoặc PHẦN MỀM.",
+          "digit": "6",
+          "hint": null,
+          "content_payload": {
+            "question": "Kéo các thẻ vào nhóm PHẦN CỨNG hoặc PHẦN MỀM.",
+            "feedback": "Em hãy thử lại nhé! Phần cứng là những thiết bị mà em có thể nhìn thấy, cầm nắm và sờ được. Phần mềm là các chương trình máy tính mà em không thể cầm nắm được. Hãy dựa vào đặc điểm này để phân loại lại các thành phần nhé!",
+            "items": [
+              "🖥️ Màn hình",
+              "⌨️ Bàn phím",
+              "🖱️ Chuột máy tính",
+              "🎨 Phần mềm Paint",
+              "📝 Microsoft Word",
+              "🌐 Trình duyệt web"
+            ],
+            "correct": [
+              0,
+              0,
+              0,
+              1,
+              1,
+              1
+            ],
+            "groups": [
+              "PHẦN CỨNG",
+              "PHẦN MỀM"
+            ]
+          },
+          "sort_order": 1
+        },
+        {
+          "item_key": "computer",
+          "item_type": "task",
+          "kind": "sequence",
+          "title": "AI LÀM NHIỆM VỤ GÌ?",
+          "intro": null,
+          "question": "",
+          "digit": "3",
+          "hint": null,
+          "content_payload": {
+            "question": "",
+            "feedback": "Hãy xác định chức năng của thiết bị hoặc phần mềm mà em cần.",
+            "items": [
+              {
+                "question": "Em muốn nhập một đoạn văn bản vào máy tính. Thiết bị nào giúp em nhập chữ?",
+                "answers": [
+                  "Loa.",
+                  "Bàn phím.",
+                  "Màn hình."
+                ],
+                "correct": 1
+              },
+              {
+                "question": "Em muốn nghe âm thanh từ một video. Thiết bị nào giúp phát âm thanh?",
+                "answers": [
+                  "Loa.",
+                  "Chuột.",
+                  "Bàn phím."
+                ],
+                "correct": 0
+              },
+              {
+                "question": "Em muốn vẽ một bức tranh trên máy tính. Phần mềm nào phù hợp?",
+                "answers": [
+                  "Phần mềm Paint.",
+                  "Phần mềm máy tính không rõ chức năng.",
+                  "Hệ điều hành."
+                ],
+                "correct": 0
+              }
+            ]
+          },
+          "sort_order": 2
+        },
+        {
+          "item_key": "library",
+          "item_type": "task",
+          "kind": "sequence",
+          "title": "ĐIỀU GÌ SẼ XẢY RA?",
+          "intro": null,
+          "question": "",
+          "digit": "8",
+          "hint": null,
+          "content_payload": {
+            "question": "",
+            "feedback": "Hãy xác định thành phần bị thiếu và công việc mà thành phần đó hỗ trợ.",
+            "items": [
+              {
+                "question": "Máy tính vẫn hoạt động nhưng loa bị hỏng. Điều gì có thể xảy ra?",
+                "answers": [
+                  "Không thể nhìn thấy hình ảnh trên màn hình.",
+                  "Không thể nghe âm thanh qua loa bị hỏng.",
+                  "Không thể nhập chữ bằng bàn phím."
+                ],
+                "correct": 1
+              },
+              {
+                "question": "Máy tính có màn hình, bàn phím, chuột nhưng chưa có phần mềm vẽ. Em gặp khó khăn gì?",
+                "answers": [
+                  "Không thể sử dụng phần mềm vẽ đó để tạo tranh.",
+                  "Không thể bật màn hình.",
+                  "Không thể sử dụng bàn phím."
+                ],
+                "correct": 0
+              },
+              {
+                "question": "Bạn An muốn soạn một bài văn. Em chọn phần mềm nào?",
+                "answers": [
+                  "Phần mềm Paint.",
+                  "Phần mềm soạn thảo văn bản.",
+                  "Phần mềm nghe nhạc."
+                ],
+                "correct": 1
+              }
+            ]
+          },
+          "sort_order": 3
+        },
+        {
+          "item_key": "station",
+          "item_type": "task",
+          "kind": "pair",
+          "title": "KHÔI PHỤC HỆ THỐNG MÁY TÍNH",
+          "intro": null,
+          "question": "Ghép mỗi công việc với một thiết bị phần cứng và một phần mềm phù hợp.",
+          "digit": "1",
+          "hint": null,
+          "content_payload": {
+            "question": "Ghép mỗi công việc với một thiết bị phần cứng và một phần mềm phù hợp.",
+            "feedback": "Hệ thống chưa thể hoạt động. Em hãy kiểm tra lại: Công việc này cần thiết bị nào và chương trình nào?",
+            "jobs": [
+              "Soạn thảo bài văn",
+              "Vẽ tranh",
+              "Nghe nhạc"
+            ],
+            "hardware": [
+              "Bàn phím",
+              "Chuột",
+              "Loa"
+            ],
+            "software": [
+              "Phần mềm soạn thảo văn bản",
+              "Phần mềm Paint",
+              "Phần mềm phát nhạc"
+            ],
+            "correct": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                1
+              ],
+              [
+                2,
+                2
+              ]
+            ]
+          },
+          "sort_order": 4
+        },
+        {
+          "item_key": "robot",
+          "item_type": "secret",
+          "kind": "single",
+          "title": "ROBOT BỊ MẤT GIỌNG",
+          "intro": "Robot phát một bài hát nhưng không nghe thấy âm thanh vì loa đã bị hỏng.",
+          "question": "Thành phần bị hỏng thuộc nhóm nào?",
+          "digit": null,
+          "hint": "Chữ số đầu tiên là số lớn nhất trong bốn chữ số.",
+          "content_payload": {
+            "question": "Thành phần bị hỏng thuộc nhóm nào?",
+            "feedback": "",
+            "answers": [
+              "Phần mềm.",
+              "Phần cứng.",
+              "Cả phần cứng và phần mềm."
+            ],
+            "correct": 1
+          },
+          "sort_order": 5
+        },
+        {
+          "item_key": "plant",
+          "item_type": "secret",
+          "kind": "single",
+          "title": "BỘ NÃO CỦA CHẬU CÂY",
+          "intro": "Chậu cây có cảm biến độ ẩm, máy bơm nước và chương trình điều khiển tưới cây.",
+          "question": "Thành phần nào là phần mềm?",
+          "digit": null,
+          "hint": "Chữ số cuối cùng là số nhỏ nhất trong bốn chữ số.",
+          "content_payload": {
+            "question": "Thành phần nào là phần mềm?",
+            "feedback": "",
+            "answers": [
+              "Cảm biến độ ẩm đất.",
+              "Máy bơm nước.",
+              "Chương trình điều khiển tưới cây."
+            ],
+            "correct": 2
+          },
+          "sort_order": 6
+        },
+        {
+          "item_key": "book",
+          "item_type": "secret",
+          "kind": "multi",
+          "title": "TÌM PHÁT BIỂU ĐÚNG",
+          "intro": null,
+          "question": "Chọn tất cả phát biểu đúng.",
+          "digit": null,
+          "hint": "Chữ số thứ hai là số chẵn nhỏ hơn 8.",
+          "content_payload": {
+            "question": "Chọn tất cả phát biểu đúng.",
+            "feedback": "",
+            "answers": [
+              "Phần cứng là những bộ phận vật lí của máy tính.",
+              "Phần mềm là những chương trình giúp máy tính thực hiện công việc.",
+              "Chuột máy tính là một phần mềm."
+            ],
+            "correct": [
+              0,
+              1
+            ]
+          },
+          "sort_order": 7
+        },
+        {
+          "item_key": "chest",
+          "item_type": "secret",
+          "kind": "single",
+          "title": "CHỌN BỘ CÔNG CỤ PHÙ HỢP",
+          "intro": "Bạn Mai muốn tạo một bức tranh trên máy tính.",
+          "question": "Bộ công cụ nào phù hợp nhất?",
+          "digit": null,
+          "hint": "Chữ số thứ ba là số lẻ lớn hơn 1.",
+          "content_payload": {
+            "question": "Bộ công cụ nào phù hợp nhất?",
+            "feedback": "",
+            "answers": [
+              "Loa và phần mềm nghe nhạc.",
+              "Chuột và phần mềm Paint.",
+              "Máy in và phần mềm phát nhạc.",
+              "Bàn phím và phần mềm nghe nhạc."
+            ],
+            "correct": 1
+          },
+          "sort_order": 8
+        }
+      ]
+    },
+    {
+      "room_number": 1,
+      "grade": 5,
+      "topic": "Em có thể làm gì với máy tính?",
+      "passcode": "5924",
+      "theme": "Trung tâm sáng tạo số",
+      "accent_color": "#cf9aff",
+      "items": [
+        {
+          "item_key": "map",
+          "item_type": "task",
+          "kind": "match",
+          "title": "NHÀ THÁM HIỂM SỐ",
+          "intro": "Robot muốn khám phá các địa danh nổi tiếng nhưng không thể trực tiếp đến đó.",
+          "question": "Ghép mỗi mục đích với cách sử dụng máy tính phù hợp.",
+          "digit": "2",
+          "hint": null,
+          "content_payload": {
+            "question": "Ghép mỗi mục đích với cách sử dụng máy tính phù hợp.",
+            "feedback": "Máy tính giúp chúng ta sử dụng bản đồ số, xem hình ảnh, video và tìm kiếm thông tin.",
+            "left": [
+              "Muốn biết vị trí Vịnh Hạ Long",
+              "Muốn quan sát tháp Eiffel",
+              "Muốn tìm hiểu lịch sử Kim tự tháp Ai Cập"
+            ],
+            "right": [
+              "Tìm kiếm và đọc thông tin",
+              "Xem bản đồ số",
+              "Xem hình ảnh hoặc video"
+            ],
+            "correct": [
+              1,
+              2,
+              0
+            ]
+          },
+          "sort_order": 1
+        },
+        {
+          "item_key": "computer",
+          "item_type": "task",
+          "kind": "sequence",
+          "title": "CHUYÊN GIA CÔNG NGHỆ",
+          "intro": null,
+          "question": "",
+          "digit": "5",
+          "hint": null,
+          "content_payload": {
+            "question": "",
+            "feedback": "Hãy xác định công việc muốn thực hiện rồi chọn phần mềm có chức năng phù hợp.",
+            "items": [
+              {
+                "question": "Bạn An muốn viết bài văn kể về chuyến tham quan. Bạn nên dùng phần mềm nào?",
+                "answers": [
+                  "Phần mềm soạn thảo văn bản.",
+                  "Phần mềm nghe nhạc.",
+                  "Phần mềm xem video."
+                ],
+                "correct": 0
+              },
+              {
+                "question": "Bạn Bình muốn tạo bài trình chiếu giới thiệu các loài động vật. Bạn dùng phần mềm nào?",
+                "answers": [
+                  "Phần mềm vẽ.",
+                  "Phần mềm trình chiếu.",
+                  "Phần mềm phát nhạc."
+                ],
+                "correct": 1
+              },
+              {
+                "question": "Bạn Chi muốn thiết kế thiệp điện tử tặng mẹ. Bạn nên dùng phần mềm nào?",
+                "answers": [
+                  "Phần mềm thiết kế đồ họa.",
+                  "Phần mềm nghe nhạc.",
+                  "Phần mềm xem video."
+                ],
+                "correct": 0
+              }
+            ]
+          },
+          "sort_order": 2
+        },
+        {
+          "item_key": "library",
+          "item_type": "task",
+          "kind": "order",
+          "title": "DỰ ÁN HỌC TẬP THÔNG MINH",
+          "intro": "Nhóm Minh muốn dùng máy tính làm bài trình chiếu về “Bảo vệ môi trường xanh”.",
+          "question": "Sắp xếp các công việc theo trình tự hợp lí.",
+          "digit": "9",
+          "hint": null,
+          "content_payload": {
+            "question": "Sắp xếp các công việc theo trình tự hợp lí.",
+            "feedback": "Trước khi tạo bài trình chiếu, em cần chuẩn bị gì? Sau khi hoàn thành, em có cần kiểm tra lại không?",
+            "items": [
+              "Tạo bài trình chiếu, kết hợp nội dung và hình ảnh.",
+              "Xác định những thông tin cần tìm hiểu về chủ đề.",
+              "Tìm kiếm, lựa chọn thông tin và hình ảnh phù hợp.",
+              "Kiểm tra, chỉnh sửa và hoàn thiện bài trình chiếu."
+            ],
+            "correct": [
+              1,
+              2,
+              0,
+              3
+            ]
+          },
+          "sort_order": 3
+        },
+        {
+          "item_key": "station",
+          "item_type": "task",
+          "kind": "multi",
+          "title": "MÁY TÍNH CÓ THỂ GIÚP GÌ?",
+          "intro": null,
+          "question": "Chọn tất cả hoạt động có thể thực hiện bằng máy tính thông thường khi sử dụng phần mềm và thiết bị phù hợp.",
+          "digit": "4",
+          "hint": null,
+          "content_payload": {
+            "question": "Chọn tất cả hoạt động có thể thực hiện bằng máy tính thông thường khi sử dụng phần mềm và thiết bị phù hợp.",
+            "feedback": "Máy tính giúp học tập, tìm kiếm thông tin, sáng tạo và giao tiếp. Một số công việc thực tế cần thêm thiết bị phù hợp.",
+            "answers": [
+              "Soạn thảo một bài văn.",
+              "Tìm kiếm thông tin trên Internet.",
+              "Tự nấu một bữa cơm mà không cần thiết bị hỗ trợ.",
+              "Thiết kế một tấm thiệp điện tử.",
+              "Trò chuyện trực tuyến với bạn bè.",
+              "Tự quét dọn nhà cửa mà không cần thiết bị hỗ trợ."
+            ],
+            "correct": [
+              0,
+              1,
+              3,
+              4
+            ]
+          },
+          "sort_order": 4
+        },
+        {
+          "item_key": "robot",
+          "item_type": "secret",
+          "kind": "single",
+          "title": "ROBOT CẦN MỘT BÀI THUYẾT TRÌNH",
+          "intro": "Robot cần bài giới thiệu phòng thí nghiệm có chữ, hình ảnh và các trang trình chiếu.",
+          "question": "Robot nên sử dụng phần mềm nào?",
+          "digit": null,
+          "hint": "Chữ số đầu tiên là số lẻ lớn hơn 3 và nhỏ hơn 7.",
+          "content_payload": {
+            "question": "Robot nên sử dụng phần mềm nào?",
+            "feedback": "",
+            "answers": [
+              "Phần mềm trình chiếu.",
+              "Phần mềm nghe nhạc.",
+              "Phần mềm xem video."
+            ],
+            "correct": 0
+          },
+          "sort_order": 5
+        },
+        {
+          "item_key": "plant",
+          "item_type": "secret",
+          "kind": "single",
+          "title": "NHẬT KÍ CHĂM SÓC CÂY",
+          "intro": "Chậu cây muốn theo dõi sự phát triển: chụp ảnh mỗi tuần, ghi chiều cao, lưu thông tin vào máy tính và dùng bảng tính theo dõi sự thay đổi.",
+          "question": "Máy tính có thể trực tiếp hỗ trợ những công việc nào trong danh sách?",
+          "digit": null,
+          "hint": "Chữ số cuối cùng là số chẵn lớn hơn 2 và nhỏ hơn 5.",
+          "content_payload": {
+            "question": "Máy tính có thể trực tiếp hỗ trợ những công việc nào trong danh sách?",
+            "feedback": "",
+            "answers": [
+              "Chỉ công việc 1.",
+              "Chỉ công việc 2.",
+              "Công việc 3 và 4.",
+              "Không công việc nào."
+            ],
+            "correct": 2
+          },
+          "sort_order": 6
+        },
+        {
+          "item_key": "book",
+          "item_type": "secret",
+          "kind": "multi",
+          "title": "NGƯỜI BẠN CÔNG NGHỆ",
+          "intro": null,
+          "question": "Chọn tất cả phát biểu đúng.",
+          "digit": null,
+          "hint": "Chữ số thứ hai là số lớn nhất trong bốn chữ số.",
+          "content_payload": {
+            "question": "Chọn tất cả phát biểu đúng.",
+            "feedback": "",
+            "answers": [
+              "Máy tính giúp tìm kiếm thông tin phục vụ học tập.",
+              "Máy tính giúp tạo bài trình chiếu.",
+              "Máy tính tự thực hiện mọi công việc trong cuộc sống mà không cần con người hoặc thiết bị hỗ trợ.",
+              "Máy tính giúp trao đổi thông tin với người khác qua Internet."
+            ],
+            "correct": [
+              0,
+              1,
+              3
+            ]
+          },
+          "sort_order": 7
+        },
+        {
+          "item_key": "chest",
+          "item_type": "secret",
+          "kind": "single",
+          "title": "MÓN QUÀ CÔNG NGHỆ",
+          "intro": "Mai muốn làm thiệp điện tử tặng mẹ: thiết kế thiệp, chèn ảnh gia đình, viết lời chúc và thêm nhạc nền.",
+          "question": "Máy tính có thể hỗ trợ Mai thực hiện những công việc nào?",
+          "digit": null,
+          "hint": "Chữ số thứ ba là số chẵn nhỏ nhất trong bốn chữ số.",
+          "content_payload": {
+            "question": "Máy tính có thể hỗ trợ Mai thực hiện những công việc nào?",
+            "feedback": "",
+            "answers": [
+              "Chỉ thiết kế thiệp.",
+              "Chỉ chèn hình ảnh.",
+              "Chỉ viết lời chúc.",
+              "Cả bốn công việc trên."
+            ],
+            "correct": 3
+          },
+          "sort_order": 8
+        }
+      ]
+    }
+  ]
+}

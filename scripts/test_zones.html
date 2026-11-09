@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;background:#000;">
+<canvas id="c" width="1672" height="941" style="display:block;"></canvas>
+<script>
+window.onload = async () => {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+
+  const load = src => new Promise((resolve, reject) => {
+    const im = new Image();
+    im.onload = () => resolve(im);
+    im.onerror = () => reject(new Error('Failed ' + src));
+    im.src = src;
+  });
+
+  const bg = await load('/assets/room3_4/nen_room.png');
+  ctx.drawImage(bg, 0, 0);
+
+  const t1 = await load('/assets/room3_4/tram1.png');
+  const t2 = await load('/assets/room3_4/tram2.png');
+  const t3 = await load('/assets/room3_4/tram3.png');
+  const t4 = await load('/assets/room3_4/tram4.png');
+  const door = await load('/assets/room3_4/cua_khoa.png');
+
+  const STATIONS = [
+    { id: 0, x: 150, y: 320, w: 260, h: 173, label: 'Trạm 1' },
+    { id: 1, x: 330, y: 80,  w: 260, h: 173, label: 'Trạm 2' },
+    { id: 2, x: 950, y: 150, w: 260, h: 173, label: 'Trạm 3' },
+    { id: 3, x: 950, y: 600, w: 260, h: 173, label: 'Trạm 4' }
+  ];
+
+  STATIONS.forEach((s, i) => {
+    const img = [t1, t2, t3, t4][i];
+    ctx.drawImage(img, s.x, s.y, s.w, s.h);
+
+    // Let's draw the desk foot collision box:
+    const deskFoot = {
+      x: s.x + 35,
+      y: s.y + 60,
+      w: 190,
+      h: 95
+    };
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.4)';
+    ctx.fillRect(deskFoot.x, deskFoot.y, deskFoot.w, deskFoot.h);
+    ctx.strokeStyle = '#ff0000';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(deskFoot.x, deskFoot.y, deskFoot.w, deskFoot.h);
+
+    // Interaction zone: floor area in front of the desk
+    // For Trạm 2: in front of desk is below it (y: s.y + 155 to s.y + 240, x: s.x + 40 to s.x + 220)
+    // Let's test interaction zones:
+  });
+
+  const VAULT_DOOR = { x: 1280, y: 75, w: 260, h: 195 };
+  ctx.drawImage(door, VAULT_DOOR.x, VAULT_DOOR.y, VAULT_DOOR.w, VAULT_DOOR.h);
+
+  // Door collision box (when locked):
+  ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+  // Door opening is roughly x: 1330 to 1490, y: 90 to 180
+  ctx.fillRect(1330, 90, 160, 90);
+  ctx.strokeRect(1330, 90, 160, 90);
+
+  // Globe base:
+  ctx.beginPath();
+  ctx.arc(700, 640, 95, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+
+  document.title = 'CHECK_ZONES';
+};
+</script>
+</body>
+</html>

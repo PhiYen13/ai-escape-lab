@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;background:#000;">
+<canvas id="c" width="1672" height="941" style="display:block;"></canvas>
+<script>
+const bg = new Image();
+bg.onload = () => {
+  const c = document.getElementById('c');
+  const ctx = c.getContext('2d');
+  ctx.drawImage(bg, 0, 0);
+
+  const t1 = new Image();
+  t1.src = '../assets/room3_4/tram1.png';
+  const t2 = new Image();
+  t2.src = '../assets/room3_4/tram2.png';
+  const t3 = new Image();
+  t3.src = '../assets/room3_4/tram3.png';
+  const t4 = new Image();
+  t4.src = '../assets/room3_4/tram4.png';
+  const door = new Image();
+  door.src = '../assets/room3_4/cua_khoa.png';
+
+  let loaded = 0;
+  [t1, t2, t3, t4, door].forEach(im => {
+    im.onload = () => {
+      loaded++;
+      if (loaded === 5) render();
+    };
+  });
+
+  function render() {
+    // Trạm 2 (khoang trên trái):
+    // Floor center: (240, 240). Table desk width in room is ~360.
+    ctx.drawImage(t2, 240 - 180, 240 - 150, 360, 240);
+
+    // Trạm 1 (khoang giữa trái):
+    // Floor center: (230, 560).
+    ctx.drawImage(t1, 230 - 180, 560 - 150, 360, 240);
+
+    // Trạm 3 (khoang phía trên bên phải):
+    // Inside the chamber: x: 500 to 740, y: 180 to 520.
+    // Center floor of this room is (610, 350)
+    ctx.drawImage(t3, 610 - 180, 350 - 150, 360, 240);
+
+    // Trạm 4 (khoang dưới bên phải):
+    // Inside bottom-right chamber: x: 550 to 890, y: 680 to 920.
+    // Center floor of this room is (720, 800)
+    ctx.drawImage(t4, 720 - 180, 800 - 150, 360, 240);
+
+    // Cửa kho dữ liệu: hốc trên cùng bên phải (1410, 160)
+    // Arch width is ~300.
+    ctx.drawImage(door, 1410 - 150, 160 - 115, 300, 225);
+
+    document.title = 'TEST4_DONE';
+  }
+};
+bg.src = '../assets/room3_4/nen_room.png';
+</script>
+</body>
+</html>
