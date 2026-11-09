@@ -66,9 +66,9 @@ async function run() {
 
   const payload = master.published_payload;
   assert(payload && Array.isArray(payload.rooms), 'published_payload chứa mảng rooms');
-  assert(payload.rooms.length === 7, `MASTER chứa chính xác 7 phòng (thực tế: ${payload.rooms.length})`);
+  assert(payload.rooms.length === 8, `MASTER chứa chính xác 8 phòng (thực tế: ${payload.rooms.length})`);
 
-  console.log('\n--- 2. Kiểm tra cấu trúc 7 phòng thực tế từ Supabase ---');
+  console.log('\n--- 2. Kiểm tra cấu trúc 8 phòng thực tế từ Supabase ---');
   const rooms = payload.rooms;
 
   function getRoomItemCount(r) {
@@ -89,8 +89,10 @@ async function run() {
   // Lớp 4
   const g4r1 = rooms.find(r => r.grade === 4 && r.room_number === 1);
   const g4r2 = rooms.find(r => r.grade === 4 && r.room_number === 2);
+  const g4r3 = rooms.find(r => r.grade === 4 && r.room_number === 3);
   assert(g4r1 && g4r1.module_id === 'escape_room_point_click_v1' && getRoomItemCount(g4r1) === 8, 'Lớp 4 Phòng 1: escape_room_point_click_v1 (8 items)');
   assert(g4r2 && g4r2.module_id === 'lab_exploration_repair_v1' && getRoomItemCount(g4r2) === 8, 'Lớp 4 Phòng 2: lab_exploration_repair_v1 (8 items)');
+  assert(g4r3 && g4r3.module_id === 'web_exploration_lab_v1' && getRoomItemCount(g4r3) === 18, 'Lớp 4 Phòng 3: web_exploration_lab_v1 (18 items)');
 
   // Lớp 5
   const g5r1 = rooms.find(r => r.grade === 5 && r.room_number === 1);
@@ -98,16 +100,17 @@ async function run() {
   assert(g5r1 && g5r1.module_id === 'escape_room_point_click_v1' && getRoomItemCount(g5r1) === 8, 'Lớp 5 Phòng 1: escape_room_point_click_v1 (8 items)');
   assert(g5r2 && g5r2.module_id === 'lab_exploration_repair_v1' && getRoomItemCount(g5r2) === 8, 'Lớp 5 Phòng 2: lab_exploration_repair_v1 (8 items)');
 
-  console.log('\n--- 3. Kiểm tra chi tiết 57 items từ Supabase ---');
+  console.log('\n--- 3. Kiểm tra chi tiết 75 items từ Supabase ---');
   let totalItems = 0;
   rooms.forEach(r => totalItems += getRoomItemCount(r));
-  assert(totalItems === 57, `Tổng số items trong MASTER đúng bằng 57 (thực tế: ${totalItems})`);
+  assert(totalItems === 75, `Tổng số items trong MASTER đúng bằng 75 (thực tế: ${totalItems})`);
 
   // Kiểm tra Room 3 item hazard_dust
   const dustPayload = g3r3.tasks && g3r3.tasks.hazard_dust;
   assert(dustPayload !== undefined, 'Phòng 3 Lớp 3 chứa item_key hazard_dust (vệ sinh bàn phím)');
-  assert(dustPayload.zone_index === 3, 'hazard_dust có zone_index = 3 (khu vực an toàn phòng máy)');
-  assert(dustPayload.hazard_index === 2, 'hazard_dust có hazard_index = 2');
+  const dustContent = dustPayload.content_payload || dustPayload;
+  assert(dustContent.zone_index === 3, 'hazard_dust có zone_index = 3 (khu vực an toàn phòng máy)');
+  assert(dustContent.hazard_index === 2, 'hazard_dust có hazard_index = 2');
 
   console.log('\n--- 4. Kiểm tra phòng chưa xây dựng (Unbuilt Rooms 4..16) ---');
   [3, 4, 5].forEach(g => {
@@ -115,8 +118,10 @@ async function run() {
       const exists = rooms.some(r => r.grade === g && r.room_number === rNum);
       if (g === 3 && rNum <= 3) {
         assert(exists === true, `Khối 3 Phòng ${rNum} đã sẵn sàng`);
-      } else if ((g === 4 || g === 5) && rNum <= 2) {
-        assert(exists === true, `Khối ${g} Phòng ${rNum} đã sẵn sàng`);
+      } else if (g === 4 && rNum <= 3) {
+        assert(exists === true, `Khối 4 Phòng ${rNum} đã sẵn sàng`);
+      } else if (g === 5 && rNum <= 2) {
+        assert(exists === true, `Khối 5 Phòng ${rNum} đã sẵn sàng`);
       } else {
         // Phòng chưa xây dựng tuyệt đối không có trong published payload
         if (exists) {
