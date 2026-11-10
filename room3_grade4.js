@@ -1330,19 +1330,141 @@
     }
   }
 
+  // --- HỖ TRỢ DỮ LIỆU TÙY BIẾN CHO 18 NHIỆM VỤ (TEACHER STUDIO) ---
+  const STATION_TASK_KEYS = [
+    ['w4_task_01', 'w4_task_02', 'w4_task_03', 'w4_task_04', 'w4_task_05'],
+    ['w4_task_06', 'w4_task_07', 'w4_task_08', 'w4_task_09'],
+    ['w4_task_10', 'w4_task_11', 'w4_task_12', 'w4_task_13', 'w4_task_14'],
+    ['w4_task_15', 'w4_task_16', 'w4_task_17', 'w4_task_18']
+  ];
+
+  function getTaskCustomItem(stationIdx, p) {
+    if (!window.R3G4_PUBLISHED_DATA) {
+      if (
+        window.AI_ESCAPE_LAST_PUBLISHED_RECORD &&
+        window.AI_ESCAPE_LAST_PUBLISHED_RECORD.published_payload &&
+        Array.isArray(window.AI_ESCAPE_LAST_PUBLISHED_RECORD.published_payload.rooms)
+      ) {
+        const found = window.AI_ESCAPE_LAST_PUBLISHED_RECORD.published_payload.rooms.find(
+          r => Number(r.grade) === 4 && (r.module_id === 'web_exploration_lab_v1' || Number(r.room_number) === 3)
+        );
+        if (found) window.R3G4_PUBLISHED_DATA = found;
+      }
+    }
+    const roomData = window.R3G4_PUBLISHED_DATA;
+    if (!roomData) return null;
+    const taskKey = STATION_TASK_KEYS[stationIdx] && STATION_TASK_KEYS[stationIdx][p];
+    if (!taskKey) return null;
+
+    if (roomData.tasks && roomData.tasks[taskKey]) {
+      return roomData.tasks[taskKey];
+    }
+    if (Array.isArray(roomData.items)) {
+      const it = roomData.items.find(x => x.item_key === taskKey);
+      if (it) return it;
+    }
+    return null;
+  }
+
+  function getSingleConfig(stationIdx, p, defaultQ, defaultOpts, defaultCorrect, defaultExplain) {
+    const it = getTaskCustomItem(stationIdx, p);
+    if (!it) {
+      return { q: defaultQ, opts: defaultOpts, correct: defaultCorrect, explain: defaultExplain };
+    }
+    const payload = it.content_payload || {};
+    const q = (it.question || payload.question || defaultQ).trim();
+    let opts = defaultOpts;
+    if (Array.isArray(payload.answers) && payload.answers.length >= 2 && typeof payload.answers[0] === 'string') {
+      opts = payload.answers;
+    } else if (Array.isArray(payload.options) && payload.options.length >= 2) {
+      opts = payload.options;
+    }
+    let corr = defaultCorrect;
+    if (typeof payload.correct === 'number' && payload.correct >= 0 && payload.correct < opts.length) {
+      corr = payload.correct;
+    } else if (typeof payload.answers === 'number' && payload.answers >= 0 && payload.answers < opts.length) {
+      corr = payload.answers;
+    }
+    const explain = (payload.feedback || payload.feedback_incorrect || defaultExplain).trim();
+    return { q, opts, correct: corr, explain };
+  }
+
+  function getMultiConfig(stationIdx, p, defaultQ, defaultOpts, defaultCorrect, defaultExplain) {
+    const it = getTaskCustomItem(stationIdx, p);
+    if (!it) {
+      return { q: defaultQ, opts: defaultOpts, correct: defaultCorrect, explain: defaultExplain };
+    }
+    const payload = it.content_payload || {};
+    const q = (it.question || payload.question || defaultQ).trim();
+    let opts = defaultOpts;
+    if (Array.isArray(payload.answers) && payload.answers.length >= 2 && typeof payload.answers[0] === 'string') {
+      opts = payload.answers;
+    } else if (Array.isArray(payload.options) && payload.options.length >= 2) {
+      opts = payload.options;
+    }
+    let corr = defaultCorrect;
+    if (Array.isArray(payload.correct) && payload.correct.length > 0) {
+      corr = payload.correct.map(Number);
+    } else if (Array.isArray(payload.answers) && payload.answers.length > 0 && typeof payload.answers[0] === 'number') {
+      corr = payload.answers.map(Number);
+    }
+    const explain = (payload.feedback || payload.feedback_incorrect || defaultExplain).trim();
+    return { q, opts, correct: corr, explain };
+  }
+
+  function getMatchConfig(stationIdx, p, defaultTitle, defaultLeft, defaultRight, defaultPairs, defaultExplain) {
+    const it = getTaskCustomItem(stationIdx, p);
+    if (!it) {
+      return { title: defaultTitle, left: defaultLeft, right: defaultRight, pairs: defaultPairs, explain: defaultExplain };
+    }
+    const payload = it.content_payload || {};
+    const title = (it.question || payload.question || defaultTitle).trim();
+    const left = Array.isArray(payload.left) && payload.left.length >= 2 ? payload.left : defaultLeft;
+    const right = Array.isArray(payload.right) && payload.right.length >= 2 ? payload.right : defaultRight;
+    let pairs = defaultPairs;
+    if (Array.isArray(payload.correct) && payload.correct.length === left.length) {
+      pairs = payload.correct.map(Number);
+    } else if (Array.isArray(payload.answers) && payload.answers.length === left.length) {
+      pairs = payload.answers.map(Number);
+    }
+    const explain = (payload.feedback || payload.feedback_incorrect || defaultExplain).trim();
+    return { title, left, right, pairs, explain };
+  }
+
   // --- TRẠM 1: KHO DỮ LIỆU (1.1 - 1.5) ---
   function renderStation1Task(p, fb) {
     if (p === 0) {
       // 1.1: Quan sát 5 nội dung trên website Trung thu (fill_select)
-      const examples = [
+      const it01 = getTaskCustomItem(0, 0);
+      let examples = [
         { text: '🎵 Em nhấn nút phát âm thanh và nghe giai điệu trên website:', type: 'audio' },
         { text: '📄 Trên trang có đoạn giới thiệu: “Tết Trung thu là lễ hội thiếu nhi cổ truyền...”', type: 'text' },
         { text: '🎬 Em nhấn ▶ và xem đoạn phim hoạt hình múa lân có hình ảnh chuyển động:', type: 'video' },
         { text: '🔗 Em đưa chuột vào chữ “Xem thêm hoạt động”, con trỏ biến thành hình bàn tay', type: 'link' },
         { text: '🏮 Trang web đăng bức ảnh các bạn học sinh rước đèn ông sao rực rỡ:', type: 'image' }
       ];
-      const words = ['Văn bản', 'Hình ảnh', 'Âm thanh', 'Video', 'Siêu liên kết'];
-      const correctAnswers = [2, 0, 3, 4, 1];
+      let words = ['Văn bản', 'Hình ảnh', 'Âm thanh', 'Video', 'Siêu liên kết'];
+      let correctAnswers = [2, 0, 3, 4, 1];
+      let fbIncorrect = 'Một số ví dụ chưa được phân loại đúng. Hãy kiểm tra lại từng thẻ nhé!';
+      if (it01 && it01.content_payload) {
+        const pld = it01.content_payload;
+        if (Array.isArray(pld.words) && pld.words.length >= 2) words = pld.words;
+        if (Array.isArray(pld.examples) && pld.examples.length >= 1) {
+          examples = pld.examples.map((ex, i) => {
+            const defEx = examples[i] || { type: 'text' };
+            const exText = typeof ex === 'object' && ex !== null ? (ex.text || '') : String(ex || '');
+            return { text: exText, type: defEx.type || 'text' };
+          });
+        }
+        if (Array.isArray(pld.correct) && pld.correct.length === examples.length) {
+          correctAnswers = pld.correct.map(Number);
+        } else if (Array.isArray(pld.answers) && pld.answers.length === examples.length) {
+          correctAnswers = pld.answers.map(Number);
+        }
+        if (pld.feedback || pld.feedback_incorrect) {
+          fbIncorrect = pld.feedback || pld.feedback_incorrect;
+        }
+      }
       let userAnswers = {};
 
       let examplesHtml = examples.map((ex, idx) => {
@@ -1381,7 +1503,7 @@
             <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;">
               ${words.map((w, wIdx) => `
                 <button class="r3g4-btn" data-r3g4-fill="${idx}" data-r3g4-val="${wIdx}" type="button" style="padding:3px 8px;font-size:11px;">
-                  ${w}
+                  ${escapeHtml(w)}
                 </button>
               `).join('')}
             </div>
@@ -1396,14 +1518,14 @@
             🌐 https://truongtieuhocthanhdong.edu.vn/dem-hoi-trung-thu
           </div>
           <p style="font-size:12px;color:#475569;margin:0 0 6px;line-height:1.4;">
-            Quan sát 5 nội dung trên website Đêm hội Trung thu. Chọn đúng dạng thông tin (Văn bản, Hình ảnh, Âm thanh, Video, Siêu liên kết) cho từng mục:
+            Quan sát ${examples.length} nội dung trên website Đêm hội Trung thu. Chọn đúng dạng thông tin cho từng mục:
           </p>
           ${examplesHtml}
         </div>
         <button class="r3g4-btn gold" id="r3g4-submit-fill" type="button" style="width:100%;padding:10px;font-size:15px;font-weight:800;">✓ Kiểm tra phân loại thông tin</button>
       `;
 
-      wrapModalBase(0, 'Quan sát 5 nội dung trên website Đêm hội Trung thu', content, fb);
+      wrapModalBase(0, 'Quan sát nội dung trên website Đêm hội Trung thu', content, fb);
 
       const btnDrum = modal.querySelector('#r3g4-btn-drum');
       const audioDrum = modal.querySelector('#r3g4-audio-drum');
@@ -1434,25 +1556,24 @@
       const btnSubmit = modal.querySelector('#r3g4-submit-fill');
       if (btnSubmit) {
         btnSubmit.onclick = () => {
-          const isAllAnswered = Object.keys(userAnswers).length === 5;
+          const isAllAnswered = Object.keys(userAnswers).length === examples.length;
           const isCorrect = isAllAnswered && correctAnswers.every((val, idx) => userAnswers[idx] === val);
-          if (isCorrect) handleQuestionSuccess(0, 'Chúc mừng em đã phân loại chính xác cả 5 dạng thông tin trên trang Đêm hội Trung thu!');
-          else renderStation1Task(0, 'Một số ví dụ chưa được phân loại đúng. Hãy kiểm tra lại từng thẻ nhé!');
+          if (isCorrect) handleQuestionSuccess(0, 'Chúc mừng em đã phân loại chính xác các dạng thông tin trên trang web!');
+          else renderStation1Task(0, fbIncorrect);
         };
       }
     } else if (p === 1) {
       // 1.2: Chọn tất cả thẻ chứa nội dung thông tin (multi)
-      const options = ['📄 Đoạn văn', '🖼️ Bức ảnh', '🔊 Bản nhạc', '🎬 Phim hoạt hình', '🔗 Đường dẫn'];
-      renderMultiChoiceTask(
-        0,
+      const cfg02 = getMultiConfig(
+        0, 1,
         'Em đang xem website lễ hội của trường. Chọn TẤT CẢ các thẻ chứa nội dung thông tin (không chọn thành phần điều hướng):',
-        options,
+        ['📄 Đoạn văn', '🖼️ Bức ảnh', '🔊 Bản nhạc', '🎬 Phim hoạt hình', '🔗 Đường dẫn'],
         [0, 1, 2, 3],
-        'Siêu liên kết (đường dẫn) là thành phần điều hướng; các thẻ còn lại đều là nội dung thông tin.',
-        fb
+        'Siêu liên kết (đường dẫn) là thành phần điều hướng; các thẻ còn lại đều là nội dung thông tin.'
       );
+      renderMultiChoiceTask(0, cfg02.q, cfg02.opts, cfg02.correct, cfg02.explain, fb);
     } else if (p === 2) {
-      // 1.3: Nối loại thông tin với chức năng (match) - Câu 1.3 dùng nhãn "Tiếng trống trường" và file tieng_trong_truong.mp3
+      // 1.3: Nối loại thông tin với chức năng (match)
       const audioSnippet = `
         <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:8px 12px;margin-bottom:10px;display:flex;align-items:center;gap:10px;">
           <button class="r3g4-btn" id="r3g4-btn-task13-audio" type="button" style="padding:6px 12px;font-size:12px;">🔊 Nghe “Tiếng trống trường”</button>
@@ -1461,13 +1582,22 @@
         </div>
       `;
 
-      renderMatchTask(
-        0,
+      const cfg03 = getMatchConfig(
+        0, 2,
         'Nối loại thông tin với chức năng tương ứng:',
         ['Văn bản', 'Hình ảnh', 'Âm thanh', 'Siêu liên kết'],
         ['A. Nghe giai điệu (ví dụ: Tiếng trống trường)', 'B. Mở trang hoặc vị trí khác', 'C. Chữ, câu, đoạn văn', 'D. Tranh ảnh trực quan'],
         [2, 3, 0, 1],
-        'Hãy ghi nhớ: Văn bản là chữ; Hình ảnh là tranh trực quan; Âm thanh để nghe giai điệu (Tiếng trống trường); Siêu liên kết để mở trang khác.',
+        'Hãy ghi nhớ: Văn bản là chữ; Hình ảnh là tranh trực quan; Âm thanh để nghe giai điệu (Tiếng trống trường); Siêu liên kết để mở trang khác.'
+      );
+
+      renderMatchTask(
+        0,
+        cfg03.title,
+        cfg03.left,
+        cfg03.right,
+        cfg03.pairs,
+        cfg03.explain,
         fb,
         audioSnippet
       );
@@ -1491,8 +1621,8 @@
       }, 50);
     } else if (p === 3) {
       // 1.4: Single choice
-      renderSingleChoiceTask(
-        0,
+      const cfg04 = getSingleConfig(
+        0, 3,
         'Lan đang làm trang web giới thiệu lớp học, có bài viết, ảnh chụp lớp, bài hát, video và nút “Xem thêm”. Trang web của Lan có những dạng thông tin nào?',
         [
           'Chỉ có văn bản và hình ảnh',
@@ -1501,11 +1631,19 @@
           'Chỉ có siêu liên kết'
         ],
         2,
-        'Trang web có đầy đủ cả 5 thành phần: văn bản, hình ảnh, âm thanh, video và siêu liên kết!',
-        fb
+        'Trang web có đầy đủ cả 5 thành phần: văn bản, hình ảnh, âm thanh, video và siêu liên kết!'
       );
+      renderSingleChoiceTask(0, cfg04.q, cfg04.opts, cfg04.correct, cfg04.explain, fb);
     } else if (p === 4) {
       // 1.5: Single choice với Video
+      const cfg05 = getSingleConfig(
+        0, 4,
+        'Minh đang xem dạng thông tin nào trên trang web?',
+        ['Văn bản', 'Video', 'Siêu liên kết', 'Chỉ hình ảnh tĩnh'],
+        1,
+        'Hình ảnh chuyển động kết hợp cùng âm thanh chính là dạng thông tin Video!'
+      );
+
       const content = `
         <div style="margin-bottom:12px;">
           <p style="font-size:14px;color:#334155;line-height:1.5;">
@@ -1514,11 +1652,11 @@
           <div style="max-width:360px;margin:8px auto;">
             <video src="${ASSETS.media.lionDanceVideo}" poster="${ASSETS.media.lionDancePoster}" controls style="width:100%;border-radius:10px;border:1px solid #94a3b8;"></video>
           </div>
-          <p style="font-weight:bold;color:#1e3a8a;margin-top:12px;">Minh đang xem dạng thông tin nào trên trang web?</p>
+          <p style="font-weight:bold;color:#1e3a8a;margin-top:12px;">${escapeHtml(cfg05.q)}</p>
           <div class="r3g4-choices" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-            ${['Văn bản', 'Video', 'Siêu liên kết', 'Chỉ hình ảnh tĩnh'].map((opt, idx) => `
+            ${cfg05.opts.map((opt, idx) => `
               <button class="r3g4-choice" data-r3g4-opt="${idx}" type="button" style="padding:10px;border:2px solid #cbd5e1;background:#ffffff;border-radius:8px;font-size:13px;cursor:pointer;">
-                ${opt}
+                ${escapeHtml(opt)}
               </button>
             `).join('')}
           </div>
@@ -1542,8 +1680,8 @@
       const btnCheck = modal.querySelector('#r3g4-check-opt');
       if (btnCheck) {
         btnCheck.onclick = () => {
-          if (selectedOpt === 1) handleQuestionSuccess(0, 'Hình ảnh chuyển động kết hợp cùng âm thanh chính là dạng thông tin Video!');
-          else renderStation1Task(4, 'Hình ảnh chuyển động kết hợp cùng âm thanh chính là dạng thông tin Video!');
+          if (selectedOpt === cfg05.correct) handleQuestionSuccess(0, cfg05.explain);
+          else renderStation1Task(4, cfg05.explain);
         };
       }
     }
@@ -1553,19 +1691,27 @@
   function renderStation2Task(p, fb) {
     if (p === 0) {
       // 2.1: Match functions
-      renderMatchTask(
-        1,
+      const cfg06 = getMatchConfig(
+        1, 0,
         'Kết nối chức năng của các thành phần trên trang web:',
         ['Văn bản', 'Hình ảnh', 'Âm thanh', 'Siêu liên kết'],
         ['A. Mở trang khác', 'B. Tranh, ảnh minh họa', 'C. Nghe nội dung', 'D. Chữ và đoạn văn'],
         [3, 1, 2, 0],
-        'Hãy ghép đúng: Văn bản - Chữ và đoạn văn; Hình ảnh - Tranh ảnh; Âm thanh - Nghe nội dung; Siêu liên kết - Mở trang khác.',
+        'Hãy ghép đúng: Văn bản - Chữ và đoạn văn; Hình ảnh - Tranh ảnh; Âm thanh - Nghe nội dung; Siêu liên kết - Mở trang khác.'
+      );
+      renderMatchTask(
+        1,
+        cfg06.title,
+        cfg06.left,
+        cfg06.right,
+        cfg06.pairs,
+        cfg06.explain,
         fb
       );
     } else if (p === 1) {
       // 2.2: Dấu hiệu nhận biết siêu liên kết (single)
-      renderSingleChoiceTask(
-        1,
+      const cfg07 = getSingleConfig(
+        1, 1,
         '🖱️ An đưa chuột vào dòng “Xem lịch học” trên website trường. Dấu hiệu nào giúp An nhận ra đó có thể là siêu liên kết?',
         [
           'Con trỏ chuột chuyển thành hình bàn tay',
@@ -1574,11 +1720,24 @@
           'Không còn chữ trên trang'
         ],
         0,
-        'Khi đưa trỏ chuột lên siêu liên kết, con trỏ sẽ chuyển từ hình mũi tên thành hình bàn tay 👆!',
-        fb
+        'Khi đưa trỏ chuột lên siêu liên kết, con trỏ sẽ chuyển từ hình mũi tên thành hình bàn tay 👆!'
       );
+      renderSingleChoiceTask(1, cfg07.q, cfg07.opts, cfg07.correct, cfg07.explain, fb);
     } else if (p === 2) {
       // 2.3: Mô phỏng bài viết và chọn liên kết (single)
+      const cfg08 = getSingleConfig(
+        1, 2,
+        'Em nên nhấn vào liên kết nào dưới đây?',
+        [
+          '🔗 Xem lịch học tuần này',
+          '🏮 Hướng dẫn làm đèn ông sao',
+          '🔢 Bảng cửu chương Toán học',
+          '⛅ Thông tin dự báo thời tiết'
+        ],
+        1,
+        'Để học làm đèn ông sao, em cần bấm đúng vào liên kết “Hướng dẫn làm đèn ông sao”!'
+      );
+
       const content = `
         <div class="r3g4-sim-webpage" style="border:2px solid #94a3b8;border-radius:10px;padding:12px;background:#ffffff;margin-bottom:12px;">
           <div style="background:#e2e8f0;padding:6px;border-radius:6px;font-size:12px;color:#334155;margin-bottom:8px;">
@@ -1589,16 +1748,11 @@
             Em đang đọc bài viết trong thư viện điện tử về phong tục đêm rằm và rất muốn học cách tự làm một chiếc đèn ông sao bằng thanh tre và giấy kiếng.
           </p>
           <div style="border-top:1px solid #e2e8f0;padding-top:8px;">
-            <p style="font-weight:bold;font-size:13px;color:#1e293b;margin:0 0 6px;">Em nên nhấn vào liên kết nào dưới đây?</p>
+            <p style="font-weight:bold;font-size:13px;color:#1e293b;margin:0 0 6px;">${escapeHtml(cfg08.q)}</p>
             <div class="r3g4-choices" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-              ${[
-          '🔗 Xem lịch học tuần này',
-          '🏮 Hướng dẫn làm đèn ông sao',
-          '🔢 Bảng cửu chương Toán học',
-          '⛅ Thông tin dự báo thời tiết'
-        ].map((linkText, idx) => `
+              ${cfg08.opts.map((linkText, idx) => `
                 <button class="r3g4-choice" data-r3g4-link="${idx}" type="button" style="padding:10px;border:2px solid #cbd5e1;background:#f8fafc;border-radius:8px;font-size:12px;cursor:pointer;text-align:left;">
-                  ${linkText}
+                  ${escapeHtml(linkText)}
                 </button>
               `).join('')}
             </div>
@@ -1623,14 +1777,14 @@
       const btnCheck = modal.querySelector('#r3g4-check-link');
       if (btnCheck) {
         btnCheck.onclick = () => {
-          if (pickedLink === 1) handleQuestionSuccess(1, 'Để học làm đèn ông sao, em cần bấm đúng vào liên kết “Hướng dẫn làm đèn ông sao”!');
-          else renderStation2Task(2, 'Để học làm đèn ông sao, em cần bấm đúng vào liên kết “Hướng dẫn làm đèn ông sao”!');
+          if (pickedLink === cfg08.correct) handleQuestionSuccess(1, cfg08.explain);
+          else renderStation2Task(2, cfg08.explain);
         };
       }
     } else if (p === 3) {
       // 2.4: Tác dụng khi nhấn vào siêu liên kết (single)
-      renderSingleChoiceTask(
-        1,
+      const cfg09 = getSingleConfig(
+        1, 3,
         '🖱️ Khi em nhấn dòng chữ “Thư viện ảnh” trên website của trường, trình duyệt có thể thực hiện điều gì?',
         [
           'Chỉ làm thay đổi màu của dòng chữ',
@@ -1639,9 +1793,9 @@
           'Lập tức tắt máy tính'
         ],
         1,
-        'Siêu liên kết giúp chuyển hướng mở trang web khác hoặc nhảy đến vị trí khác trên trang!',
-        fb
+        'Siêu liên kết giúp chuyển hướng mở trang web khác hoặc nhảy đến vị trí khác trên trang!'
       );
+      renderSingleChoiceTask(1, cfg09.q, cfg09.opts, cfg09.correct, cfg09.explain, fb);
     }
   }
 
@@ -1649,8 +1803,8 @@
   function renderStation3Task(p, fb) {
     if (p === 0) {
       // 3.1: Nguy cơ khi xem nội dung không phù hợp (single)
-      renderSingleChoiceTask(
-        2,
+      const cfg10 = getSingleConfig(
+        2, 0,
         '⚠️ Bình thấy một trang web có nội dung đáng sợ, bạo lực và vẫn cố xem. Nguy cơ nào Bình có thể gặp phải?',
         [
           'Có thể bị dụ dỗ, lừa đảo hoặc bắt nạt trên mạng',
@@ -1659,13 +1813,13 @@
           'Luôn học tốt hơn'
         ],
         0,
-        'Xem trang web độc hại có thể khiến em bị dụ dỗ, lừa đảo, bắt nạt mạng hoặc gặp ác mộng, ảnh hưởng tâm lý!',
-        fb
+        'Xem trang web độc hại có thể khiến em bị dụ dỗ, lừa đảo, bắt nạt mạng hoặc gặp ác mộng, ảnh hưởng tâm lý!'
       );
+      renderSingleChoiceTask(2, cfg10.q, cfg10.opts, cfg10.correct, cfg10.explain, fb);
     } else if (p === 1) {
       // 3.2: Hành động an toàn khi tìm tài liệu trực tuyến (multi)
-      renderMultiChoiceTask(
-        2,
+      const cfg11 = getMultiConfig(
+        2, 1,
         '👩‍💻 Mai tìm tài liệu làm bài tập ở nhà trên Internet. Hãy chọn TẤT CẢ các hành động an toàn mà Mai nên làm:',
         [
           'Nhờ người lớn giúp đỡ khi cần',
@@ -1674,13 +1828,13 @@
           'Bấm vào mọi quảng cáo lạ xuất hiện'
         ],
         [0, 2],
-        'Hành động an toàn: Nhờ người lớn hỗ trợ và chỉ truy cập các trang phù hợp lứa tuổi.',
-        fb
+        'Hành động an toàn: Nhờ người lớn hỗ trợ và chỉ truy cập các trang phù hợp lứa tuổi.'
       );
+      renderMultiChoiceTask(2, cfg11.q, cfg11.opts, cfg11.correct, cfg11.explain, fb);
     } else if (p === 2) {
       // 3.3: Nhận biết liên kết quảng cáo bạo lực (single)
-      renderSingleChoiceTask(
-        2,
+      const cfg12 = getSingleConfig(
+        2, 2,
         '🎮 Khi đọc bài học, Nam thấy một quảng cáo trò chơi bạo lực nhấp nháy. Nam đưa chuột lên quảng cáo, con trỏ thành hình bàn tay. Điều đó cho biết gì?',
         [
           'Ô quảng cáo có thể chứa siêu liên kết',
@@ -1689,13 +1843,13 @@
           'Quảng cáo đó không có chức năng gì'
         ],
         0,
-        'Con trỏ đổi thành hình bàn tay báo hiệu ô quảng cáo chứa siêu liên kết sẵn sàng dẫn đến trang web khác!',
-        fb
+        'Con trỏ đổi thành hình bàn tay báo hiệu ô quảng cáo chứa siêu liên kết sẵn sàng dẫn đến trang web khác!'
       );
+      renderSingleChoiceTask(2, cfg12.q, cfg12.opts, cfg12.correct, cfg12.explain, fb);
     } else if (p === 3) {
       // 3.4: Xử lý tình huống khi gặp quảng cáo độc hại (single)
-      renderSingleChoiceTask(
-        2,
+      const cfg13 = getSingleConfig(
+        2, 3,
         '🛑 Quảng cáo trò chơi bạo lực xuất hiện trên trang Nam đang học. Nam nên xử lý như thế nào?',
         [
           'Nhấn vào ngay để chơi thử',
@@ -1704,13 +1858,13 @@
           'Tải phần mềm cài đặt về máy tính'
         ],
         2,
-        'Quy tắc an toàn: Không nhấn vào quảng cáo độc hại, rời khỏi trang và báo ngay cho người lớn đáng tin cậy!',
-        fb
+        'Quy tắc an toàn: Không nhấn vào quảng cáo độc hại, rời khỏi trang và báo ngay cho người lớn đáng tin cậy!'
       );
+      renderSingleChoiceTask(2, cfg13.q, cfg13.opts, cfg13.correct, cfg13.explain, fb);
     } else if (p === 4) {
       // 3.5: Bảo vệ thông tin cá nhân trên mạng (single)
-      renderSingleChoiceTask(
-        2,
+      const cfg14 = getSingleConfig(
+        2, 4,
         '👨‍👩‍👧 Khi tìm tài liệu, Hoa gặp một trang web yêu cầu nhập họ tên và số điện thoại. Vì sao Hoa nên nhờ bố mẹ hoặc thầy cô?',
         [
           'Để được hướng dẫn chọn thông tin phù hợp và xử lý tình huống không an toàn',
@@ -1719,16 +1873,24 @@
           'Để máy tính tự động tăng tốc độ xử lý'
         ],
         0,
-        'Cung cấp thông tin cá nhân rất nguy hiểm! Luôn cần sự hướng dẫn của người lớn để tránh bị kẻ xấu lừa đảo.',
-        fb
+        'Cung cấp thông tin cá nhân rất nguy hiểm! Luôn cần sự hướng dẫn của người lớn để tránh bị kẻ xấu lừa đảo.'
       );
+      renderSingleChoiceTask(2, cfg14.q, cfg14.opts, cfg14.correct, cfg14.explain, fb);
     }
   }
 
   // --- TRẠM 4: KHO TRI THỨC (4.1 - 4.4) ---
   function renderStation4Task(p, fb) {
     if (p === 0) {
-      // 4.1: Đa phương tiện trên website (multi - chọn đúng 2 dạng: Văn bản & Hình ảnh)
+      // 4.1: Đa phương tiện trên website (multi)
+      const cfg15 = getMultiConfig(
+        3, 0,
+        'Trang “Vui hội trăng rằm” ở trên hiển thị một đoạn giới thiệu và bức ảnh múa lân. Hãy chọn ĐÚNG HAI dạng thông tin em nhìn thấy:',
+        ['Văn bản', 'Hình ảnh', 'Âm thanh', 'Video'],
+        [0, 1],
+        'Đoạn văn giới thiệu là Văn bản, bức ảnh múa lân tĩnh là Hình ảnh!'
+      );
+
       const content = `
         <div class="r3g4-sim-webpage" style="border:2px solid #94a3b8;border-radius:10px;padding:12px;background:#ffffff;margin-bottom:12px;">
           <div style="background:#e2e8f0;padding:6px;border-radius:6px;font-size:12px;color:#334155;margin-bottom:8px;">
@@ -1745,15 +1907,24 @@
       `;
       renderMultiChoiceTask(
         3,
-        'Trang “Vui hội trăng rằm” ở trên hiển thị một đoạn giới thiệu và bức ảnh múa lân. Hãy chọn ĐÚNG HAI dạng thông tin em nhìn thấy:',
-        ['Văn bản', 'Hình ảnh', 'Âm thanh', 'Video'],
-        [0, 1],
-        'Đoạn văn giới thiệu là Văn bản, bức ảnh múa lân tĩnh là Hình ảnh!',
+        cfg15.q,
+        cfg15.opts,
+        cfg15.correct,
+        cfg15.explain,
         fb,
+        '',
         content
       );
     } else if (p === 1) {
       // 4.2: Video và Âm thanh trên trang Thế giới động vật
+      const cfg16 = getMultiConfig(
+        3, 1,
+        '🎬 🔊 Trên website Thế giới động vật ở trên: Em bấm ▶ xem đoạn phim rùa biển bơi và bấm nghe thuyết minh. Hãy chọn ĐÚNG HAI dạng thông tin tương ứng:',
+        ['Văn bản', 'Hình ảnh tĩnh', 'Âm thanh', 'Video'],
+        [2, 3],
+        'Phim rùa biển chuyển động là Video; phần thuyết minh phát ra loa là Âm thanh!'
+      );
+
       const content = `
         <div class="r3g4-sim-webpage" style="border:2px solid #94a3b8;border-radius:10px;padding:12px;background:#ffffff;margin-bottom:12px;">
           <div style="background:#e2e8f0;padding:6px;border-radius:6px;font-size:12px;color:#334155;margin-bottom:8px;">
@@ -1772,11 +1943,12 @@
 
       renderMultiChoiceTask(
         3,
-        '🎬 🔊 Trên website Thế giới động vật ở trên: Em bấm ▶ xem đoạn phim rùa biển bơi và bấm nghe thuyết minh. Hãy chọn ĐÚNG HAI dạng thông tin tương ứng:',
-        ['Văn bản', 'Hình ảnh tĩnh', 'Âm thanh', 'Video'],
-        [2, 3],
-        'Phim rùa biển chuyển động là Video; phần thuyết minh phát ra loa là Âm thanh!',
+        cfg16.q,
+        cfg16.opts,
+        cfg16.correct,
+        cfg16.explain,
         fb,
+        '',
         content
       );
 
@@ -1799,8 +1971,8 @@
       }, 50);
     } else if (p === 2) {
       // 4.3: Nhận diện hai nguy cơ tiềm ẩn trên mạng (multi)
-      renderMultiChoiceTask(
-        3,
+      const cfg17 = getMultiConfig(
+        3, 2,
         '⚠️ Một bạn nhỏ vô tình mở website không phù hợp với lứa tuổi. Chọn ĐÚNG HAI nguy cơ có thể xảy ra:',
         [
           'Có thể bị lừa đảo hoặc dụ dỗ trên mạng',
@@ -1809,13 +1981,13 @@
           'Luôn được điểm cao hơn trong các bài kiểm tra'
         ],
         [0, 1],
-        'Hai nguy cơ lớn: Bị kẻ xấu lừa đảo/dụ dỗ và tiếp xúc với nội dung xấu gây sợ hãi!',
-        fb
+        'Hai nguy cơ lớn: Bị kẻ xấu lừa đảo/dụ dỗ và tiếp xúc với nội dung xấu gây sợ hãi!'
       );
+      renderMultiChoiceTask(3, cfg17.q, cfg17.opts, cfg17.correct, cfg17.explain, fb);
     } else if (p === 3) {
       // 4.4: Tình huống tổng hợp xử lý trang web lớp học (single)
-      renderSingleChoiceTask(
-        3,
+      const cfg18 = getSingleConfig(
+        3, 3,
         '🔍 Em kiểm tra trang web của lớp: mục “Ảnh múa lân” lại phát ra bài hát; bên cạnh có liên kết quảng cáo trò chơi bạo lực nhấp nháy. Em sẽ xử lý thế nào?',
         [
           'Cứ gọi bài hát là hình ảnh và nhấn vào quảng cáo để xem',
@@ -1824,9 +1996,9 @@
           'Bỏ qua mọi cảnh báo và chia sẻ liên kết cho bạn bè'
         ],
         1,
-        'Xử lý chuẩn mực: Xác định đúng bài hát là Âm thanh, kiên quyết không bấm quảng cáo độc hại và nhờ người lớn trợ giúp!',
-        fb
+        'Xử lý chuẩn mực: Xác định đúng bài hát là Âm thanh, kiên quyết không bấm quảng cáo độc hại và nhờ người lớn trợ giúp!'
       );
+      renderSingleChoiceTask(3, cfg18.q, cfg18.opts, cfg18.correct, cfg18.explain, fb);
     }
   }
 
@@ -2218,6 +2390,19 @@
     window.R3G4_PUBLISHED_DATA = roomData;
     console.log('[Room03-Grade4] Đã nạp dữ liệu tùy biến từ Teacher Studio:', roomData);
   };
+
+  try {
+    if (
+      window.AI_ESCAPE_LAST_PUBLISHED_RECORD &&
+      window.AI_ESCAPE_LAST_PUBLISHED_RECORD.published_payload &&
+      Array.isArray(window.AI_ESCAPE_LAST_PUBLISHED_RECORD.published_payload.rooms)
+    ) {
+      const found = window.AI_ESCAPE_LAST_PUBLISHED_RECORD.published_payload.rooms.find(
+        r => Number(r.grade) === 4 && (r.module_id === 'web_exploration_lab_v1' || Number(r.room_number) === 3)
+      );
+      if (found) window.R3G4_PUBLISHED_DATA = found;
+    }
+  } catch (_) {}
 
   // Bắt sự kiện phím
   window.addEventListener('keydown', e => {

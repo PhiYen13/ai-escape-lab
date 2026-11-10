@@ -2324,6 +2324,12 @@
       // Kiểm tra chi tiết từng vật phẩm trong phòng bằng validateSingleItem
       for (var i = 0; i < items.length; i++) {
         var it = items[i];
+        if (
+          window.AI_ESCAPE_EDITOR &&
+          typeof window.AI_ESCAPE_EDITOR.normalizeItemPayload === 'function'
+        ) {
+          window.AI_ESCAPE_EDITOR.normalizeItemPayload(it);
+        }
         var itemErr = null;
         if (
           window.AI_ESCAPE_EDITOR &&

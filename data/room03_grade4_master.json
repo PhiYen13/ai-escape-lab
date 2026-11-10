@@ -137,7 +137,14 @@
           4,
           1
         ],
-        "feedback_incorrect": "Một số ví dụ chưa được phân loại đúng. Hãy kiểm tra từng thẻ!"
+        "feedback_incorrect": "Một số ví dụ chưa được phân loại đúng. Hãy kiểm tra từng thẻ!",
+        "correct": [
+          2,
+          0,
+          3,
+          4,
+          1
+        ]
       }
     },
     {
@@ -157,12 +164,19 @@
           "🔗 Đường dẫn"
         ],
         "answers": [
+          "📄 Đoạn văn",
+          "🖼️ Bức ảnh",
+          "🔊 Bản nhạc",
+          "🎬 Phim hoạt hình",
+          "🔗 Đường dẫn"
+        ],
+        "feedback_incorrect": "Siêu liên kết là thành phần điều hướng; các thẻ còn lại là nội dung thông tin.",
+        "correct": [
           0,
           1,
           2,
           3
-        ],
-        "feedback_incorrect": "Siêu liên kết là thành phần điều hướng; các thẻ còn lại là nội dung thông tin."
+        ]
       }
     },
     {
@@ -192,7 +206,13 @@
           0,
           1
         ],
-        "feedback_incorrect": "Có cặp chưa đúng. Hãy nhớ chức năng của từng loại thông tin."
+        "feedback_incorrect": "Có cặp chưa đúng. Hãy nhớ chức năng của từng loại thông tin.",
+        "correct": [
+          2,
+          3,
+          0,
+          1
+        ]
       }
     },
     {
@@ -210,8 +230,14 @@
           "Văn bản, hình ảnh, âm thanh, video và siêu liên kết",
           "Chỉ siêu liên kết"
         ],
-        "answers": 2,
-        "feedback_incorrect": "Hãy quan sát kĩ: trang có bài viết (văn bản), ảnh, bài hát (âm thanh), video và nút Xem thêm (siêu liên kết)!"
+        "answers": [
+          "Chỉ văn bản và hình ảnh",
+          "Chỉ âm thanh và video",
+          "Văn bản, hình ảnh, âm thanh, video và siêu liên kết",
+          "Chỉ siêu liên kết"
+        ],
+        "feedback_incorrect": "Hãy quan sát kĩ: trang có bài viết (văn bản), ảnh, bài hát (âm thanh), video và nút Xem thêm (siêu liên kết)!",
+        "correct": 2
       }
     },
     {
@@ -229,8 +255,14 @@
           "Siêu liên kết",
           "Chỉ hình ảnh"
         ],
-        "answers": 1,
-        "feedback_incorrect": "Hình ảnh chuyển động kết hợp cùng âm thanh là dạng thông tin Video!"
+        "answers": [
+          "Văn bản",
+          "Video",
+          "Siêu liên kết",
+          "Chỉ hình ảnh"
+        ],
+        "feedback_incorrect": "Hình ảnh chuyển động kết hợp cùng âm thanh là dạng thông tin Video!",
+        "correct": 1
       }
     },
     {
@@ -260,7 +292,13 @@
           2,
           0
         ],
-        "feedback_incorrect": "Hãy ghép đúng: Văn bản - Chữ và đoạn văn, Hình ảnh - Tranh ảnh, Âm thanh - Nghe nội dung, Siêu liên kết - Mở trang khác!"
+        "feedback_incorrect": "Hãy ghép đúng: Văn bản - Chữ và đoạn văn, Hình ảnh - Tranh ảnh, Âm thanh - Nghe nội dung, Siêu liên kết - Mở trang khác!",
+        "correct": [
+          3,
+          1,
+          2,
+          0
+        ]
       }
     },
     {
@@ -278,8 +316,14 @@
           "Chuột không thể di chuyển",
           "Không còn chữ trên trang"
         ],
-        "answers": 0,
-        "feedback_incorrect": "Khi đưa trỏ chuột lên siêu liên kết, con trỏ thường đổi từ mũi tên thành hình bàn tay 👆!"
+        "answers": [
+          "Con trỏ chuyển thành hình bàn tay",
+          "Màn hình tự tối đi",
+          "Chuột không thể di chuyển",
+          "Không còn chữ trên trang"
+        ],
+        "feedback_incorrect": "Khi đưa trỏ chuột lên siêu liên kết, con trỏ thường đổi từ mũi tên thành hình bàn tay 👆!",
+        "correct": 0
       }
     },
     {
@@ -297,8 +341,14 @@
           "Bảng cửu chương",
           "Thông tin thời tiết"
         ],
-        "answers": 1,
-        "feedback_incorrect": "Để học làm đèn ông sao, em cần bấm vào đúng liên kết 'Hướng dẫn làm đèn ông sao'!"
+        "answers": [
+          "Xem lịch học",
+          "Hướng dẫn làm đèn ông sao",
+          "Bảng cửu chương",
+          "Thông tin thời tiết"
+        ],
+        "feedback_incorrect": "Để học làm đèn ông sao, em cần bấm vào đúng liên kết 'Hướng dẫn làm đèn ông sao'!",
+        "correct": 1
       }
     },
     {
@@ -316,8 +366,14 @@
           "Tự xóa mọi thông tin",
           "Tắt máy tính"
         ],
-        "answers": 1,
-        "feedback_incorrect": "Siêu liên kết giúp chuyển hướng mở một trang web khác hoặc nhảy tới một vị trí khác trên trang!"
+        "answers": [
+          "Chỉ làm thay đổi màu chữ",
+          "Mở trang web khác hoặc chuyển đến vị trí khác trên trang",
+          "Tự xóa mọi thông tin",
+          "Tắt máy tính"
+        ],
+        "feedback_incorrect": "Siêu liên kết giúp chuyển hướng mở một trang web khác hoặc nhảy tới một vị trí khác trên trang!",
+        "correct": 1
       }
     },
     {
@@ -335,8 +391,14 @@
           "Máy tính chạy nhanh hơn",
           "Luôn học tốt hơn"
         ],
-        "answers": 0,
-        "feedback_incorrect": "Xem trang web độc hại có thể khiến em bị dụ dỗ, lừa đảo, bắt nạt mạng hoặc ảnh hưởng tâm lý tiêu cực."
+        "answers": [
+          "Có thể bị dụ dỗ, lừa đảo hoặc bắt nạt trên mạng",
+          "Gõ bàn phím nhanh hơn",
+          "Máy tính chạy nhanh hơn",
+          "Luôn học tốt hơn"
+        ],
+        "feedback_incorrect": "Xem trang web độc hại có thể khiến em bị dụ dỗ, lừa đảo, bắt nạt mạng hoặc ảnh hưởng tâm lý tiêu cực.",
+        "correct": 0
       }
     },
     {
@@ -355,10 +417,16 @@
           "Bấm mọi quảng cáo lạ"
         ],
         "answers": [
+          "Nhờ người lớn giúp khi cần",
+          "Tin ngay mọi thông tin trên mạng",
+          "Truy cập trang phù hợp lứa tuổi",
+          "Bấm mọi quảng cáo lạ"
+        ],
+        "feedback_incorrect": "Mai chỉ nên nhờ người lớn giúp đỡ và truy cập trang web phù hợp lứa tuổi. Không tin ngay mọi thứ hay bấm quảng cáo lạ!",
+        "correct": [
           0,
           2
-        ],
-        "feedback_incorrect": "Mai chỉ nên nhờ người lớn giúp đỡ và truy cập trang web phù hợp lứa tuổi. Không tin ngay mọi thứ hay bấm quảng cáo lạ!"
+        ]
       }
     },
     {
@@ -376,8 +444,14 @@
           "Đó chắc chắn là trang an toàn",
           "Không có chức năng gì"
         ],
-        "answers": 0,
-        "feedback_incorrect": "Con trỏ biến thành hình bàn tay cho thấy ô quảng cáo chứa siêu liên kết sẵn sàng dẫn đến trang web độc hại khác!"
+        "answers": [
+          "Ô quảng cáo có thể chứa siêu liên kết",
+          "Máy tính đã bị hỏng",
+          "Đó chắc chắn là trang an toàn",
+          "Không có chức năng gì"
+        ],
+        "feedback_incorrect": "Con trỏ biến thành hình bàn tay cho thấy ô quảng cáo chứa siêu liên kết sẵn sàng dẫn đến trang web độc hại khác!",
+        "correct": 0
       }
     },
     {
@@ -395,8 +469,14 @@
           "Không nhấn, rời nội dung và báo người lớn đáng tin cậy",
           "Tải xuống ngay"
         ],
-        "answers": 2,
-        "feedback_incorrect": "Em tuyệt đối không nhấn, đóng nội dung lại ngay và báo cho bố mẹ hoặc thầy cô!"
+        "answers": [
+          "Nhấn để thử chơi",
+          "Gửi cho bạn bè",
+          "Không nhấn, rời nội dung và báo người lớn đáng tin cậy",
+          "Tải xuống ngay"
+        ],
+        "feedback_incorrect": "Em tuyệt đối không nhấn, đóng nội dung lại ngay và báo cho bố mẹ hoặc thầy cô!",
+        "correct": 2
       }
     },
     {
@@ -414,8 +494,14 @@
           "Để không cần suy nghĩ khi đọc thông tin",
           "Để máy tính tự động nhanh hơn"
         ],
-        "answers": 0,
-        "feedback_incorrect": "Khai báo thông tin cá nhân rất nguy hiểm. Cần người lớn hướng dẫn và bảo vệ em trước các nguy cơ lừa đảo!"
+        "answers": [
+          "Để được hướng dẫn chọn thông tin phù hợp và xử lý tình huống không an toàn",
+          "Để truy cập mọi trang web tùy thích",
+          "Để không cần suy nghĩ khi đọc thông tin",
+          "Để máy tính tự động nhanh hơn"
+        ],
+        "feedback_incorrect": "Khai báo thông tin cá nhân rất nguy hiểm. Cần người lớn hướng dẫn và bảo vệ em trước các nguy cơ lừa đảo!",
+        "correct": 0
       }
     },
     {
@@ -434,10 +520,16 @@
           "Video"
         ],
         "answers": [
+          "Văn bản",
+          "Hình ảnh",
+          "Âm thanh",
+          "Video"
+        ],
+        "feedback_incorrect": "Đoạn giới thiệu là Văn bản, bức ảnh múa lân là Hình ảnh!",
+        "correct": [
           0,
           1
-        ],
-        "feedback_incorrect": "Đoạn giới thiệu là Văn bản, bức ảnh múa lân là Hình ảnh!"
+        ]
       }
     },
     {
@@ -456,10 +548,16 @@
           "Video"
         ],
         "answers": [
+          "Văn bản",
+          "Hình ảnh",
+          "Âm thanh",
+          "Video"
+        ],
+        "feedback_incorrect": "Phim khoa học có hình chuyển động là Video, bài thuyết minh phát ra loa là Âm thanh!",
+        "correct": [
           2,
           3
-        ],
-        "feedback_incorrect": "Phim khoa học có hình chuyển động là Video, bài thuyết minh phát ra loa là Âm thanh!"
+        ]
       }
     },
     {
@@ -478,10 +576,16 @@
           "Luôn được điểm cao hơn"
         ],
         "answers": [
+          "Bị lừa đảo hoặc dụ dỗ",
+          "Có thể gặp nội dung gây sợ hãi",
+          "Máy tính chắc chắn chạy nhanh hơn",
+          "Luôn được điểm cao hơn"
+        ],
+        "feedback_incorrect": "Vào trang không phù hợp có nguy cơ bị lừa đảo, dụ dỗ hoặc gặp phải hình ảnh bạo lực gây sợ hãi!",
+        "correct": [
           0,
           1
-        ],
-        "feedback_incorrect": "Vào trang không phù hợp có nguy cơ bị lừa đảo, dụ dỗ hoặc gặp phải hình ảnh bạo lực gây sợ hãi!"
+        ]
       }
     },
     {
@@ -499,8 +603,14 @@
           "Bấm quảng cáo để kiểm tra",
           "Bỏ qua mọi cảnh báo"
         ],
-        "answers": 1,
-        "feedback_incorrect": "Bài hát phát ra là Âm thanh. Tuyệt đối không bấm quảng cáo độc hại và hãy báo ngay cho thầy cô/bố mẹ!"
+        "answers": [
+          "Gọi bài hát là hình ảnh và nhấn quảng cáo",
+          "Nhận biết bài hát là âm thanh, không nhấn quảng cáo không phù hợp và nhờ người lớn hỗ trợ",
+          "Bấm quảng cáo để kiểm tra",
+          "Bỏ qua mọi cảnh báo"
+        ],
+        "feedback_incorrect": "Bài hát phát ra là Âm thanh. Tuyệt đối không bấm quảng cáo độc hại và hãy báo ngay cho thầy cô/bố mẹ!",
+        "correct": 1
       }
     }
   ]

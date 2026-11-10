@@ -243,8 +243,25 @@ function normalizeTaskOrSecret(raw, itemKey, targetGrade) {
     }
   }
 
-  if (['single', 'multi'].includes(res.kind) && !Array.isArray(res.answers)) {
-    res.answers = Array.isArray(pld.answers) ? pld.answers : [];
+  if (['single', 'multi'].includes(res.kind)) {
+    if (!Array.isArray(res.answers) || (res.answers.length > 0 && typeof res.answers[0] === 'number')) {
+      if (Array.isArray(pld.options)) {
+        res.answers = pld.options.slice();
+      } else if (Array.isArray(raw.options)) {
+        res.answers = raw.options.slice();
+      } else if (Array.isArray(pld.answers)) {
+        res.answers = pld.answers.slice();
+      } else {
+        res.answers = [];
+      }
+    }
+    if (res.correct === undefined || res.correct === null) {
+      if (typeof pld.correct === 'number' || Array.isArray(pld.correct)) {
+        res.correct = pld.correct;
+      } else if (typeof pld.answers === 'number' || (Array.isArray(pld.answers) && typeof pld.answers[0] === 'number')) {
+        res.correct = pld.answers;
+      }
+    }
   }
   if (['sequence', 'order', 'sort'].includes(res.kind) && !Array.isArray(res.items)) {
     res.items = Array.isArray(pld.items) ? pld.items : [];

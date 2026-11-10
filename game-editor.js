@@ -1401,14 +1401,95 @@
     renderKindSpecificEditor(item);
   }
 
-  function renderKindSpecificEditor(item) {
-    var container = byId('editor-kind-container');
-    if (!container || !item) return;
-
+  function normalizeItemPayload(item) {
+    if (!item) return {};
     if (!item.content_payload || typeof item.content_payload !== 'object') {
       item.content_payload = {};
     }
     var p = item.content_payload;
+    if (item.kind === 'single') {
+      if (
+        p.device_type === 'laptop' ||
+        p.device_type === 'tablet' ||
+        p.device_type === 'smartphone' ||
+        item.item_key === 'station_auth' ||
+        p.task_mode
+      ) {
+        return p;
+      }
+      var choices = null;
+      if (Array.isArray(p.answers) && p.answers.length > 0 && typeof p.answers[0] === 'string') {
+        choices = p.answers;
+      } else if (Array.isArray(p.options) && p.options.length > 0) {
+        choices = p.options;
+      } else if (Array.isArray(p.answers)) {
+        choices = p.answers;
+      }
+
+      var corr = null;
+      if (typeof p.correct === 'number') {
+        corr = p.correct;
+      } else if (typeof p.answers === 'number') {
+        corr = p.answers;
+      } else if (typeof p.correct === 'string' && /^\d+$/.test(p.correct)) {
+        corr = parseInt(p.correct, 10);
+      } else {
+        corr = 0;
+      }
+
+      if (choices) {
+        p.answers = choices.slice();
+        p.options = choices.slice();
+      }
+      p.correct = corr;
+    } else if (item.kind === 'multi') {
+      if (p.task_mode === 'share') return p;
+      var mChoices = null;
+      if (Array.isArray(p.answers) && p.answers.length > 0 && typeof p.answers[0] === 'string') {
+        mChoices = p.answers;
+      } else if (Array.isArray(p.options) && p.options.length > 0) {
+        mChoices = p.options;
+      } else if (Array.isArray(p.answers)) {
+        mChoices = p.answers;
+      }
+
+      var mCorr = null;
+      if (Array.isArray(p.correct)) {
+        mCorr = p.correct.slice();
+      } else if (Array.isArray(p.answers) && (p.answers.length === 0 || typeof p.answers[0] === 'number')) {
+        mCorr = p.answers.slice();
+      } else {
+        mCorr = [0];
+      }
+
+      if (mChoices) {
+        p.answers = mChoices.slice();
+        p.options = mChoices.slice();
+      }
+      p.correct = mCorr;
+    } else if (item.kind === 'match') {
+      if (Array.isArray(p.answers) && (!Array.isArray(p.correct) || p.correct.length === 0)) {
+        p.correct = p.answers.slice();
+      }
+      if (Array.isArray(p.correct) && (!Array.isArray(p.answers) || p.answers.length === 0)) {
+        p.answers = p.correct.slice();
+      }
+    } else if (item.kind === 'fill_select') {
+      if (Array.isArray(p.answers) && (!Array.isArray(p.correct) || p.correct.length === 0)) {
+        p.correct = p.answers.slice();
+      }
+      if (Array.isArray(p.correct) && (!Array.isArray(p.answers) || p.answers.length === 0)) {
+        p.answers = p.correct.slice();
+      }
+    }
+    return p;
+  }
+
+  function renderKindSpecificEditor(item) {
+    var container = byId('editor-kind-container');
+    if (!container || !item) return;
+
+    var p = normalizeItemPayload(item);
     var disabledAttr = editorState.canEdit ? '' : 'disabled';
 
     // ------------------------------------------------------------------------
@@ -1703,6 +1784,7 @@
       if (!Array.isArray(p.answers) || p.answers.length < 2) {
         p.answers = ['Phương án A', 'Phương án B'];
       }
+      p.options = p.answers.slice();
       if (typeof p.correct !== 'number' || p.correct < 0 || p.correct >= p.answers.length) {
         p.correct = 0;
       }
@@ -1767,6 +1849,7 @@
       if (!Array.isArray(p.answers) || p.answers.length < 2) {
         p.answers = ['Phát biểu 1', 'Phát biểu 2'];
       }
+      p.options = p.answers.slice();
       if (!Array.isArray(p.correct)) {
         p.correct = [0];
       }
@@ -2337,6 +2420,114 @@
       return;
     }
 
+    // ------------------------------------------------------------------------
+    // 8. DẠNG FILL_SELECT: PHÂN LOẠI TỪ KHÓA VÀO VÍ DỤ MINH HỌA
+    // ------------------------------------------------------------------------
+    if (item.kind === 'fill_select') {
+      if (!Array.isArray(p.words) || p.words.length < 2) {
+        p.words = ['Văn bản', 'Hình ảnh', 'Âm thanh', 'Video', 'Siêu liên kết'];
+      }
+      if (!Array.isArray(p.examples) || p.examples.length < 1) {
+        p.examples = ['Ví dụ minh họa 1', 'Ví dụ minh họa 2'];
+      }
+      if (!Array.isArray(p.correct) || p.correct.length !== p.examples.length) {
+        p.correct = p.examples.map(function (_, i) {
+          return i % p.words.length;
+        });
+      }
+      p.answers = p.correct.slice();
+
+      var wordsHtml = p.words
+        .map(function (w, wIdx) {
+          return (
+            '<div style="display: flex; align-items: center; gap: 6px;">' +
+            '<span class="badge badge-personal">Từ #' +
+            (wIdx + 1) +
+            ':</span>' +
+            '<input type="text" class="form-input" style="max-width: 140px;" data-kind-action="fill-select-edit-word" data-idx="' +
+            wIdx +
+            '" value="' +
+            escapeHtml(w) +
+            '" ' +
+            disabledAttr +
+            ' />' +
+            (editorState.canEdit && p.words.length > 2
+              ? '<button type="button" class="btn btn-danger-outline btn-sm" data-kind-action="fill-select-remove-word" data-idx="' +
+                wIdx +
+                '" title="Xóa từ này">🗑️</button>'
+              : '') +
+            '</div>'
+          );
+        })
+        .join('');
+
+      var examplesHtml = p.examples
+        .map(function (ex, eIdx) {
+          var exText = typeof ex === 'object' && ex !== null ? (ex.text || '') : String(ex || '');
+          var curCorr = Number(p.correct[eIdx]);
+          var wordOptions = p.words
+            .map(function (w, wIdx) {
+              var sel = curCorr === wIdx ? 'selected' : '';
+              return '<option value="' + wIdx + '" ' + sel + '>' + (wIdx + 1) + '. ' + escapeHtml(w) + '</option>';
+            })
+            .join('');
+
+          return (
+            '<div class="match-editor-row">' +
+            '<div style="flex: 2;">' +
+            '<label style="font-size: 11.5px; color: var(--text-muted); display: block; margin-bottom: 3px;">Nội dung ví dụ #' +
+            (eIdx + 1) +
+            '</label>' +
+            '<input type="text" class="form-input" data-kind-action="fill-select-edit-example" data-idx="' +
+            eIdx +
+            '" value="' +
+            escapeHtml(exText) +
+            '" ' +
+            disabledAttr +
+            ' />' +
+            '</div>' +
+            '<div style="flex: 1.2;">' +
+            '<label style="font-size: 11.5px; color: var(--accent-green); font-weight: 800; display: block; margin-bottom: 3px;">🏷️ Dạng thông tin đúng</label>' +
+            '<select class="form-input" data-kind-action="fill-select-set-answer" data-idx="' +
+            eIdx +
+            '" ' +
+            disabledAttr +
+            '>' +
+            wordOptions +
+            '</select>' +
+            '</div>' +
+            (editorState.canEdit && p.examples.length > 1
+              ? '<button type="button" class="btn btn-danger-outline btn-sm" style="margin-top: 18px;" data-kind-action="fill-select-remove-example" data-idx="' +
+                eIdx +
+                '" title="Xóa ví dụ này">🗑️</button>'
+              : '<div></div>') +
+            '</div>'
+          );
+        })
+        .join('');
+
+      container.innerHTML =
+        '<div class="kind-editor-head">' +
+        '<div>' +
+        '<h4>🏷️ Cấu hình Thẻ từ &amp; Phân loại ví dụ (fill_select)</h4>' +
+        '<p style="margin: 2px 0 0; font-size: 12.5px; color: var(--text-muted);">Quản lý ngân hàng thẻ từ và chọn thẻ từ đúng tương ứng cho từng ví dụ.</p>' +
+        '</div>' +
+        '<div style="display: flex; gap: 8px;">' +
+        (editorState.canEdit
+          ? '<button type="button" class="btn btn-outline btn-sm" data-kind-action="fill-select-add-word">➕ Thêm thẻ từ</button>'
+          : '') +
+        (editorState.canEdit
+          ? '<button type="button" class="btn btn-outline btn-sm" data-kind-action="fill-select-add-example">➕ Thêm ví dụ</button>'
+          : '') +
+        '</div>' +
+        '</div>' +
+        '<div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; padding: 10px 12px; background: rgba(12, 38, 80, 0.6); border-radius: 10px;">' +
+        wordsHtml +
+        '</div>' +
+        examplesHtml;
+      return;
+    }
+
     container.innerHTML =
       '<div class="alert-box alert-info">Loại thử thách: <code>' +
       escapeHtml(item.kind) +
@@ -2369,6 +2560,7 @@
       renderKindSpecificEditor(item);
     } else if (action === 'single-edit-answer') {
       p.answers[idx] = target.value;
+      if (Array.isArray(p.options)) p.options[idx] = target.value;
     }
     // MULTI
     else if (action === 'multi-toggle-correct') {
@@ -2384,6 +2576,7 @@
       renderKindSpecificEditor(item);
     } else if (action === 'multi-edit-answer') {
       p.answers[idx] = target.value;
+      if (Array.isArray(p.options)) p.options[idx] = target.value;
     }
     // SEQUENCE
     else if (action === 'seq-set-correct') {
@@ -2526,6 +2719,25 @@
     else if (action === 'auth-edit-code') {
       p.target_code = target.value.trim().toUpperCase();
     }
+    // FILL_SELECT
+    else if (action === 'fill-select-edit-word') {
+      if (p.words) p.words[idx] = target.value;
+    } else if (action === 'fill-select-edit-example') {
+      if (p.examples) {
+        if (typeof p.examples[idx] === 'object' && p.examples[idx] !== null) {
+          p.examples[idx].text = target.value;
+        } else {
+          p.examples[idx] = target.value;
+        }
+      }
+    } else if (action === 'fill-select-set-answer') {
+      if (!Array.isArray(p.correct)) p.correct = [];
+      p.correct[idx] = Number(target.value);
+      p.answers = p.correct.slice();
+      if (p.examples && typeof p.examples[idx] === 'object' && p.examples[idx] !== null && p.words) {
+        p.examples[idx].answer = p.words[Number(target.value)] || '';
+      }
+    }
   }
 
   function handleKindContainerClick(e) {
@@ -2548,9 +2760,11 @@
     // SINGLE: Thêm / Xóa phương án
     if (action === 'single-add-answer') {
       p.answers.push('Phương án mới ' + String.fromCharCode(65 + p.answers.length));
+      p.options = p.answers.slice();
       renderKindSpecificEditor(item);
     } else if (action === 'single-remove-answer' && p.answers.length > 2) {
       p.answers.splice(idx, 1);
+      p.options = p.answers.slice();
       if (p.correct >= p.answers.length) p.correct = 0;
       else if (p.correct > idx) p.correct--;
       renderKindSpecificEditor(item);
@@ -2558,9 +2772,11 @@
     // MULTI: Thêm / Xóa phát biểu
     else if (action === 'multi-add-answer') {
       p.answers.push('Phát biểu mới ' + (p.answers.length + 1));
+      p.options = p.answers.slice();
       renderKindSpecificEditor(item);
     } else if (action === 'multi-remove-answer' && p.answers.length > 2) {
       p.answers.splice(idx, 1);
+      p.options = p.answers.slice();
       p.correct = p.correct
         .filter(function (c) {
           return c !== idx;
@@ -2569,6 +2785,35 @@
           return c > idx ? c - 1 : c;
         });
       if (p.correct.length === 0) p.correct = [0];
+      renderKindSpecificEditor(item);
+    }
+    // FILL_SELECT: Thêm / Xóa từ & ví dụ
+    else if (action === 'fill-select-add-word') {
+      if (!Array.isArray(p.words)) p.words = [];
+      p.words.push('Thẻ từ mới ' + (p.words.length + 1));
+      renderKindSpecificEditor(item);
+    } else if (action === 'fill-select-remove-word' && p.words && p.words.length > 2) {
+      p.words.splice(idx, 1);
+      if (Array.isArray(p.correct)) {
+        p.correct = p.correct.map(function (c) {
+          return c === idx ? 0 : c > idx ? c - 1 : c;
+        });
+        p.answers = p.correct.slice();
+      }
+      renderKindSpecificEditor(item);
+    } else if (action === 'fill-select-add-example') {
+      if (!Array.isArray(p.examples)) p.examples = [];
+      p.examples.push('Ví dụ minh họa mới ' + (p.examples.length + 1));
+      if (!Array.isArray(p.correct)) p.correct = [];
+      p.correct.push(0);
+      p.answers = p.correct.slice();
+      renderKindSpecificEditor(item);
+    } else if (action === 'fill-select-remove-example' && p.examples && p.examples.length > 1) {
+      p.examples.splice(idx, 1);
+      if (Array.isArray(p.correct)) {
+        p.correct.splice(idx, 1);
+        p.answers = p.correct.slice();
+      }
       renderKindSpecificEditor(item);
     }
     // SEQUENCE: Thêm / Xóa câu hỏi con hoặc phương án
@@ -2703,7 +2948,7 @@
       }
     }
 
-    var p = item.content_payload || {};
+    var p = normalizeItemPayload(item);
     var mainQuestion = (item.question || '').trim();
 
     if (item.kind !== 'sequence' && !mainQuestion) {
@@ -2772,11 +3017,15 @@
       }
 
       // TRẮC NGHIỆM ĐƠN TIÊU CHUẨN
-      if (!Array.isArray(p.answers) || p.answers.length < 2) {
+      var choices = Array.isArray(p.answers) && p.answers.length > 0 && typeof p.answers[0] === 'string'
+        ? p.answers
+        : (Array.isArray(p.options) ? p.options : p.answers);
+
+      if (!Array.isArray(choices) || choices.length < 2) {
         return roomLabel + ' – "' + itemTitle + '": Phải có ít nhất 2 phương án trả lời.';
       }
-      for (var i = 0; i < p.answers.length; i++) {
-        if (!String(p.answers[i] || '').trim()) {
+      for (var i = 0; i < choices.length; i++) {
+        if (!String(choices[i] || '').trim()) {
           return (
             roomLabel +
             ' – "' +
@@ -2787,7 +3036,8 @@
           );
         }
       }
-      if (typeof p.correct !== 'number' || p.correct < 0 || p.correct >= p.answers.length) {
+      var sCorr = typeof p.correct === 'number' ? p.correct : (typeof p.answers === 'number' ? p.answers : -1);
+      if (typeof sCorr !== 'number' || sCorr < 0 || sCorr >= choices.length) {
         return roomLabel + ' – "' + itemTitle + '": Đáp án đúng đã chọn không hợp lệ.';
       }
     } else if (item.kind === 'multi') {
@@ -2800,11 +3050,15 @@
         }
         return null;
       }
-      if (!Array.isArray(p.answers) || p.answers.length < 2) {
+      var mChoices = Array.isArray(p.answers) && p.answers.length > 0 && typeof p.answers[0] === 'string'
+        ? p.answers
+        : (Array.isArray(p.options) ? p.options : p.answers);
+
+      if (!Array.isArray(mChoices) || mChoices.length < 2) {
         return roomLabel + ' – "' + itemTitle + '": Phải có ít nhất 2 phát biểu.';
       }
-      for (var m = 0; m < p.answers.length; m++) {
-        if (!String(p.answers[m] || '').trim()) {
+      for (var m = 0; m < mChoices.length; m++) {
+        if (!String(mChoices[m] || '').trim()) {
           return (
             roomLabel +
             ' – "' +
@@ -2815,7 +3069,8 @@
           );
         }
       }
-      if (!Array.isArray(p.correct) || p.correct.length < 1) {
+      var mCorr = Array.isArray(p.correct) ? p.correct : (Array.isArray(p.answers) && typeof p.answers[0] === 'number' ? p.answers : []);
+      if (!Array.isArray(mCorr) || mCorr.length < 1) {
         return (
           roomLabel +
           ' – "' +
@@ -2906,6 +3161,28 @@
             ' không được để trống.'
           );
         }
+      }
+    } else if (item.kind === 'fill_select') {
+      if (!Array.isArray(p.words) || p.words.length < 2) {
+        return roomLabel + ' – "' + itemTitle + '": Phải có ít nhất 2 thẻ từ trong ngân hàng từ.';
+      }
+      for (var w = 0; w < p.words.length; w++) {
+        if (!String(p.words[w] || '').trim()) {
+          return roomLabel + ' – "' + itemTitle + '": Thẻ từ #' + (w + 1) + ' không được để trống.';
+        }
+      }
+      if (!Array.isArray(p.examples) || p.examples.length < 1) {
+        return roomLabel + ' – "' + itemTitle + '": Phải có ít nhất 1 câu ví dụ cần phân loại.';
+      }
+      for (var ex = 0; ex < p.examples.length; ex++) {
+        var exText = typeof p.examples[ex] === 'object' && p.examples[ex] !== null ? p.examples[ex].text : p.examples[ex];
+        if (!String(exText || '').trim()) {
+          return roomLabel + ' – "' + itemTitle + '": Nội dung ví dụ #' + (ex + 1) + ' không được để trống.';
+        }
+      }
+      var fCorr = Array.isArray(p.correct) ? p.correct : (Array.isArray(p.answers) ? p.answers : []);
+      if (!Array.isArray(fCorr) || fCorr.length !== p.examples.length) {
+        return roomLabel + ' – "' + itemTitle + '": Số lượng đáp án phân loại phải bằng số lượng câu ví dụ.';
       }
     } else if (item.kind === 'sort') {
       if (!Array.isArray(p.groups) || p.groups.length < 2) {
@@ -3587,7 +3864,7 @@
     if (!stage || !item) return;
 
     var prop = getPropInfo(room.grade, item.item_key, item.item_type);
-    var p = item.content_payload || {};
+    var p = normalizeItemPayload(item);
     var isSecret = item.item_type === 'secret';
     var step = 0;
 
@@ -3649,7 +3926,10 @@
 
       // 1. SINGLE
       if (item.kind === 'single') {
-        var answers = p.answers || [];
+        var answers = (Array.isArray(p.answers) && p.answers.length > 0 && typeof p.answers[0] === 'string')
+          ? p.answers
+          : (Array.isArray(p.options) ? p.options : p.answers || []);
+        var corrIdx = typeof p.correct === 'number' ? p.correct : (typeof p.answers === 'number' ? p.answers : 0);
         answers.forEach(function (ans, idx) {
           var btn = document.createElement('button');
           btn.type = 'button';
@@ -3660,7 +3940,7 @@
               b.classList.remove('selected');
             });
             btn.classList.add('selected');
-            showFeedback(idx === Number(p.correct));
+            showFeedback(idx === Number(corrIdx));
           };
           area.appendChild(btn);
         });
@@ -3670,8 +3950,10 @@
       // 2. MULTI
       if (item.kind === 'multi') {
         var selectedSet = new Set();
-        var mAnswers = p.answers || [];
-        var mCorr = Array.isArray(p.correct) ? p.correct : [];
+        var mAnswers = (Array.isArray(p.answers) && p.answers.length > 0 && typeof p.answers[0] === 'string')
+          ? p.answers
+          : (Array.isArray(p.options) ? p.options : p.answers || []);
+        var mCorr = Array.isArray(p.correct) ? p.correct : (Array.isArray(p.answers) && typeof p.answers[0] === 'number' ? p.answers : []);
 
         mAnswers.forEach(function (ans, idx) {
           var btn = document.createElement('button');
@@ -3970,6 +4252,56 @@
           showFeedback(ok);
         };
         area.appendChild(pairCheckBtn);
+      }
+
+      // 8. FILL_SELECT
+      if (item.kind === 'fill_select') {
+        var words = p.words || [];
+        var examples = p.examples || [];
+        var fCorr = Array.isArray(p.correct) ? p.correct : (Array.isArray(p.answers) ? p.answers : []);
+        var userFill = {};
+
+        var exHtml = examples.map(function (ex, idx) {
+          var exText = typeof ex === 'object' && ex !== null ? (ex.text || '') : String(ex || '');
+          var opts = words.map(function (w, wIdx) {
+            return '<button type="button" class="btn btn-outline btn-sm prev-fill-word-btn" data-ex="' + idx + '" data-widx="' + wIdx + '">' + escapeHtml(w) + '</button>';
+          }).join(' ');
+
+          return (
+            '<div style="background: rgba(15, 30, 50, 0.7); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 10px; margin-bottom: 8px;">' +
+            '<div style="font-weight: 700; color: #fff; margin-bottom: 6px;">' + (idx + 1) + '. ' + escapeHtml(exText) + '</div>' +
+            '<div style="display: flex; gap: 6px; flex-wrap: wrap;">' + opts + '</div>' +
+            '<div id="prev-fill-status-' + idx + '" style="font-size: 12px; color: var(--accent-cyan); font-weight: 700; margin-top: 4px;">Chưa chọn</div>' +
+            '</div>'
+          );
+        }).join('');
+
+        area.innerHTML =
+          '<p style="font-size: 13px; color: var(--text-muted); margin-top: 0;">Chọn từ tương ứng cho từng ví dụ:</p>' +
+          exHtml +
+          '<button type="button" id="prev-fill-verify" class="btn btn-gold" style="margin-top: 8px;">✓ KIỂM TRA PHÂN LOẠI</button>';
+
+        area.querySelectorAll('.prev-fill-word-btn').forEach(function (btn) {
+          btn.onclick = function () {
+            var eIdx = Number(btn.getAttribute('data-ex'));
+            var wIdx = Number(btn.getAttribute('data-widx'));
+            userFill[eIdx] = wIdx;
+            var st = byId('prev-fill-status-' + eIdx);
+            if (st) st.textContent = 'Đã chọn: ' + words[wIdx];
+            area.querySelectorAll('.prev-fill-word-btn[data-ex="' + eIdx + '"]').forEach(function (b) {
+              b.classList.toggle('selected', Number(b.getAttribute('data-widx')) === wIdx);
+            });
+          };
+        });
+
+        byId('prev-fill-verify').onclick = function () {
+          var isAllAnswered = Object.keys(userFill).length === examples.length;
+          var ok = isAllAnswered && fCorr.every(function (val, i) {
+            return Number(userFill[i]) === Number(val);
+          });
+          showFeedback(ok);
+        };
+        return;
       }
     }
 
@@ -4494,6 +4826,7 @@
     closeEditor: closeEditorBackToDashboard,
     validateRoomData: validateRoomData,
     validateSingleItem: validateSingleItem,
+    normalizeItemPayload: normalizeItemPayload,
     switchGrade: switchGrade,
     renderEditorFull: renderEditorFull,
     renderEditorSidebarRooms: renderEditorSidebarRooms,
