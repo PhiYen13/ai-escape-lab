@@ -543,7 +543,16 @@ body>.r3-conveyor-moving.dragging{z-index:2147483000!important}
 #welcome .welcome-tools .avatar-settings-btn:hover{filter:brightness(1.18)!important;transform:translateY(-2px)!important}
 
 #welcome .welcome-enen-btn{
-  display:none!important;visibility:hidden!important;pointer-events:none!important;
+  opacity:1!important;visibility:visible!important;min-width:0!important;min-height:0!important;
+  pointer-events:auto!important;display:inline-flex!important;align-items:center!important;gap:9px!important;
+  background:linear-gradient(155deg,#0a3363,#051735)!important;
+  border:2.5px solid #00D9FF!important;border-radius:22px!important;
+  padding:clamp(6px,0.9vw,11px) clamp(11px,1.4vw,20px)!important;
+  color:#ffdb66!important;font-weight:900!important;
+  font-size:clamp(12px,1.35vw,18px)!important;line-height:1.2!important;
+  box-shadow:0 4px 0 #041c38,0 0 16px rgba(0,217,255,0.45)!important;
+  cursor:pointer!important;white-space:nowrap!important;
+  transition:transform .15s ease,filter .15s ease,box-shadow .15s ease!important
 }
 #welcome .welcome-enen-btn:hover{filter:brightness(1.18)!important;transform:translateY(-2px)!important;box-shadow:0 6px 0 #041c38,0 0 22px rgba(0,217,255,0.7)!important}
 #welcome .welcome-enen-thumb{width:26px;height:26px;border-radius:50%;object-fit:contain;background:#092b63;border:1.5px solid #57e3ff;display:block}
