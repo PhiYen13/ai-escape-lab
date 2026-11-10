@@ -110,8 +110,6 @@ const secrets = [
   { id: 'book', name: 'Cuốn sổ tri thức', x: 1265, y: 765, r: 55, icon: '📖', title: 'Manh mối 03', question: 'Khi tìm thông tin trên Internet, em nên làm gì?', answers: ['Tin tất cả thông tin', 'Chỉ xem tiêu đề', 'Kiểm tra thông tin từ nguồn đáng tin cậy', 'Chia sẻ ngay thông tin chưa kiểm chứng'], correct: 2, hint: 'Chữ số cuối cùng là số lớn nhất trong bốn chữ số.' },
   { id: 'chest', name: 'Hộp quà bí mật', x: 865, y: 760, r: 74, icon: '🎁', title: 'Manh mối 04', question: 'Hành động nào giúp bảo vệ thông tin cá nhân?', answers: ['Chia sẻ mật khẩu với bạn', 'Đăng công khai thông tin cá nhân', 'Sử dụng mật khẩu mạnh và giữ bí mật', 'Nhấn mọi đường liên kết lạ'], correct: 2, hint: 'Chữ số thứ ba lớn hơn chữ số thứ hai và nhỏ hơn chữ số cuối cùng.' }
 ];
-window.tasks = tasks;
-window.secrets = secrets;
 // Mỗi khối có bộ vật phẩm, tọa độ và phong cách riêng. Tọa độ là vị trí tương tác có thể tiếp cận.
 // x/y: vị trí nhân vật tiếp cận; vx/vy: vị trí hình ảnh trên đồ nội thất.
 // Không dùng khung, viền sáng hoặc nhãn tên khi chưa đến gần.
@@ -208,60 +206,7 @@ const lessonData = {
 // Mọi câu hỏi, đáp án, gợi ý bắt buộc phải được tải động từ Supabase (bản MASTER hoặc bộ đề giáo viên).
 delete lessonData[3]; delete lessonData[4]; delete lessonData[5];
 function lesson() { return lessonData[grade] || { topic: 'Đang tải...', code: '0000', tasks: {}, secrets: {} } }
-
-function normalizeTaskOrSecret(raw, itemKey, targetGrade) {
-  if (!raw || typeof raw !== 'object') return { title: '', question: '', answers: [] };
-  const pld = (raw.content_payload && typeof raw.content_payload === 'object') ? raw.content_payload : {};
-  const res = Object.assign({}, pld, raw);
-
-  const syncKeys = [
-    'answers', 'correct', 'items', 'left', 'right',
-    'groups', 'jobs', 'hardware', 'software',
-    'digit', 'feedback', 'knowledge', 'theory', 'example',
-    'files', 'entries', 'needed_indices', 'question', 'intro', 'hint'
-  ];
-  for (const k of syncKeys) {
-    const val = raw[k];
-    const pVal = pld[k];
-    if (val === undefined || val === null || (Array.isArray(val) && val.length === 0 && Array.isArray(pVal) && pVal.length > 0)) {
-      if (pVal !== undefined && pVal !== null) {
-        res[k] = pVal;
-      }
-    }
-  }
-
-  const g = targetGrade || grade || 3;
-  const k = itemKey || raw.item_key || raw.id;
-  if (!res.digit) {
-    const fallbackDigits = {
-      3: { map: '4', computer: '2', library: '7', station: '9' },
-      4: { map: '8', computer: '6', library: '3', station: '1' },
-      5: { map: '2', computer: '5', library: '9', station: '4' }
-    };
-    if (fallbackDigits[g] && fallbackDigits[g][k]) {
-      res.digit = fallbackDigits[g][k];
-    }
-  }
-
-  if (['single', 'multi'].includes(res.kind) && !Array.isArray(res.answers)) {
-    res.answers = Array.isArray(pld.answers) ? pld.answers : [];
-  }
-  if (['sequence', 'order', 'sort'].includes(res.kind) && !Array.isArray(res.items)) {
-    res.items = Array.isArray(pld.items) ? pld.items : [];
-  }
-  if (res.kind === 'match') {
-    if (!Array.isArray(res.left)) res.left = Array.isArray(pld.left) ? pld.left : [];
-    if (!Array.isArray(res.right)) res.right = Array.isArray(pld.right) ? pld.right : [];
-  }
-
-  return res;
-}
-
-function itemData(p, isHint) {
-  const l = lesson();
-  const raw = (isHint ? l.secrets : l.tasks)[p.id];
-  return normalizeTaskOrSecret(raw, p.id, grade);
-}
+function itemData(p, isHint) { const l = lesson(); return (isHint ? l.secrets : l.tasks)[p.id] || { title: '', question: '', answers: [] } }
 function chooseGrade(n) {
   if (!activeCampaignMeta.ready) {
     showSharedCampaignStatusModal();
@@ -475,7 +420,6 @@ window.EnEn = {
     localStorage.removeItem(this.storySeenKey);
   },
   isStorySeen() {
-    if (new URLSearchParams(window.location.search || '').get('skip_intro') === '1') return true;
     return Boolean(localStorage.getItem(this.storySeenKey));
   },
   checkAutoStory() {
@@ -548,37 +492,9 @@ function quiz(p, isHint) {
     const box = $('#activity'); if (!box) return; box.innerHTML = ''; const kind = data.kind;
     const makeButton = (text, handler, cls = 'answer') => { const b = document.createElement('button'); b.className = cls; b.textContent = text; b.onclick = handler; box.appendChild(b); return b };
     const verify = (fn) => { const b = makeButton('✓ KIỂM TRA', () => { if (fn()) finish(); else wrong() }, 'action check-button') };
-    if (kind === 'single') {
-      const answersList = Array.isArray(data.answers) ? data.answers : [];
-      if (!answersList.length) {
-        box.innerHTML = '<p class="wrong">⚠️ Đang tải đáp án từ máy chủ...</p>';
-        return;
-      }
-      answersList.forEach((v, i) => makeButton(String.fromCharCode(65 + i) + '. ' + v, () => i === data.correct ? finish() : wrong()));
-      return;
-    }
-    if (kind === 'sequence') {
-      const itemsList = Array.isArray(data.items) ? data.items : [];
-      const it = itemsList[step];
-      if (!it || !Array.isArray(it.answers)) {
-        box.innerHTML = '<p class="wrong">⚠️ Không tìm thấy dữ liệu câu hỏi chuỗi.</p>';
-        return;
-      }
-      box.innerHTML = `<div class="step-label">Câu ${step + 1}/${itemsList.length}</div><p class="question-line">${escapeHTML(it.question)}</p>`;
-      it.answers.forEach((v, i) => makeButton(String.fromCharCode(65 + i) + '. ' + v, () => { if (i !== it.correct) { wrong(); return } step++; if (step === itemsList.length) finish(); else start() }));
-      return;
-    }
-    if (kind === 'multi') {
-      const selected = new Set();
-      const answersList = Array.isArray(data.answers) ? data.answers : [];
-      if (!answersList.length) {
-        box.innerHTML = '<p class="wrong">⚠️ Đang tải đáp án từ máy chủ...</p>';
-        return;
-      }
-      answersList.forEach((v, i) => { const b = makeButton('☐ ' + v, () => { if (selected.has(i)) selected.delete(i); else selected.add(i); b.classList.toggle('selected', selected.has(i)); b.textContent = (selected.has(i) ? '☑ ' : '☐ ') + v }) });
-      verify(() => selected.size === data.correct.length && data.correct.every(i => selected.has(i)));
-      return;
-    }
+    if (kind === 'single') { data.answers.forEach((v, i) => makeButton(String.fromCharCode(65 + i) + '. ' + v, () => i === data.correct ? finish() : wrong())); return }
+    if (kind === 'sequence') { const it = data.items[step]; box.innerHTML = `<div class="step-label">Câu ${step + 1}/${data.items.length}</div><p class="question-line">${escapeHTML(it.question)}</p>`; it.answers.forEach((v, i) => makeButton(String.fromCharCode(65 + i) + '. ' + v, () => { if (i !== it.correct) { wrong(); return } step++; if (step === data.items.length) finish(); else start() })); return }
+    if (kind === 'multi') { const selected = new Set(); data.answers.forEach((v, i) => { const b = makeButton('☐ ' + v, () => { if (selected.has(i)) selected.delete(i); else selected.add(i); b.classList.toggle('selected', selected.has(i)); b.textContent = (selected.has(i) ? '☑ ' : '☐ ') + v }) }); verify(() => selected.size === data.correct.length && data.correct.every(i => selected.has(i))); return }
     if (kind === 'match') {
       box.innerHTML = '<p class="activity-help">Chọn một thẻ cột trái, rồi chọn thẻ cột phải để nối. Em có thể nối cả khi chưa chắc đáp án, đổi lại cặp nối và chỉ kiểm tra sau khi ghép đủ.</p><div class="match-grid"><div id="left-options" class="match-column"></div><div id="right-options" class="match-column"></div></div><div id="match-results" class="match-results" aria-live="polite"></div>';
       const left = $('#left-options'), right = $('#right-options'); let active = -1; const pairsMap = {};
@@ -645,8 +561,6 @@ function quiz(p, isHint) {
   start();
 }
 function interact() { if (!state.playing || state.modal) return; const p = nearest(); if (!p) return; if (p.id === 'door') return keypad(); if (!(progress.doneTasks.includes(p.id) || progress.hints.includes(p.id))) resetExploration(); quiz(p, secrets.some(s => s.id === p.id)) }
-window.quiz = quiz;
-window.interact = interact;
 // Hỗ trợ tìm vật phẩm: chỉ gợi ý vị trí, không tiết lộ đáp án hay mật mã.
 function findItem() {
   if (helpLevel === 0) return;
@@ -1058,31 +972,11 @@ function applyPublishedCampaignRecord(pubRecord) {
         window.applyRoom3Grade4PublishedData(r);
       }
     } else {
-      const normMap = (obj) => {
-        const out = {};
-        if (obj && typeof obj === 'object') {
-          Object.keys(obj).forEach(k => {
-            out[k] = normalizeTaskOrSecret(obj[k], k, g);
-          });
-        }
-        return out;
-      };
-      let tasksObj = r.tasks || {};
-      let secretsObj = r.secrets || {};
-      if ((!r.tasks || Object.keys(r.tasks).length === 0) && Array.isArray(r.items)) {
-        tasksObj = {};
-        secretsObj = {};
-        r.items.forEach(it => {
-          const k = it.item_key || it.id;
-          if (it.item_type === 'task') tasksObj[k] = it;
-          else if (it.item_type === 'secret' || it.item_type === 'hint') secretsObj[k] = it;
-        });
-      }
       lessonData[g] = {
         topic: String(r.topic || ('Khối ' + g)).trim(),
         code: String(r.code || '0000').trim(),
-        tasks: normMap(tasksObj),
-        secrets: normMap(secretsObj)
+        tasks: r.tasks || {},
+        secrets: r.secrets || {}
       };
       if (layouts[g]) {
         if (r.theme) layouts[g].theme = String(r.theme).trim();
