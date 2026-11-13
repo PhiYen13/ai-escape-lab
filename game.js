@@ -11,7 +11,7 @@ function getPreviewSessionInfo() {
   try {
     const p = new URLSearchParams(window.location.search || '');
     if (p.get('preview') !== '1') return null;
-    const raw = sessionStorage.getItem('AI_ESCAPE_PREVIEW_SESSION');
+    const raw = sessionStorage.getItem('AI_ESCAPE_PREVIEW_SESSION') || localStorage.getItem('AI_ESCAPE_PREVIEW_SESSION');
     if (!raw) return null;
     const parsed = JSON.parse(raw);
     const tg = Number(p.get('grade')) || Number(parsed.targetGrade) || 3;
@@ -508,7 +508,16 @@ window.EnEn = {
 };
 
 function openModal(html) { state.modal = true; state.keys.clear(); $('#content').innerHTML = html; $('#modal').classList.remove('hidden') }
-function closeModal() { state.modal = false; $('#modal').classList.add('hidden'); $('#content').innerHTML = ''; state.keys.clear() }
+function closeModal() {
+  state.modal = false;
+  $('#modal').classList.add('hidden');
+  $('#content').innerHTML = '';
+  state.keys.clear();
+  window.AI_ESCAPE_CURRENT_QUIZ = null;
+  if (window.EnenBuddy && typeof window.EnenBuddy.onQuestionClose === 'function') {
+    try { window.EnenBuddy.onQuestionClose(); } catch (_e) {}
+  }
+}
 function action(label, fn) { const b = document.createElement('button'); b.className = 'action'; b.textContent = label; b.onclick = fn; $('#content').appendChild(b) }
 function intro() {
   state.playing = false;
@@ -544,6 +553,10 @@ function quiz(p, isHint) {
     }
   }
   function finish() {
+    window.AI_ESCAPE_CURRENT_QUIZ = null;
+    if (window.EnenBuddy && typeof window.EnenBuddy.onQuestionClose === 'function') {
+      try { window.EnenBuddy.onQuestionClose(); } catch (_e) {}
+    }
     resetExploration();
     if (isHint) {
       progress.hints.push(p.id);
@@ -560,7 +573,32 @@ function quiz(p, isHint) {
     );
     action('TIẾP TỤC KHÁM PHÁ', closeModal);
   }
-  function start() { openModal(`<h2>${escapeHTML(p.icon || '🧩')} ${escapeHTML(data.title)}</h2>${data.intro ? `<p class="story">${escapeHTML(data.intro)}</p>` : ''}<p>${escapeHTML(data.question || 'Hoàn thành các yêu cầu dưới đây.')}</p><div id="activity"></div><p id="feedback" aria-live="polite"></p>`); render() }
+  function start() {
+    window.AI_ESCAPE_CURRENT_QUIZ = {
+      id: `${isHint ? 'secret' : 'task'}-${p.id}`,
+      itemId: p.id,
+      isHint: isHint,
+      grade: grade,
+      roomNum: 1,
+      title: data.title || '',
+      intro: data.intro || '',
+      question: data.question || '',
+      kind: data.kind || 'single',
+      answers: Array.isArray(data.answers) ? data.answers.slice() : [],
+      items: Array.isArray(data.items) ? data.items.slice() : [],
+      left: Array.isArray(data.left) ? data.left.slice() : [],
+      right: Array.isArray(data.right) ? data.right.slice() : [],
+      hint: data.hint || '',
+      feedback: data.feedback || '',
+      knowledge: data.knowledge || '',
+      digit: data.digit || null
+    };
+    if (window.EnenBuddy && typeof window.EnenBuddy.onQuestionOpen === 'function') {
+      try { window.EnenBuddy.onQuestionOpen(window.AI_ESCAPE_CURRENT_QUIZ); } catch (_e) {}
+    }
+    openModal(`<h2>${escapeHTML(p.icon || '🧩')} ${escapeHTML(data.title)}</h2>${data.intro ? `<p class="story">${escapeHTML(data.intro)}</p>` : ''}<p>${escapeHTML(data.question || 'Hoàn thành các yêu cầu dưới đây.')}</p><div id="activity"></div><p id="feedback" aria-live="polite"></p>`);
+    render();
+  }
   function render() {
     const box = $('#activity'); if (!box) return; box.innerHTML = ''; const kind = data.kind;
     const makeButton = (text, handler, cls = 'answer') => { const b = document.createElement('button'); b.className = cls; b.textContent = text; b.onclick = handler; box.appendChild(b); return b };
@@ -771,6 +809,7 @@ function recordUnlock(g, roomNumber) {
   const old = unlockedThrough(g);
   if (g === 3 && roomNumber >= 4 && !(typeof window.room3Done === 'function' && window.room3Done(g))) return false;
   if (g === 4 && roomNumber >= 4 && !(typeof window.room3Grade4Done === 'function' && window.room3Grade4Done())) return false;
+  if (g === 5 && roomNumber >= 4 && !(typeof window.room3Grade5Done === 'function' && window.room3Grade5Done())) return false;
   const next = Math.min(16, Math.max(old, roomNumber));
   localStorage.setItem(accessKey(g), String(next)); return next > old;
 }
@@ -780,6 +819,7 @@ function roomFinished(number) {
   if (number === 3) {
     if (grade === 3) return typeof window.room3Done === 'function' && window.room3Done(grade);
     if (grade === 4) return typeof window.room3Grade4Done === 'function' && window.room3Grade4Done();
+    if (grade === 5) return typeof window.room3Grade5Done === 'function' && window.room3Grade5Done();
     return false;
   }
   return false;
@@ -794,7 +834,13 @@ function enterMapRoom(number) {
       if (typeof window.openRoom3Grade4 === 'function') window.openRoom3Grade4();
       return;
     }
-    openModal(window.EnEn.header('thinking', `ROOM 03 – LỚP ${grade}`, 'Đang được phát triển') + `<p>Room 03 lớp ${grade} đang được hoàn thiện. Phiên bản chính thức hiện có sẵn ở Lớp 3 và Lớp 4 em nhé!</p>`);
+    if (grade === 5) {
+      if (typeof window.openRoom3Grade5 === 'function') {
+        window.openRoom3Grade5();
+        return;
+      }
+    }
+    openModal(window.EnEn.header('thinking', `ROOM 03 – LỚP ${grade}`, 'Đang được phát triển') + `<p>Room 03 lớp ${grade} đang được hoàn thiện. Phiên bản chính thức hiện có sẵn ở Lớp 3, Lớp 4 và Lớp 5 em nhé!</p>`);
     return;
   }
   openModal(window.EnEn.header('thinking', `PHÒNG ${String(number).padStart(2, '0')} ĐÃ MỞ KHÓA`, 'Đang xây dựng nội dung') + '<p>Phòng này đã được mở trên bản đồ, nhưng nội dung học tập đang được xây dựng em nhé!</p>');
@@ -1074,6 +1120,10 @@ function applyPublishedCampaignRecord(pubRecord) {
       if (typeof window.applyRoom3Grade4PublishedData === 'function') {
         window.applyRoom3Grade4PublishedData(r);
       }
+    } else if (r.module_id === 'web_search_problem_solving_v1' || (g === 5 && roomNum === 3)) {
+      if (typeof window.applyRoom3Grade5PublishedData === 'function') {
+        window.applyRoom3Grade5PublishedData(r);
+      }
     } else {
       const normMap = (obj) => {
         const out = {};
@@ -1122,6 +1172,9 @@ function applyPublishedCampaignRecord(pubRecord) {
   activeCampaignMeta.failed = false;
   activeCampaignMeta.errorMessage = '';
   window.AI_ESCAPE_LAST_PUBLISHED_RECORD = pubRecord;
+  if (window.EnenBuddy && typeof window.EnenBuddy.checkState === 'function') {
+    window.EnenBuddy.checkState();
+  }
 
   const closeBtn = $('#close'); if (closeBtn) closeBtn.classList.remove('hidden');
   progress = load();
@@ -1302,6 +1355,9 @@ function initPreviewMode() {
     activeCampaignMeta.failed = false;
 
     injectPreviewTopBar(previewSession);
+    if (window.EnenBuddy && typeof window.EnenBuddy.checkState === 'function') {
+      window.EnenBuddy.checkState();
+    }
 
     const tGrade = Number(previewSession.targetGrade) || 3;
     const tRoom = Number(previewSession.targetRoomNum) || 1;
@@ -1327,6 +1383,11 @@ function initPreviewMode() {
         chooseGrade(4);
         if (typeof window.openRoom3Grade4 === 'function') {
           window.openRoom3Grade4();
+        }
+      } else if (tGrade === 5) {
+        chooseGrade(5);
+        if (typeof window.openRoom3Grade5 === 'function') {
+          window.openRoom3Grade5();
         }
       } else {
         chooseGrade(3);

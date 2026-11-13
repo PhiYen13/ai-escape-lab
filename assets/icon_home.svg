@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="homeBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F5FF"/>
+      <stop offset="50%" stop-color="#00D2FF"/>
+      <stop offset="100%" stop-color="#3A7BD5"/>
+    </linearGradient>
+    <linearGradient id="homeBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06284e"/>
+      <stop offset="60%" stop-color="#051937"/>
+      <stop offset="100%" stop-color="#020f26"/>
+    </linearGradient>
+    <linearGradient id="roofGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F5FF"/>
+      <stop offset="100%" stop-color="#0066FF"/>
+    </linearGradient>
+    <linearGradient id="doorGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFF9C4"/>
+      <stop offset="50%" stop-color="#FFD54F"/>
+      <stop offset="100%" stop-color="#FF9800"/>
+    </linearGradient>
+    <linearGradient id="wallGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F0F8FF"/>
+      <stop offset="100%" stop-color="#B0D4F1"/>
+    </linearGradient>
+    <filter id="homeGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#00F5FF" flood-opacity="0.65"/>
+    </filter>
+  </defs>
+
+  <!-- Vòng huy hiệu Trạm chỉ huy trung tâm -->
+  <circle cx="24" cy="24" r="22.5" fill="url(#homeBg)" stroke="url(#homeBorder)" stroke-width="2.5" filter="url(#homeGlow)"/>
+
+  <!-- Tường trạm / ngôi nhà công nghệ -->
+  <rect x="14" y="21" width="20" height="16" rx="2.5" fill="url(#wallGrad)" stroke="#092C5E" stroke-width="1"/>
+
+  <!-- Mái nhà vòm công nghệ tương lai -->
+  <path d="M10 22 L24 10 L38 22 L34 24 L24 14.5 L14 24 Z" fill="url(#roofGrad)" stroke="#FFFFFF" stroke-width="0.8"/>
+
+  <!-- Cửa chính ấm cúng phát sáng vàng -->
+  <path d="M20.5 37 L20.5 28 C20.5 26.5 22 25.5 24 25.5 C26 25.5 27.5 26.5 27.5 28 L27.5 37 Z" fill="url(#doorGrad)" stroke="#B26A00" stroke-width="0.8"/>
+
+  <!-- Cửa sổ tròn công nghệ phát sáng xanh -->
+  <circle cx="24" cy="18" r="2.8" fill="#00E5FF" stroke="#FFFFFF" stroke-width="0.8"/>
+  <circle cx="24" cy="18" r="1.3" fill="#FFFFFF"/>
+
+  <!-- Ngôi sao định vị trạm nhà -->
+  <circle cx="36" cy="10" r="1.8" fill="#FFD700" filter="url(#homeGlow)"/>
+</svg>
+
