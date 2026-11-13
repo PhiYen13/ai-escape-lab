@@ -519,78 +519,138 @@ body>.r3-conveyor-moving.dragging{z-index:2147483000!important}
 #grades .grade-top{display:none!important}
 #grades .grade-main{inset:5% 2% 2%!important}
 #welcome .welcome-tools{
-  position:absolute!important;top:1.5%!important;left:1.6%!important;right:1.6%!important;z-index:30!important;
-  display:flex!important;justify-content:space-between!important;align-items:center!important;pointer-events:none!important
+  position:absolute!important;
+  top:clamp(10px, 2vh, 18px)!important;
+  left:clamp(10px, 2vw, 24px)!important;
+  right:clamp(10px, 2vw, 24px)!important;
+  z-index:30!important;
+  display:flex!important;
+  flex-wrap:wrap!important;
+  justify-content:space-between!important;
+  align-items:center!important;
+  gap:10px 12px!important;
+  pointer-events:none!important
 }
 #welcome .welcome-actions-right{
-  display:flex!important;align-items:center!important;gap:12px!important;pointer-events:auto!important
+  display:inline-flex!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  gap:8px 10px!important;
+  pointer-events:auto!important;
+  margin-left:auto!important
 }
 #welcome .welcome-actions-right button,
 #welcome .welcome-tools .reset-game,
-#welcome .welcome-tools .avatar-settings-btn{
+#welcome .welcome-tools .avatar-settings-btn,
+#welcome .welcome-enen-btn{
   opacity:1!important;visibility:visible!important;display:inline-flex!important;align-items:center!important;
-  justify-content:center!important;width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;
-  font-size:clamp(12px,1.35vw,18px)!important;line-height:1.2!important;
-  padding:clamp(8px,1vw,14px) clamp(14px,1.6vw,24px)!important;
-  color:#fff!important;font-weight:900!important;background:linear-gradient(155deg,#075a9e,#062552)!important;
-  border:2.5px solid #56e3ff!important;border-radius:15px!important;
-  box-shadow:0 4px 0 #04335b,0 0 13px #27d9ff77!important;
+  justify-content:center!important;width:auto!important;height:44px!important;min-height:44px!important;box-sizing:border-box!important;
+  min-width:0!important;
+  font-size:14px!important;line-height:1!important;
+  padding:0 14px!important;
+  color:#fff!important;font-weight:800!important;
+  background:linear-gradient(155deg,#0a3363,#051735)!important;
+  border:1.5px solid #00D9FF!important;border-radius:999px!important;
+  box-shadow:0 2px 0 #041c38,0 0 10px rgba(0,217,255,0.35)!important;
   pointer-events:auto!important;cursor:pointer!important;white-space:nowrap!important;
-  transition:transform .15s ease,filter .15s ease!important
+  gap:7px!important;
+  transition:transform .15s ease,filter .15s ease,box-shadow .15s ease!important
+}
+#welcome .welcome-enen-btn{
+  color:#ffdb66!important;
+}
+#welcome .welcome-enen-btn.hidden,
+#welcome .welcome-tools button.hidden,
+#welcome .welcome-actions-right button.hidden{
+  display:none!important;
+  visibility:hidden!important;
 }
 #welcome .welcome-actions-right button:hover,
 #welcome .welcome-tools .reset-game:hover,
-#welcome .welcome-tools .avatar-settings-btn:hover{filter:brightness(1.18)!important;transform:translateY(-2px)!important}
-
-#welcome .welcome-enen-btn{
-  opacity:1!important;visibility:visible!important;min-width:0!important;min-height:0!important;
-  pointer-events:auto!important;display:inline-flex!important;align-items:center!important;gap:9px!important;
-  background:linear-gradient(155deg,#0a3363,#051735)!important;
-  border:2.5px solid #00D9FF!important;border-radius:22px!important;
-  padding:clamp(6px,0.9vw,11px) clamp(11px,1.4vw,20px)!important;
-  color:#ffdb66!important;font-weight:900!important;
-  font-size:clamp(12px,1.35vw,18px)!important;line-height:1.2!important;
-  box-shadow:0 4px 0 #041c38,0 0 16px rgba(0,217,255,0.45)!important;
-  cursor:pointer!important;white-space:nowrap!important;
-  transition:transform .15s ease,filter .15s ease,box-shadow .15s ease!important
+#welcome .welcome-tools .avatar-settings-btn:hover,
+#welcome .welcome-enen-btn:hover{
+  filter:brightness(1.18)!important;
+  transform:translateY(-1px)!important;
+  box-shadow:0 2.5px 0 #041c38,0 0 14px rgba(0,217,255,0.6)!important
 }
-#welcome .welcome-enen-btn:hover{filter:brightness(1.18)!important;transform:translateY(-2px)!important;box-shadow:0 6px 0 #041c38,0 0 22px rgba(0,217,255,0.7)!important}
-#welcome .welcome-enen-thumb{width:26px;height:26px;border-radius:50%;object-fit:contain;background:#092b63;border:1.5px solid #57e3ff;display:block}
-#welcome .welcome-enen-sparkle{font-size:14px;display:inline-block;animation:enenSparkle 1.8s infinite alternate ease-in-out}
+
+.avatar-btn-icon,
+.btn-action-icon{
+  width:18px!important;
+  height:18px!important;
+  margin:0!important;
+  vertical-align:middle!important;
+  flex-shrink:0!important;
+  display:inline-block!important;
+  filter:drop-shadow(0 1px 3px rgba(0,245,255,0.55))!important;
+  transition:transform .2s ease!important;
+}
+.reset-game .btn-action-icon{
+  filter:drop-shadow(0 1px 3px rgba(255,82,82,0.6))!important;
+}
+.map-home-button .btn-action-icon{
+  filter:drop-shadow(0 1px 3px rgba(0,245,255,0.55))!important;
+}
+#welcome .welcome-tools .avatar-settings-btn:hover .avatar-btn-icon,
+.map-home-button:hover .btn-action-icon{
+  transform:scale(1.12) rotate(-5deg)!important;
+}
+.reset-game:hover .btn-action-icon{
+  transform:scale(1.12) rotate(-20deg)!important;
+}
+
+#welcome .welcome-enen-thumb{width:22px!important;height:22px!important;border-radius:50%;object-fit:contain;background:#092b63;border:1px solid #57e3ff;display:block;flex-shrink:0!important}
+#welcome .welcome-enen-sparkle{font-size:13px;display:inline-block;animation:enenSparkle 1.8s infinite alternate ease-in-out}
 @keyframes enenSparkle{0%{transform:scale(0.85);opacity:0.7}100%{transform:scale(1.25);opacity:1}}
 
 @media(max-width:768px){
-  #welcome .welcome-actions-right{gap:8px!important}
+  #welcome .welcome-tools{
+    top:10px!important;left:12px!important;right:12px!important;gap:8px 10px!important;
+  }
+  #welcome .welcome-actions-right{
+    gap:8px!important;
+  }
   #welcome .welcome-actions-right button,
   #welcome .welcome-tools .reset-game,
   #welcome .welcome-tools .avatar-settings-btn,
-  #welcome .welcome-enen-btn{font-size:12px!important;padding:6px 10px!important}
+  #welcome .welcome-enen-btn{
+    height:44px!important;
+    min-height:44px!important;
+    font-size:14px!important;
+    padding:0 12px!important;
+    border-radius:999px!important;
+  }
 }
 @media(max-width:600px){
-  #welcome .welcome-tools{top:1%!important;left:1.5%!important;right:1.5%!important}
-  #welcome .welcome-actions-right{gap:5px!important}
+  #welcome .welcome-tools{
+    top:10px!important;left:10px!important;right:10px!important;
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important;
+  }
+  #welcome .welcome-enen-btn{
+    align-self:flex-start!important;
+  }
+  #welcome .welcome-actions-right{
+    width:100%!important;
+    display:flex!important;
+    justify-content:flex-end!important;
+    gap:8px!important;
+    margin-left:0!important;
+  }
   #welcome .welcome-actions-right button,
   #welcome .welcome-tools .reset-game,
   #welcome .welcome-tools .avatar-settings-btn,
-  #welcome .welcome-enen-btn{font-size:10.5px!important;padding:4px 7px!important;border-radius:10px!important;border-width:1.5px!important}
-  #welcome .welcome-enen-thumb{width:18px!important;height:18px!important}
-  #welcome .welcome-enen-sparkle{display:none!important}
-}
-@media(max-width:440px){
-  #welcome .welcome-tools{top:0.8%!important;left:1%!important;right:1%!important}
-  #welcome .welcome-actions-right{gap:4px!important}
-  #welcome .welcome-actions-right button,
-  #welcome .welcome-tools .reset-game,
-  #welcome .welcome-tools .avatar-settings-btn,
-  #welcome .welcome-enen-btn{font-size:9.5px!important;padding:4px 5px!important}
-  #welcome .welcome-enen-thumb{width:16px!important;height:16px!important}
-}
-@media(max-height:500px){
-  #welcome .welcome-tools{top:1%!important}
-  #welcome .welcome-actions-right button,
-  #welcome .welcome-tools .reset-game,
-  #welcome .welcome-tools .avatar-settings-btn,
-  #welcome .welcome-enen-btn{padding:4px 8px!important;font-size:11px!important}
+  #welcome .welcome-enen-btn{
+    height:44px!important;
+    min-height:44px!important;
+    font-size:14px!important;
+    padding:0 10px!important;
+    gap:6px!important;
+    border-radius:999px!important;
+  }
+  .avatar-btn-icon,
+  .btn-action-icon{width:16px!important;height:16px!important}
+  #welcome .welcome-enen-thumb{width:20px!important;height:20px!important}
+  #welcome .welcome-enen-sparkle{font-size:12px!important}
 }
 #map .map-home-button{position:absolute;top:1.5%;left:1.7%;z-index:30;
   padding:clamp(8px,1vw,15px) clamp(13px,1.6vw,25px);color:white;font-weight:900;
@@ -646,17 +706,33 @@ body>.r3-conveyor-moving.dragging{z-index:2147483000!important}
 #map .map-home-button{
   display:inline-flex!important;align-items:center!important;justify-content:center!important;
   top:1.5%!important;left:1.5%!important;right:auto!important;
-  padding:clamp(9px,1.05vw,16px) clamp(16px,2vw,30px)!important;
-  font-size:clamp(12px,1.25vw,19px)!important;line-height:1.15!important;
-  color:#fff!important;letter-spacing:.3px!important;
-  background:linear-gradient(180deg,#167dca 0%,#07529d 49%,#062e67 100%)!important;
-  border:2px solid #7af3ff!important;border-radius:16px!important;
-  box-shadow:0 4px 0 #06224e, inset 0 1px 0 #b7faff88,0 0 15px #16bfff77!important;
-  text-shadow:0 1px 2px #032448!important;cursor:pointer!important;
-  transition:filter .15s,transform .15s!important;
+  height:clamp(23px,1.85vw,27px)!important;box-sizing:border-box!important;
+  padding:0 clamp(7px,0.65vw,11px)!important;
+  font-size:clamp(10px,0.78vw,11.5px)!important;line-height:1!important;
+  color:#fff!important;font-weight:800!important;letter-spacing:.2px!important;
+  background:linear-gradient(155deg,#0a3363,#051735)!important;
+  border:1.5px solid #00D9FF!important;border-radius:999px!important;
+  box-shadow:0 1.5px 0 #041c38,0 0 8px rgba(0,217,255,0.35)!important;
+  cursor:pointer!important;gap:5px!important;
+  transition:filter .15s,transform .15s,box-shadow .15s!important;
 }
-#map .map-home-button:hover{filter:brightness(1.16)!important;transform:translateY(-2px)!important}
-#map .map-home-button:active{transform:translateY(2px)!important;box-shadow:0 1px 0 #06224e!important}
+#map .map-home-button:hover{filter:brightness(1.18)!important;transform:translateY(-1px)!important;box-shadow:0 2.5px 0 #041c38,0 0 12px rgba(0,217,255,0.6)!important}
+#map .map-home-button:active{transform:translateY(1px)!important;box-shadow:0 1px 0 #041c38!important}
+#map .reset-map{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  right:1.8%!important;top:1.5%!important;
+  height:clamp(23px,1.85vw,27px)!important;box-sizing:border-box!important;
+  padding:0 clamp(7px,0.65vw,11px)!important;
+  font-size:clamp(10px,0.78vw,11.5px)!important;line-height:1!important;
+  color:#fff!important;font-weight:800!important;
+  background:linear-gradient(155deg,#0a3363,#051735)!important;
+  border:1.5px solid #00D9FF!important;border-radius:999px!important;
+  box-shadow:0 1.5px 0 #041c38,0 0 8px rgba(0,217,255,0.35)!important;
+  cursor:pointer!important;gap:5px!important;
+  transition:filter .15s,transform .15s,box-shadow .15s!important;
+}
+#map .reset-map:hover{filter:brightness(1.18)!important;transform:translateY(-1px)!important;box-shadow:0 2.5px 0 #041c38,0 0 12px rgba(0,217,255,0.6)!important}
+#map .reset-map:active{transform:translateY(1px)!important;box-shadow:0 1px 0 #041c38!important}
 #room header nav button[data-home],#room header nav button[data-map]{border-radius:12px!important;background:linear-gradient(180deg,#197fca,#06356e)!important;border:2px solid #71e9ff!important;color:#fff!important;box-shadow:0 2px 0 #06214a!important;font-weight:800!important}
 
 /* Touch controller — only visible inside a playable room on touch screens. */

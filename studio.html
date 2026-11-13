@@ -523,6 +523,22 @@
             </span>
           </div>
 
+          <!-- Công tắc Én Én Đồng Hành cho bộ đề MASTER -->
+          <div id="master-enen-toggle-box" class="card-enen-toggle-box" style="margin-top: 14px; padding: 10px 14px; background: rgba(5, 22, 53, 0.7); border: 1.5px solid rgba(114, 213, 255, 0.4); border-radius: 10px;">
+            <label class="enen-toggle-label" style="justify-content: space-between; width: 100%; display: flex; align-items: center;">
+              <span style="font-size: 13px; font-weight: 700; color: #ffe285; display: flex; align-items: center; gap: 6px;">
+                <span>✨</span> Én Én đồng hành (Bộ MASTER):
+              </span>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" id="chk-master-enen-toggle" class="enen-toggle-input" data-action="toggle-master-enen">
+                <span id="master-enen-status-text" style="font-size: 12px; font-weight: 800; color: #34d399;">BẬT</span>
+              </div>
+            </label>
+            <div id="master-enen-desc" class="enen-toggle-desc" style="margin-top: 4px; font-size: 12px; color: var(--text-muted);">
+              Hiện trợ lý AI Én Én để học sinh nhận gợi ý sư phạm khi chơi link chính thức.
+            </div>
+          </div>
+
           <!-- Hộp liên kết học sinh chính thức cho MASTER (index.html mặc định) -->
           <div id="master-share-box" class="campaign-share-box" style="margin-top: 14px;">
             <div class="campaign-share-box-head">
@@ -684,6 +700,24 @@
             </div>
 
             <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+              <!-- CÔNG TẮC BẬT/TẮT ÉN ÉN ĐỒNG HÀNH CHO BẢN SAO CÁ NHÂN -->
+              <div id="editor-enen-control" class="enen-companion-control hidden" title="Bật/Tắt Én Én đồng hành hỗ trợ học sinh">
+                <label class="enen-toggle-label">
+                  <span style="font-size: 12px; font-weight: 800; color: #ffe285;">✨ Én Én đồng hành:</span>
+                  <input type="checkbox" id="chk-editor-enen-toggle" class="enen-toggle-input">
+                  <span id="editor-enen-status-text" style="font-size: 11px; font-weight: 800; color: #94a3b8;">Tắt</span>
+                </label>
+                <span class="enen-toggle-desc">Hiện Én Én để học sinh nhận gợi ý trong lúc chơi.</span>
+              </div>
+
+              <!-- THÔNG BÁO CẬP NHẬT PHÒNG TỪ MASTER (CẠNH XEM TRƯỚC VÀ XUẤT BẢN) -->
+              <div id="editor-master-update-container" class="master-update-pill-container hidden">
+                <span id="editor-master-update-status" class="master-update-status-pill"></span>
+                <button type="button" id="btn-editor-open-room-update" class="btn btn-warning btn-sm hidden">
+                  🔄 Xem và cập nhật
+                </button>
+              </div>
+
               <button type="button" id="btn-editor-live-room-preview" class="btn btn-gold btn-sm"
                 title="Mở trực tiếp phòng game thực tế với nội dung nháp đang soạn">
                 🎮 Xem trước phòng (Game)
@@ -731,6 +765,22 @@
                 placeholder="Nhập tên bộ đề trò chơi..." />
               <button type="button" id="btn-editor-save-title" class="btn btn-emerald btn-sm">
                 💾 Lưu tên bộ đề
+              </button>
+            </div>
+          </div>
+
+          <!-- BANNER THÔNG BÁO CHI TIẾT CÁC PHÒNG CÒN THIẾU TỪ MASTER -->
+          <div id="editor-master-room-sync-banner" class="master-sync-banner hidden">
+            <div class="master-sync-banner-content">
+              <span class="master-sync-icon">🔔</span>
+              <div class="master-sync-info">
+                <strong id="master-sync-title">Có phòng mới từ bộ đề gốc MASTER</strong>
+                <div id="master-sync-detail" class="master-sync-detail-text"></div>
+              </div>
+            </div>
+            <div class="master-sync-banner-actions">
+              <button type="button" id="btn-banner-open-room-update" class="btn btn-warning btn-sm">
+                🔄 Xem và cập nhật phòng
               </button>
             </div>
           </div>
@@ -1323,6 +1373,15 @@
       </div>
 
       <div class="modal-footer">
+        <!-- CÔNG TẮC BẬT/TẮT ÉN ÉN ĐỒNG HÀNH CHO BẢN SAO CÁ NHÂN -->
+        <div id="inspect-enen-control" class="enen-companion-control hidden" style="margin-right: auto; text-align: left;" title="Bật/Tắt Én Én đồng hành hỗ trợ học sinh">
+          <label class="enen-toggle-label">
+            <span style="font-size: 12px; font-weight: 800; color: #ffe285;">✨ Én Én đồng hành:</span>
+            <input type="checkbox" id="chk-inspect-enen-toggle" class="enen-toggle-input">
+            <span id="inspect-enen-status-text" style="font-size: 11px; font-weight: 800; color: #94a3b8;">Tắt</span>
+          </label>
+          <span class="enen-toggle-desc">Hiện Én Én để học sinh nhận gợi ý trong lúc chơi.</span>
+        </div>
         <button type="button" id="btn-inspect-publish" class="btn btn-emerald hidden">
           🚀 Xuất bản &amp; Chia sẻ
         </button>
@@ -1777,6 +1836,51 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL CẬP NHẬT PHÒNG MỚI TỪ MASTER (IMPORT ROOMS FROM MASTER)
+       ======================================================================== -->
+  <div id="modal-update-rooms-backdrop" class="studio-modal-backdrop hidden" role="dialog" aria-modal="true"
+    aria-labelledby="modal-update-rooms-title">
+    <div class="studio-modal" style="max-width: 640px;">
+      <div class="modal-header">
+        <div>
+          <h2 id="modal-update-rooms-title">🔄 Cập nhật phòng mới từ MASTER</h2>
+          <p style="margin: 4px 0 0; font-size: 13.5px; color: var(--text-muted);">
+            Thêm các phòng học mới đã phát hành trong MASTER vào bản nháp bộ đề của bạn (Khối 3, 4, 5).
+          </p>
+        </div>
+        <button type="button" id="btn-close-update-rooms-modal" class="btn-close-modal" aria-label="Đóng hộp thoại">×</button>
+      </div>
+
+      <div id="modal-update-rooms-alert" class="alert-box hidden" role="alert"></div>
+
+      <div style="padding: 18px 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+          <label style="display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer; color: var(--text-light);">
+            <input type="checkbox" id="chk-update-rooms-select-all" checked>
+            <span id="update-rooms-select-all-label">Chọn tất cả</span>
+          </label>
+          <span id="update-rooms-summary-count" class="badge badge-gold" style="font-size: 12px;"></span>
+        </div>
+
+        <div id="update-rooms-list" class="update-rooms-list" style="display: flex; flex-direction: column; gap: 10px; max-height: 340px; overflow-y: auto; padding-right: 4px;">
+          <!-- Danh sách phòng còn thiếu sẽ được render động -->
+        </div>
+
+        <div style="margin-top: 14px; padding: 10px 14px; background: rgba(0, 229, 255, 0.08); border-left: 3px solid var(--accent-cyan); border-radius: 4px; font-size: 12.5px; color: var(--text-light); line-height: 1.5;">
+          💡 <strong>Bảo toàn dữ liệu:</strong> Chỉ các phòng được tích chọn sẽ được sao chép vào bản nháp. Toàn bộ câu hỏi bạn đã chỉnh sửa ở các phòng cũ và công tắc Én Én sẽ được giữ nguyên 100%.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="btn-cancel-update-rooms" class="btn btn-outline">Hủy bỏ</button>
+        <button type="button" id="btn-confirm-update-rooms" class="btn btn-warning">
+          ➕ Cập nhật các phòng đã chọn
+        </button>
+      </div>
     </div>
   </div>
 

@@ -386,6 +386,14 @@
     editorState.canEdit = computeEditPermission(sourceCampaign);
     editorState.isDirty = false;
 
+    // Khởi tạo ngay trạng thái đối chiếu phòng từ MASTER để giao diện hiển thị tức thì
+    var studioRef = getStudio();
+    if (studioRef && typeof studioRef.computeMissingRooms === 'function') {
+      editorState.masterSyncInfo = studioRef.computeMissingRooms(sourceCampaign);
+    } else {
+      editorState.masterSyncInfo = null;
+    }
+
     // Sắp xếp phòng theo khối 3, 4, 5
     var rooms = (editorState.workingCampaign.rooms || []).sort(function (a, b) {
       return a.grade - b.grade || a.room_number - b.room_number;
@@ -444,6 +452,7 @@
 
     clearEditorAlert();
     renderEditorFull();
+    refreshMasterSyncInfo(editorState.campaignId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -632,6 +641,34 @@
     var shareUrlInput = byId('editor-share-url-input');
     var permBanner = byId('editor-permission-banner');
 
+    // Công tắc Én Én đồng hành trên thanh công cụ Game Editor
+    var editorEnenControl = byId('editor-enen-control');
+    var chkEditorEnen = byId('chk-editor-enen-toggle');
+    var editorEnenStatus = byId('editor-enen-status-text');
+
+    var isMaster = Boolean(camp.is_template || camp.share_code === 'MASTER');
+    var canToggleEnen = editorState.canEdit;
+    var isEnenOn = camp.enen_enabled !== undefined ? Boolean(camp.enen_enabled) : (isMaster ? true : false);
+
+    if (editorEnenControl) {
+      showEl(editorEnenControl);
+      if (chkEditorEnen) {
+        chkEditorEnen.checked = isEnenOn;
+        chkEditorEnen.disabled = !canToggleEnen;
+        if (!canToggleEnen) {
+          chkEditorEnen.title = isMaster
+            ? 'Chỉ Quản trị viên (Admin) mới có quyền đổi cài đặt trên bộ đề gốc MASTER. Hãy sao chép để tùy chỉnh.'
+            : 'Bạn không có quyền chỉnh sửa bộ đề này.';
+        } else {
+          chkEditorEnen.title = 'Bật/Tắt trợ lý AI Én Én cho bộ đề';
+        }
+      }
+      if (editorEnenStatus) {
+        editorEnenStatus.textContent = isEnenOn ? 'Bật' : 'Tắt';
+        editorEnenStatus.style.color = isEnenOn ? '#34d399' : '#94a3b8';
+      }
+    }
+
     if (titleInput) {
       titleInput.value = camp.title || '';
       titleInput.disabled = !editorState.canEdit;
@@ -707,6 +744,8 @@
           '<span>🔒</span><span><strong>Chế độ Chỉ xem:</strong> Bạn không phải là chủ sở hữu của bộ đề này nên không thể chỉnh sửa nội dung.</span>';
       }
     }
+
+    renderEditorMasterSyncUI();
   }
 
   /**
@@ -922,6 +961,11 @@
         if (Number(room.grade) === 4 && Number(room.room_number) === 3) {
           isSupportedModule = true;
         }
+      } else if (moduleId === 'web_search_problem_solving_v1' || (Number(room.grade) === 5 && Number(room.room_number) === 3)) {
+        // Hỗ trợ Phòng 03 của Khối 5
+        if (Number(room.grade) === 5 && Number(room.room_number) === 3) {
+          isSupportedModule = true;
+        }
       }
       if (!isSupportedModule) {
         if (roomSettingsCard) hideEl(roomSettingsCard);
@@ -1009,6 +1053,8 @@
         tasksGroupLabel.innerHTML = '<span>⚡ 4 Chặng khôi phục trung tâm</span>';
       } else if (isMaze) {
         tasksGroupLabel.innerHTML = '<span>🎮 9 Thử thách Mê cung máy tính (4 Chặng)</span>';
+      } else if (Number(room.grade) === 5 && Number(room.room_number) === 3) {
+        tasksGroupLabel.innerHTML = '<span>🧭 3 Nhiệm vụ giải quyết vấn đề (Tham quan)</span>';
       } else {
         tasksGroupLabel.innerHTML = '<span>🧩 4 Vật phẩm Nhiệm vụ chính (Cấp chữ số)</span>';
       }
@@ -4599,6 +4645,271 @@
   }
 
   /* ==========================================================================
+   * 12.5. CẬP NHẬT PHÒNG MỚI TỪ BỘ ĐỀ GỐC MASTER (CHO BẢN SAO GIÁO VIÊN)
+   * ========================================================================== */
+
+  /**
+   * Cập nhật thông tin phòng còn thiếu từ MASTER cho bộ đề hiện tại
+   */
+  async function refreshMasterSyncInfo(campaignId) {
+    if (!campaignId) return;
+    var camp = editorState.workingCampaign;
+    if (!camp || camp.is_template || camp.share_code === 'MASTER') {
+      editorState.masterSyncInfo = null;
+      renderEditorMasterSyncUI();
+      return;
+    }
+
+    var studio = getStudio();
+    if (!studio || typeof studio.checkMasterMissingRooms !== 'function') return;
+
+    try {
+      var info = await studio.checkMasterMissingRooms(campaignId);
+      if (info && editorState.campaignId === campaignId) {
+        editorState.masterSyncInfo = info;
+        renderEditorMasterSyncUI();
+      }
+    } catch (err) {
+      console.warn('[GameEditor] Lỗi kiểm tra phòng mới từ MASTER:', err);
+    }
+  }
+
+  /**
+   * Hiển thị trạng thái đồng bộ phòng MASTER cạnh Xem trước và Xuất bản
+   */
+  function renderEditorMasterSyncUI() {
+    var camp = editorState.workingCampaign;
+    var container = byId('editor-master-update-container');
+    var statusPill = byId('editor-master-update-status');
+    var updateBtn = byId('btn-editor-open-room-update');
+    var banner = byId('editor-master-room-sync-banner');
+    var bannerTitle = byId('master-sync-title');
+    var bannerDetail = byId('master-sync-detail');
+
+    if (!camp || camp.is_template || camp.share_code === 'MASTER') {
+      if (container) hideEl(container);
+      if (banner) hideEl(banner);
+      return;
+    }
+
+    var syncInfo = editorState.masterSyncInfo;
+    if (!syncInfo) {
+      if (container) hideEl(container);
+      if (banner) hideEl(banner);
+      return;
+    }
+
+    if (container) showEl(container);
+
+    var missingCount = syncInfo.missing_count !== undefined 
+      ? syncInfo.missing_count 
+      : (syncInfo.missing_rooms ? syncInfo.missing_rooms.length : 0);
+
+    if (missingCount > 0) {
+      // Có phòng còn thiếu
+      if (statusPill) {
+        statusPill.className = 'master-update-status-pill';
+        statusPill.innerHTML = '🔔 Có ' + missingCount + ' phòng mới từ MASTER';
+      }
+      if (updateBtn) {
+        showEl(updateBtn);
+      }
+      if (banner) {
+        showEl(banner);
+        if (bannerTitle) {
+          bannerTitle.textContent = '🔔 Phát hiện ' + missingCount + ' phòng mới từ bộ đề gốc MASTER';
+        }
+        if (bannerDetail) {
+          var detailsList = (syncInfo.missing_rooms || []).map(function (r) {
+            return 'Khối ' + r.grade + ' - Phòng ' + r.room_number + ' (' + escapeHtml(r.topic || 'Phòng ' + r.room_number) + ')';
+          }).join(', ');
+          bannerDetail.innerHTML = 'Các bài học có thể cập nhật: <strong>' + detailsList + '</strong>. Bạn có thể chọn cập nhật từng phòng hoặc tất cả mà không làm mất các câu hỏi đã tùy chỉnh trước đó.';
+        }
+      }
+    } else {
+      // Đã cập nhật đủ phòng
+      if (statusPill) {
+        statusPill.className = 'master-update-status-pill is-synced';
+        statusPill.innerHTML = '✅ Đã cập nhật đủ phòng';
+      }
+      if (updateBtn) {
+        hideEl(updateBtn);
+      }
+      if (banner) {
+        hideEl(banner);
+      }
+    }
+  }
+
+  /**
+   * Mở hộp thoại chọn và xác nhận cập nhật phòng mới từ MASTER
+   */
+  function openUpdateRoomsModal() {
+    var camp = editorState.workingCampaign;
+    if (!camp || camp.is_template || camp.share_code === 'MASTER') return;
+
+    var modal = byId('modal-update-rooms-backdrop');
+    var listEl = byId('update-rooms-list');
+    var alertEl = byId('modal-update-rooms-alert');
+    var summaryCount = byId('update-rooms-summary-count');
+    var selectAllChk = byId('chk-update-rooms-select-all');
+    var confirmBtn = byId('btn-confirm-update-rooms');
+
+    if (!modal || !listEl) return;
+    if (alertEl) hideEl(alertEl);
+
+    var syncInfo = editorState.masterSyncInfo;
+    var missingRooms = (syncInfo && syncInfo.missing_rooms) ? syncInfo.missing_rooms : [];
+
+    if (missingRooms.length === 0) {
+      listEl.innerHTML = '<div style="padding: 24px; text-align: center; color: var(--accent-emerald); font-weight: 700;">' +
+        '✅ Bộ đề của bạn đã cập nhật đầy đủ toàn bộ phòng từ MASTER!' +
+        '</div>';
+      if (summaryCount) summaryCount.textContent = 'Đã đủ phòng';
+      if (confirmBtn) hideEl(confirmBtn);
+      showEl(modal);
+      return;
+    }
+
+    if (confirmBtn) {
+      showEl(confirmBtn);
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = '➕ Cập nhật ' + missingRooms.length + ' phòng đã chọn';
+    }
+
+    if (summaryCount) {
+      summaryCount.textContent = 'Còn thiếu ' + missingRooms.length + ' phòng';
+    }
+
+    if (selectAllChk) {
+      selectAllChk.checked = true;
+    }
+
+    // Render danh sách phòng còn thiếu
+    var html = '';
+    missingRooms.forEach(function (r) {
+      var padNum = r.room_number < 10 ? '0' + r.room_number : String(r.room_number);
+      var itemCount = r.item_count || 8;
+      html +=
+        '<label class="update-room-card selected" data-grade="' + r.grade + '" data-room-num="' + r.room_number + '">' +
+        '<input type="checkbox" class="update-room-checkbox chk-missing-room" checked ' +
+        'data-grade="' + r.grade + '" data-room-num="' + r.room_number + '">' +
+        '<div class="update-room-details">' +
+        '<div class="update-room-header">' +
+        '<span class="update-room-badge">🏫 KHỐI ' + r.grade + ' • PHÒNG ' + padNum + '</span>' +
+        '<span class="update-room-meta">✨ ' + itemCount + ' thử thách</span>' +
+        '</div>' +
+        '<div class="update-room-topic">' + escapeHtml(r.topic || 'Phòng ' + r.room_number) + '</div>' +
+        '</div>' +
+        '</label>';
+    });
+
+    listEl.innerHTML = html;
+    showEl(modal);
+  }
+
+  function closeUpdateRoomsModal() {
+    var modal = byId('modal-update-rooms-backdrop');
+    if (modal) hideEl(modal);
+  }
+
+  /**
+   * Cập nhật trạng thái số lượng phòng được chọn trong modal
+   */
+  function updateModalSelectionCount() {
+    var checkboxes = document.querySelectorAll('.chk-missing-room');
+    var checked = document.querySelectorAll('.chk-missing-room:checked');
+    var confirmBtn = byId('btn-confirm-update-rooms');
+    var selectAllChk = byId('chk-update-rooms-select-all');
+
+    if (selectAllChk) {
+      selectAllChk.checked = (checkboxes.length > 0 && checked.length === checkboxes.length);
+    }
+
+    if (confirmBtn) {
+      confirmBtn.disabled = (checked.length === 0);
+      confirmBtn.innerHTML = '➕ Cập nhật ' + checked.length + ' phòng đã chọn';
+    }
+
+    // Cập nhật class selected cho thẻ cha
+    checkboxes.forEach(function (cb) {
+      var card = cb.closest('.update-room-card');
+      if (card) {
+        if (cb.checked) card.classList.add('selected');
+        else card.classList.remove('selected');
+      }
+    });
+  }
+
+  /**
+   * Xác nhận và gọi RPC nhập các phòng được chọn từ MASTER
+   */
+  async function handleConfirmUpdateRooms() {
+    var camp = editorState.workingCampaign;
+    if (!camp) return;
+
+    var checkedBoxes = Array.from(document.querySelectorAll('.chk-missing-room:checked'));
+    if (checkedBoxes.length === 0) {
+      var studio = getStudio();
+      if (studio) studio.showToast('Vui lòng chọn ít nhất 1 phòng để cập nhật.', 'warning');
+      return;
+    }
+
+    var selectedRooms = checkedBoxes.map(function (cb) {
+      return {
+        grade: Number(cb.dataset.grade),
+        room_number: Number(cb.dataset.roomNum)
+      };
+    });
+
+    var confirmBtn = byId('btn-confirm-update-rooms');
+    var cancelBtn = byId('btn-cancel-update-rooms');
+    var alertEl = byId('modal-update-rooms-alert');
+
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.innerHTML = '⏳ Đang cập nhật phòng...';
+    }
+    if (cancelBtn) cancelBtn.disabled = true;
+    if (alertEl) hideEl(alertEl);
+
+    var studioRef = getStudio();
+    try {
+      var result = await studioRef.importRoomsFromMaster(camp.id, selectedRooms);
+      var addedCount = (result && result.added_count !== undefined) ? result.added_count : selectedRooms.length;
+
+      closeUpdateRoomsModal();
+      studioRef.showToast('Đã thêm thành công ' + addedCount + ' phòng mới từ MASTER vào bản nháp!', 'success', 5000);
+
+      // Tải lại dữ liệu chiến dịch từ Supabase
+      await studioRef.reloadCampaigns();
+      var refreshedCamp = studioRef.findCampaignById(camp.id);
+      if (refreshedCamp) {
+        editorState.workingCampaign = deepClone(refreshedCamp);
+        editorState.savedSnapshot = deepClone(refreshedCamp);
+      }
+
+      // Làm mới danh sách phòng và giao diện
+      renderEditorSidebarRooms();
+      renderEditorSidebarItems();
+
+      // Cập nhật lại thông tin missing rooms
+      await refreshMasterSyncInfo(camp.id);
+    } catch (err) {
+      console.error('[GameEditor] Lỗi khi cập nhật phòng từ MASTER:', err);
+      if (alertEl) {
+        alertEl.textContent = 'Lỗi cập nhật phòng: ' + (err.message || err);
+        showEl(alertEl);
+      }
+      if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '➕ Cập nhật ' + checkedBoxes.length + ' phòng đã chọn';
+      }
+      if (cancelBtn) cancelBtn.disabled = false;
+    }
+  }
+
+  /* ==========================================================================
    * 13. GẮN KẾT SỰ KIỆN CHO GAME EDITOR
    * ========================================================================== */
   function bindEditorEvents() {
@@ -4777,6 +5088,29 @@
       }
     });
 
+    // Sự kiện công tắc Én Én đồng hành trên Game Editor
+    var chkEditorEnen = byId('chk-editor-enen-toggle');
+    if (chkEditorEnen) {
+      chkEditorEnen.addEventListener('change', function () {
+        var camp = editorState.workingCampaign;
+        if (!camp) return;
+        var newSt = chkEditorEnen.checked;
+        var studio = getStudio();
+        if (studio && typeof studio.toggleCampaignEnen === 'function') {
+          studio.toggleCampaignEnen(camp.id, newSt, chkEditorEnen).then(function (success) {
+            if (success) {
+              camp.enen_enabled = newSt;
+              var stText = byId('editor-enen-status-text');
+              if (stText) {
+                stText.textContent = newSt ? 'Bật' : 'Tắt';
+                stText.style.color = newSt ? '#34d399' : '#94a3b8';
+              }
+            }
+          });
+        }
+      });
+    }
+
     // Các nút Xem trước (Preview)
     onClick('btn-editor-live-room-preview', handleLaunchLiveRoomPreview);
     onClick('btn-preview-launch-live-game', handleLaunchLiveRoomPreview);
@@ -4811,9 +5145,38 @@
       renderPreviewContent();
     });
 
+    // Sự kiện Cập nhật phòng mới từ MASTER
+    onClick('btn-editor-open-room-update', openUpdateRoomsModal);
+    onClick('btn-banner-open-room-update', openUpdateRoomsModal);
+    onClick('btn-close-update-rooms-modal', closeUpdateRoomsModal);
+    onClick('btn-cancel-update-rooms', closeUpdateRoomsModal);
+    onClick('btn-confirm-update-rooms', handleConfirmUpdateRooms);
+
+    var selectAllChk = byId('chk-update-rooms-select-all');
+    if (selectAllChk) {
+      selectAllChk.addEventListener('change', function () {
+        var isChecked = selectAllChk.checked;
+        var checkboxes = document.querySelectorAll('.chk-missing-room');
+        checkboxes.forEach(function (cb) {
+          cb.checked = isChecked;
+        });
+        updateModalSelectionCount();
+      });
+    }
+
+    var updateRoomsList = byId('update-rooms-list');
+    if (updateRoomsList) {
+      updateRoomsList.addEventListener('change', function (e) {
+        if (e.target && e.target.classList.contains('chk-missing-room')) {
+          updateModalSelectionCount();
+        }
+      });
+    }
+
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') {
         closePreviewModal();
+        closeUpdateRoomsModal();
       }
     });
   }
@@ -4823,6 +5186,8 @@
     openEditor: openEditor,
     openEditorAtTarget: openEditorAtTarget,
     refreshPublishedStatus: refreshPublishedStatus,
+    refreshMasterSyncInfo: refreshMasterSyncInfo,
+    openUpdateRoomsModal: openUpdateRoomsModal,
     closeEditor: closeEditorBackToDashboard,
     validateRoomData: validateRoomData,
     validateSingleItem: validateSingleItem,

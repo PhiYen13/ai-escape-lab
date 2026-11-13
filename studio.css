@@ -3588,10 +3588,238 @@ select:disabled {
     flex-direction: column;
     align-items: stretch;
   }
-  #btn-goto-master-manager {
-    width: 100%;
-  }
+  /* ============================================================================
+   CÔNG TẮC BẬT/TẮT ÉN ÉN ĐỒNG HÀNH TRONG TEACHER STUDIO
+   ============================================================================ */
+.enen-companion-control {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(5, 22, 53, 0.85);
+  border: 1px solid rgba(114, 213, 255, 0.35);
+  border-radius: var(--radius-sm);
+  padding: 5px 12px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
+
+.enen-companion-control:hover {
+  border-color: rgba(255, 219, 102, 0.6);
+  box-shadow: 0 0 12px rgba(255, 219, 102, 0.15);
+}
+
+.enen-toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.enen-toggle-input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 38px;
+  height: 20px;
+  background: #334155;
+  border-radius: 20px;
+  position: relative;
+  outline: none;
+  cursor: pointer;
+  border: 1.5px solid rgba(148, 163, 184, 0.5);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.enen-toggle-input::before {
+  content: '';
+  position: absolute;
+  top: 1.5px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ffffff;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.enen-toggle-input:checked {
+  background: #059669;
+  border-color: #34d399;
+}
+
+.enen-toggle-input:checked::before {
+  transform: translateX(18px);
+  background: #fef08a;
+}
+
+.enen-toggle-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.enen-toggle-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.25;
+}
+
+/* ==========================================================================
+   CẬP NHẬT PHÒNG MỚI TỪ MASTER (IMPORT ROOMS FROM MASTER UI)
+   ========================================================================== */
+.btn-warning {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
+  transition: all 0.2s ease;
+}
+
+.btn-warning:hover {
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  box-shadow: 0 0 14px rgba(245, 158, 11, 0.55);
+}
+
+.master-update-pill-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.master-update-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.master-update-status-pill.is-synced {
+  border-color: rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.master-sync-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(30, 41, 59, 0.92));
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  border-radius: 8px;
+  padding: 12px 18px;
+  margin-top: 10px;
+  margin-bottom: 6px;
+}
+
+.master-sync-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.master-sync-icon {
+  font-size: 26px;
+  flex-shrink: 0;
+}
+
+.master-sync-info strong {
+  display: block;
+  font-size: 13.5px;
+  color: #fbbf24;
+  margin-bottom: 2px;
+}
+
+.master-sync-detail-text {
+  font-size: 13px;
+  color: #e2e8f0;
+  line-height: 1.45;
+}
+
+.master-sync-banner-actions {
+  flex-shrink: 0;
+}
+
+.update-rooms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.update-room-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.65);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.update-room-card:hover {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(245, 158, 11, 0.45);
+}
+
+.update-room-card.selected {
+  border-color: rgba(245, 158, 11, 0.85);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.update-room-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: #f59e0b;
+  cursor: pointer;
+}
+
+.update-room-details {
+  flex: 1;
+}
+
+.update-room-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.update-room-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(0, 229, 255, 0.15);
+  color: #00e5ff;
+}
+
+.update-room-topic {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.update-room-meta {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+
 
 
 

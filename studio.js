@@ -292,11 +292,13 @@
 
     var returnUrl = window.location.origin + window.location.pathname;
 
+    var isEnenOn = Boolean(campaign.enen_enabled);
     var previewSession = {
       campaignId: campaign.id,
       campaignTitle: campaign.title,
       shareCode: campaign.share_code || 'MASTER',
       isMaster: Boolean(campaign.is_template),
+      enen_enabled: isEnenOn,
       targetGrade: targetGrade,
       targetRoomNum: targetRoomNum,
       returnUrl: returnUrl,
@@ -306,16 +308,22 @@
           id: campaign.id,
           title: campaign.title,
           share_code: campaign.share_code || 'MASTER',
-          version: (campaign.version || 1) + 1
+          version: (campaign.version || 1) + 1,
+          enen_enabled: isEnenOn
         },
+        enen_enabled: isEnenOn,
         rooms: previewRooms
       }
     };
 
     try {
-      sessionStorage.setItem('AI_ESCAPE_PREVIEW_SESSION', JSON.stringify(previewSession));
+      var prevJson = JSON.stringify(previewSession);
+      sessionStorage.setItem('AI_ESCAPE_PREVIEW_SESSION', prevJson);
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('AI_ESCAPE_PREVIEW_SESSION', prevJson);
+      }
     } catch (e) {
-      console.error('Không thể lưu session preview vào sessionStorage:', e);
+      console.error('Không thể lưu session preview vào storage:', e);
     }
 
     var targetUrl = 'index.html?preview=1&grade=' + targetGrade + '&room=' + targetRoomNum;
@@ -741,7 +749,7 @@
       // 1. Truy vấn các campaigns mà người dùng có quyền xem (MASTER + của chính mình + nếu Admin thấy tất cả)
       var campRes = await state.supabase
         .from('campaigns')
-        .select('id, teacher_id, title, share_code, is_template, is_published, version, metadata, created_at, updated_at')
+        .select('id, teacher_id, title, share_code, is_template, is_published, version, metadata, enen_enabled, created_at, updated_at')
         .order('is_template', { ascending: false })
         .order('updated_at', { ascending: false });
 
@@ -1092,6 +1100,28 @@
       masterShareVerPill.textContent = 'Phiên bản xuất bản: v' + pubVer;
     }
 
+    // Đồng bộ công tắc Én Én trên thẻ MASTER
+    var chkMasterEnen = byId('chk-master-enen-toggle');
+    var stMasterEnen = byId('master-enen-status-text');
+    var descMasterEnen = byId('master-enen-desc');
+    var isMasterEnenOn = master.enen_enabled !== undefined ? Boolean(master.enen_enabled) : true;
+
+    if (chkMasterEnen) {
+      chkMasterEnen.checked = isMasterEnenOn;
+      chkMasterEnen.disabled = false;
+    }
+    if (stMasterEnen) {
+      stMasterEnen.textContent = isMasterEnenOn ? 'BẬT' : 'TẮT';
+      stMasterEnen.style.color = isMasterEnenOn ? '#34d399' : '#94a3b8';
+    }
+    if (descMasterEnen) {
+      if (isAdmin) {
+        descMasterEnen.innerHTML = '👑 <strong>Quyền Quản trị viên (Admin):</strong> Bạn có quyền bật/tắt Én Én cho bộ đề MASTER và bấm <em>“🚀 Xuất bản MASTER”</em> để áp dụng cho link học sinh.';
+      } else {
+        descMasterEnen.innerHTML = '🔒 <strong>Kho gốc chuẩn:</strong> Trạng thái hiện tại: <strong>' + (isMasterEnenOn ? 'Đang BẬT' : 'Đang TẮT') + '</strong>. Để toàn quyền bật/tắt và chỉnh sửa cho lớp mình, thầy/cô vui lòng bấm <em>“🧬 Sao chép tạo trò chơi riêng”</em>.';
+      }
+    }
+
     // Đếm số phòng sẵn sàng cho từng khối
     var rooms = master.rooms || [];
     var countReady = function (g) {
@@ -1374,6 +1404,7 @@
       .map(function (camp) {
         var isNew = state.newlyCreatedCampaignId === camp.id;
         var pubVer = camp.publishedVersion || camp.version;
+        var sync = computeMissingRooms(camp);
         var statusBadge = camp.is_published
           ? '<span class="badge badge-published">🟢 Đã xuất bản (v' +
             escapeHtml(pubVer) +
@@ -1469,9 +1500,40 @@
             ? ' • Xuất bản: ' + escapeHtml(formatDateVi(camp.publishedAt))
             : '') +
           '</div>' +
+          // Công tắc Én Én đồng hành trên thẻ bộ đề cá nhân
+          (canEditCampaignEnen(camp)
+            ? '<div class="card-enen-toggle-box" style="margin-top: 10px; padding: 6px 10px; background: rgba(5, 22, 53, 0.7); border: 1px solid rgba(114, 213, 255, 0.3); border-radius: 6px;">' +
+              '<label class="enen-toggle-label" style="justify-content: space-between; width: 100%;">' +
+                '<span style="font-size: 12px; font-weight: 700; color: #ffe285;">✨ Én Én đồng hành:</span>' +
+                '<div style="display: flex; align-items: center; gap: 6px;">' +
+                  '<input type="checkbox" class="enen-toggle-input enen-card-toggle" data-action="toggle-card-enen" data-id="' + escapeHtml(camp.id) + '" ' + (camp.enen_enabled ? 'checked' : '') + '>' +
+                  '<span style="font-size: 11px; font-weight: 800; color: ' + (camp.enen_enabled ? '#34d399' : '#94a3b8') + ';">' + (camp.enen_enabled ? 'BẬT' : 'TẮT') + '</span>' +
+                '</div>' +
+              '</label>' +
+              '<div class="enen-toggle-desc" style="margin-top: 2px;">Hiện Én Én để học sinh nhận gợi ý trong lúc chơi.</div>' +
+              '</div>'
+            : '') +
           '</div>' +
+          // Khối thông báo & nút Cập nhật phòng mới từ MASTER trên từng thẻ bộ đề
+          (sync && sync.missing_count > 0
+            ? '<div style="margin: 10px 0 6px; padding: 8px 12px; background: rgba(245, 158, 11, 0.14); border: 1.5px solid rgba(245, 158, 11, 0.55); border-radius: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">' +
+              '<span style="font-size: 12.5px; font-weight: 800; color: #fbbf24;">🔔 Có ' + sync.missing_count + ' phòng mới từ MASTER</span>' +
+              '<button type="button" class="btn btn-warning btn-sm" data-action="card-open-update-rooms" data-id="' + escapeHtml(camp.id) + '">🔄 Cập nhật phòng</button>' +
+              '</div>'
+            : (sync && sync.is_up_to_date && (camp.rooms || []).length > 0
+              ? '<div style="margin: 8px 0 4px; font-size: 11.5px; color: #34d399; font-weight: 700; display: flex; align-items: center; gap: 4px;">' +
+                '✅ Đã cập nhật đủ phòng từ MASTER' +
+                '</div>'
+              : '')) +
           '<div class="campaign-card-actions">' +
           '<div style="display: flex; gap: 6px; flex-wrap: wrap;">' +
+          (sync && sync.missing_count > 0
+            ? '<button type="button" class="btn btn-warning btn-sm" data-action="card-open-update-rooms" data-id="' +
+              escapeHtml(camp.id) +
+              '">' +
+              '🔄 Cập nhật ' + sync.missing_count + ' phòng' +
+              '</button>'
+            : '') +
           '<button type="button" class="btn btn-gold btn-sm" data-action="open-game-editor" data-id="' +
           escapeHtml(camp.id) +
           '">' +
@@ -1835,6 +1897,62 @@
           '<span>👁️</span><span>Bạn đang xem bộ đề ở chế độ chỉ đọc.</span>';
         hideElement(renameForm);
       }
+
+      // Thông báo phòng còn thiếu từ MASTER trong Inspect Modal
+      var syncInspect = computeMissingRooms(campaign);
+      if (syncInspect && syncInspect.missing_count > 0) {
+        var detailsList = syncInspect.missing_rooms.map(function (r) {
+          return 'Khối ' + r.grade + ' - Phòng ' + r.room_number + ' (' + escapeHtml(r.topic || 'Phòng ' + r.room_number) + ')';
+        }).join(', ');
+        permBanner.innerHTML +=
+          '<div style="margin-top: 10px; padding: 10px 14px; background: rgba(245, 158, 11, 0.16); border: 1.5px solid rgba(245, 158, 11, 0.6); border-radius: 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">' +
+          '<div><span style="font-size: 13.5px; font-weight: 800; color: #fbbf24;">🔔 Phát hiện ' + syncInspect.missing_count + ' phòng mới từ bộ đề gốc MASTER!</span>' +
+          '<div style="font-size: 12px; color: #e2e8f0; margin-top: 2px;">Các bài học có thể cập nhật: <strong>' + detailsList + '</strong></div></div>' +
+          '<button type="button" class="btn btn-warning btn-sm" id="btn-inspect-update-rooms">🔄 Cập nhật phòng từ MASTER</button>' +
+          '</div>';
+        var btnInspectUpdate = byId('btn-inspect-update-rooms');
+        if (btnInspectUpdate) {
+          btnInspectUpdate.onclick = function () {
+            closeInspectModal();
+            if (window.AI_ESCAPE_EDITOR && typeof window.AI_ESCAPE_EDITOR.openEditor === 'function') {
+              window.AI_ESCAPE_EDITOR.openEditor(campaign.id, 3);
+              setTimeout(function () {
+                if (typeof window.AI_ESCAPE_EDITOR.openUpdateRoomsModal === 'function') {
+                  window.AI_ESCAPE_EDITOR.openUpdateRoomsModal();
+                }
+              }, 150);
+            }
+          };
+        }
+      }
+    }
+
+    // Điều khiển công tắc Én Én đồng hành trong Inspect Modal
+    var inspectEnenControl = byId('inspect-enen-control');
+    var chkInspectEnen = byId('chk-inspect-enen-toggle');
+    var inspectEnenStatus = byId('inspect-enen-status-text');
+
+    if (inspectEnenControl) {
+      showElement(inspectEnenControl);
+      var canEditThisEnen = canEditCampaignEnen(campaign);
+      var isMasterThis = Boolean(campaign.is_template || campaign.share_code === 'MASTER');
+      var isEnenActive = campaign.enen_enabled !== undefined ? Boolean(campaign.enen_enabled) : (isMasterThis ? true : false);
+
+      if (chkInspectEnen) {
+        chkInspectEnen.checked = isEnenActive;
+        chkInspectEnen.disabled = !canEditThisEnen;
+        if (!canEditThisEnen) {
+          chkInspectEnen.title = isMasterThis
+            ? 'Chỉ Quản trị viên (Admin) mới có quyền đổi cài đặt trên bộ đề gốc MASTER. Hãy sao chép để tùy chỉnh.'
+            : 'Bạn không có quyền chỉnh sửa bộ đề này.';
+        } else {
+          chkInspectEnen.title = 'Bật/Tắt trợ lý AI Én Én cho bộ đề';
+        }
+      }
+      if (inspectEnenStatus) {
+        inspectEnenStatus.textContent = isEnenActive ? 'Bật' : 'Tắt';
+        inspectEnenStatus.style.color = isEnenActive ? '#34d399' : '#94a3b8';
+      }
     }
 
     renderInspectGradeTabsAndRoom(campaign);
@@ -2015,6 +2133,220 @@
   function closeInspectModal() {
     hideElement(byId('inspect-modal-backdrop'));
     state.inspectingCampaignId = null;
+  }
+
+  /**
+   * CÁC TIỆN ÍCH KIỂM SOÁT CÔNG TẮC ÉN ÉN ĐỒNG HÀNH
+   */
+  function canEditCampaignEnen(campaign) {
+    if (!campaign) return false;
+    var currentUserId = state.user ? state.user.id : null;
+    var isAdmin = isCurrentUserAdmin();
+    var isMaster = Boolean(campaign.is_template || campaign.share_code === 'MASTER');
+
+    // MASTER: chỉ Quản trị viên (Admin) mới có quyền bật/tắt
+    if (isMaster) {
+      return isAdmin;
+    }
+
+    var isOwner = Boolean(currentUserId && campaign.teacher_id === currentUserId);
+    return isOwner || isAdmin;
+  }
+
+  function syncEnenToggleUI(campaign) {
+    if (!campaign) return;
+    var isEnabled = Boolean(campaign.enen_enabled);
+
+    // 1. Đồng bộ trên Inspect Modal (nếu đang mở campaign này)
+    if (state.inspectingCampaignId === campaign.id) {
+      var chkIns = byId('chk-inspect-enen-toggle');
+      var stIns = byId('inspect-enen-status-text');
+      if (chkIns) chkIns.checked = isEnabled;
+      if (stIns) {
+        stIns.textContent = isEnabled ? 'Bật' : 'Tắt';
+        stIns.style.color = isEnabled ? '#34d399' : '#94a3b8';
+      }
+    }
+
+    // 2. Đồng bộ trên Game Editor (nếu Game Editor đang mở campaign này)
+    var chkEd = byId('chk-editor-enen-toggle');
+    var stEd = byId('editor-enen-status-text');
+    if (chkEd) chkEd.checked = isEnabled;
+    if (stEd) {
+      stEd.textContent = isEnabled ? 'Bật' : 'Tắt';
+      stEd.style.color = isEnabled ? '#34d399' : '#94a3b8';
+    }
+
+    // 3. Đồng bộ trên thẻ card cá nhân (nếu có trên màn hình)
+    var cardCheckboxes = document.querySelectorAll('.enen-card-toggle[data-id="' + campaign.id + '"]');
+    cardCheckboxes.forEach(function (chk) {
+      chk.checked = isEnabled;
+      var lbl = chk.nextElementSibling;
+      if (lbl) {
+        lbl.textContent = isEnabled ? 'BẬT' : 'TẮT';
+        lbl.style.color = isEnabled ? '#34d399' : '#94a3b8';
+      }
+    });
+
+    // 4. Đồng bộ trên thẻ bộ đề gốc MASTER
+    if (campaign.is_template || campaign.share_code === 'MASTER') {
+      var chkMaster = byId('chk-master-enen-toggle');
+      var stMaster = byId('master-enen-status-text');
+      var descMaster = byId('master-enen-desc');
+      if (chkMaster) chkMaster.checked = isEnabled;
+      if (stMaster) {
+        stMaster.textContent = isEnabled ? 'BẬT' : 'TẮT';
+        stMaster.style.color = isEnabled ? '#34d399' : '#94a3b8';
+      }
+      if (descMaster && isCurrentUserAdmin()) {
+        descMaster.innerHTML = '👑 <strong>Quyền Admin:</strong> Đã chuyển sang <strong>' + (isEnabled ? 'BẬT' : 'TẮT') + '</strong>. Vui lòng bấm <em>“🚀 Xuất bản MASTER”</em> để áp dụng cho học sinh.';
+      }
+    }
+  }
+
+  async function toggleCampaignEnen(campaignId, newEnabledState, sourceEl) {
+    var campaign = findCampaignById(campaignId);
+    if (!campaign) return false;
+
+    if (!canEditCampaignEnen(campaign)) {
+      if (campaign.is_template || campaign.share_code === 'MASTER') {
+        showToast('Bộ đề gốc MASTER chỉ Quản trị viên (Admin) mới có quyền thay đổi. Thầy/cô vui lòng bấm "Sao chép tạo trò chơi riêng" để tùy chỉnh cho học sinh của mình.', 'warning', 6000);
+      } else {
+        showToast('Từ chối: Bạn không có quyền chỉnh sửa cài đặt bộ đề này.', 'error');
+      }
+      if (sourceEl) sourceEl.checked = Boolean(campaign.enen_enabled);
+      return false;
+    }
+
+    var previousState = Boolean(campaign.enen_enabled);
+    if (sourceEl) sourceEl.disabled = true;
+
+    try {
+      var rpcRes = await state.supabase.rpc('set_campaign_enen_enabled', {
+        p_campaign_id: campaignId,
+        p_enabled: Boolean(newEnabledState)
+      });
+
+      if (rpcRes.error) throw rpcRes.error;
+
+      campaign.enen_enabled = Boolean(rpcRes.data !== undefined ? rpcRes.data : newEnabledState);
+      if (campaign.is_published) {
+        campaign.hasUnpublishedChanges = true;
+      }
+      campaign.updated_at = new Date().toISOString();
+
+      showToast(
+        'Đã ' + (campaign.enen_enabled ? 'BẬT' : 'TẮT') + ' Én Én đồng hành cho bộ đề "' + campaign.title + '".',
+        'success'
+      );
+
+      syncEnenToggleUI(campaign);
+      return true;
+    } catch (err) {
+      console.error('Lỗi khi cập nhật Én Én đồng hành:', err);
+      var errMsg = translateSupabaseError(err);
+      showToast('Không thể lưu cài đặt Én Én đồng hành: ' + errMsg, 'error');
+      if (sourceEl) {
+        sourceEl.checked = previousState;
+      }
+      syncEnenToggleUI(campaign);
+      return false;
+    } finally {
+      if (sourceEl) sourceEl.disabled = false;
+    }
+  }
+
+  /**
+   * Tính toán danh sách phòng còn thiếu từ MASTER cho một chiến dịch bất kỳ dựa trên bộ nhớ client
+   */
+  function computeMissingRooms(campaign) {
+    if (!campaign || campaign.is_template || campaign.share_code === 'MASTER') {
+      return { is_master: true, missing_count: 0, missing_rooms: [], is_up_to_date: true };
+    }
+    var master = state.masterCampaign;
+    if (!master || !Array.isArray(master.rooms)) {
+      return { is_master: false, missing_count: 0, missing_rooms: [], is_up_to_date: true };
+    }
+    var targetRooms = campaign.rooms || [];
+    var masterPlayable = master.rooms.filter(function (r) {
+      return [3, 4, 5].indexOf(Number(r.grade)) !== -1 &&
+             ['ready', 'completed'].indexOf(r.development_status || 'ready') !== -1;
+    });
+    var missing = masterPlayable.filter(function (mr) {
+      return !targetRooms.some(function (tr) {
+        return Number(tr.grade) === Number(mr.grade) && Number(tr.room_number) === Number(mr.room_number);
+      });
+    });
+    return {
+      is_master: false,
+      missing_count: missing.length,
+      missing_rooms: missing.map(function (r) {
+        return {
+          grade: Number(r.grade),
+          room_number: Number(r.room_number),
+          topic: r.topic || ('Phòng ' + r.room_number),
+          development_status: r.development_status || 'ready',
+          item_count: (r.items || []).length
+        };
+      }),
+      is_up_to_date: missing.length === 0
+    };
+  }
+
+  /**
+   * Kiểm tra và đối chiếu các phòng còn thiếu từ MASTER đã xuất bản vào bộ đề đích
+   */
+  async function checkMasterMissingRooms(campaignId) {
+    var camp = findCampaignById(campaignId);
+    var localInfo = computeMissingRooms(camp);
+    if (!state.supabase || !campaignId) return localInfo;
+    try {
+      var res = await state.supabase.rpc('get_master_missing_rooms', {
+        p_target_campaign_id: campaignId
+      });
+      if (res.error) {
+        console.warn('[Studio] checkMasterMissingRooms RPC error, fallback to local compute:', res.error);
+        return localInfo;
+      }
+      return res.data || localInfo;
+    } catch (err) {
+      console.warn('[Studio] checkMasterMissingRooms exception, fallback to local compute:', err);
+      return localInfo;
+    }
+  }
+
+  /**
+   * Nhập các phòng còn thiếu từ MASTER đã xuất bản vào bản nháp của bộ đề đích
+   */
+  async function importRoomsFromMaster(campaignId, roomKeys) {
+    if (!state.supabase || !campaignId) {
+      throw new Error('Yêu cầu kết nối Supabase và ID chiến dịch!');
+    }
+    var res = await state.supabase.rpc('import_rooms_from_master', {
+      p_target_campaign_id: campaignId,
+      p_room_keys: roomKeys || null
+    });
+    if (res.error) throw res.error;
+    return res.data;
+  }
+
+  /**
+   * Reset bộ đề thử nghiệm (demo) về trạng thái ban đầu gồm 3 phòng để phục vụ thi/demo
+   */
+  async function resetDemoCampaign(campaignId) {
+    if (!state.supabase || !campaignId) return null;
+    try {
+      var res = await state.supabase.rpc('reset_demo_campaign_rooms', {
+        p_campaign_id: campaignId
+      });
+      if (res.error) throw res.error;
+      showToast('Đã reset bộ đề về trạng thái ban đầu (3 phòng, thiếu 5 phòng) sẵn sàng demo!', 'success');
+      await loadCampaignsAndRooms();
+      return res.data;
+    } catch (err) {
+      showToast('Lỗi khi reset bộ đề demo: ' + (err.message || err), 'error');
+      return null;
+    }
   }
 
   /**
@@ -4306,6 +4638,21 @@
       });
     }
 
+    // Công tắc Én Én đồng hành trên thẻ MASTER
+    var chkMasterEnen = byId('chk-master-enen-toggle');
+    if (chkMasterEnen) {
+      chkMasterEnen.addEventListener('change', function () {
+        var master = state.masterCampaign;
+        if (!master) return;
+        if (!canEditCampaignEnen(master)) {
+          showToast('Bộ đề gốc MASTER chỉ Quản trị viên (Admin) mới có quyền thay đổi. Thầy/cô vui lòng bấm "Sao chép tạo trò chơi riêng" để tùy chỉnh cho học sinh của mình.', 'warning', 6000);
+          chkMasterEnen.checked = master.enen_enabled !== undefined ? Boolean(master.enen_enabled) : true;
+          return;
+        }
+        toggleCampaignEnen(master.id, chkMasterEnen.checked, chkMasterEnen);
+      });
+    }
+
     // Nút sao chép liên kết trò chơi học sinh MASTER
     var btnCopyMasterLink = byId('btn-copy-master-link');
     if (btnCopyMasterLink) {
@@ -4411,7 +4758,29 @@
     });
 
     // Sự kiện ủy quyền trên lưới danh sách trò chơi cá nhân (#campaigns-grid)
+    byId('campaigns-grid').addEventListener('change', function (e) {
+      var enenToggle = e.target.closest('.enen-card-toggle');
+      if (enenToggle) {
+        var campId = enenToggle.getAttribute('data-id');
+        toggleCampaignEnen(campId, enenToggle.checked, enenToggle);
+      }
+    });
+
     byId('campaigns-grid').addEventListener('click', function (e) {
+      var updateBtn = e.target.closest('[data-action="card-open-update-rooms"]');
+      if (updateBtn) {
+        var updateCampId = updateBtn.getAttribute('data-id');
+        if (window.AI_ESCAPE_EDITOR && typeof window.AI_ESCAPE_EDITOR.openEditor === 'function') {
+          window.AI_ESCAPE_EDITOR.openEditor(updateCampId, 3);
+          setTimeout(function () {
+            if (typeof window.AI_ESCAPE_EDITOR.openUpdateRoomsModal === 'function') {
+              window.AI_ESCAPE_EDITOR.openUpdateRoomsModal();
+            }
+          }, 150);
+        }
+        return;
+      }
+
       var editorBtn = e.target.closest('[data-action="open-game-editor"]');
       if (editorBtn) {
         if (window.AI_ESCAPE_EDITOR && typeof window.AI_ESCAPE_EDITOR.openEditor === 'function') {
@@ -4629,6 +4998,17 @@
     byId('btn-close-inspect-modal').addEventListener('click', closeInspectModal);
     byId('btn-close-inspect-footer').addEventListener('click', closeInspectModal);
     byId('inspect-rename-form').addEventListener('submit', handleRenameCampaignSubmit);
+
+    // Công tắc Én Én đồng hành trong Inspect Modal
+    var chkInspectEnen = byId('chk-inspect-enen-toggle');
+    if (chkInspectEnen) {
+      chkInspectEnen.addEventListener('change', function () {
+        var campId = state.inspectingCampaignId;
+        if (!campId) return;
+        toggleCampaignEnen(campId, chkInspectEnen.checked, chkInspectEnen);
+      });
+    }
+
     byId('btn-inspect-open-editor').addEventListener('click', function () {
       var targetId = state.inspectingCampaignId;
       var targetGrade = state.inspectingGrade || 3;
@@ -4835,7 +5215,14 @@
     copyToClipboard: copyToClipboard,
     setNavView: setNavView,
     launchRoomPreview: prepareAndLaunchRoomPreview,
-    openChangePasswordModal: openChangePasswordModal
+    openChangePasswordModal: openChangePasswordModal,
+    toggleCampaignEnen: toggleCampaignEnen,
+    canEditCampaignEnen: canEditCampaignEnen,
+    syncEnenToggleUI: syncEnenToggleUI,
+    computeMissingRooms: computeMissingRooms,
+    checkMasterMissingRooms: checkMasterMissingRooms,
+    importRoomsFromMaster: importRoomsFromMaster,
+    resetDemoCampaign: resetDemoCampaign
   };
 
   if (document.readyState === 'loading') {

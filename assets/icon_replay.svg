@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="replayBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD700"/>
+      <stop offset="50%" stop-color="#FF5252"/>
+      <stop offset="100%" stop-color="#FF007A"/>
+    </linearGradient>
+    <linearGradient id="replayBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4a0e17"/>
+      <stop offset="60%" stop-color="#2c0b1e"/>
+      <stop offset="100%" stop-color="#190728"/>
+    </linearGradient>
+    <linearGradient id="arrowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF9C4"/>
+      <stop offset="40%" stop-color="#FFD54F"/>
+      <stop offset="100%" stop-color="#FF7043"/>
+    </linearGradient>
+    <filter id="replayGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#FF5252" flood-opacity="0.65"/>
+    </filter>
+  </defs>
+
+  <!-- Vòng huy hiệu năng lượng tái sinh -->
+  <circle cx="24" cy="24" r="22.5" fill="url(#replayBg)" stroke="url(#replayBorder)" stroke-width="2.5" filter="url(#replayGlow)"/>
+
+  <!-- Mũi tên xoay tròn cách điệu công nghệ (3/4 vòng cung) -->
+  <path d="M24 11 A13 13 0 1 1 13.5 19.5" fill="none" stroke="url(#arrowGrad)" stroke-width="4.2" stroke-linecap="round"/>
+  
+  <!-- Đầu mũi tên sắc nét -->
+  <polygon points="24,6 30,13 22,16" fill="url(#arrowGrad)" stroke="#FFB300" stroke-width="0.8"/>
+
+  <!-- Tia năng lượng lấp lánh tâm điểm -->
+  <circle cx="24" cy="24" r="2.8" fill="#FFFDE7" filter="url(#replayGlow)"/>
+  <circle cx="24" cy="24" r="1.4" fill="#FF5252"/>
+</svg>
+

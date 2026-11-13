@@ -1,0 +1,465 @@
+/* ============================================================================
+   ÉN ÉN ĐỒNG HÀNH - TRỢ LÝ AI ĐỒNG HÀNH SƯ PHẠM (SOCRATIC AI TUTOR)
+   ============================================================================ */
+
+/* --- NÚT BẤM LINH VẬT NỔI (FLOATING MASCOT BUTTON) --- */
+#enen-buddy-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 850;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease, bottom 0.3s ease;
+}
+
+#enen-buddy-fab.hidden {
+  display: none !important;
+}
+
+/* Di dời nút lên cao hơn khi bàn phím cảm ứng di động bật */
+#touch-controls.tc-visible ~ #enen-buddy-fab,
+body.touch-active #enen-buddy-fab {
+  bottom: 140px;
+  right: 18px;
+}
+
+/* Vòng tròn linh vật */
+.enen-fab-circle {
+  position: relative;
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #18b5fe 0%, #0861c5 55%, #053b7c 100%);
+  border: 3.5px solid #ffe885;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45), 0 0 16px rgba(24, 181, 254, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#enen-buddy-fab:hover .enen-fab-circle {
+  transform: scale(1.08) rotate(-4deg);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55), 0 0 24px rgba(255, 232, 133, 0.8);
+}
+
+#enen-buddy-fab:active .enen-fab-circle {
+  transform: scale(0.95);
+}
+
+.enen-fab-img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+  animation: enen-fab-bob 3s ease-in-out infinite;
+}
+
+@keyframes enen-fab-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Điểm xanh báo trạng thái sẵn sàng */
+.enen-fab-badge {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  width: 16px;
+  height: 16px;
+  background: #10b981;
+  border: 2.5px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #10b981;
+}
+
+/* Bong bóng gợi mở khi học sinh đứng yên hoặc gặp khó khăn */
+.enen-fab-tooltip {
+  background: linear-gradient(135deg, #092856, #0e3d7e);
+  color: #fff;
+  border: 2px solid #58d5ff;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: enen-tooltip-fade 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.enen-fab-tooltip.hidden {
+  display: none !important;
+}
+
+@keyframes enen-tooltip-fade {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* --- CỬA SỔ CHAT ÉN ÉN ĐỒNG HÀNH (CHAT MODAL WIDGET) --- */
+#enen-buddy-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: min(390px, 92vw);
+  height: min(560px, 82vh);
+  z-index: 990;
+  background: linear-gradient(165deg, #0a214d 0%, #061533 100%);
+  border: 3.5px solid #4ed0ff;
+  border-radius: 26px;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(78, 208, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: 'Nunito', system-ui, -apple-system, sans-serif;
+  animation: enen-widget-pop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+#enen-buddy-widget.hidden {
+  display: none !important;
+}
+
+@keyframes enen-widget-pop {
+  from { opacity: 0; transform: scale(0.85) translateY(30px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* HEADER KHUNG CHAT */
+.enen-widget-header {
+  background: linear-gradient(135deg, #0d3875 0%, #082756 100%);
+  border-bottom: 2px solid #2ea9e8;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.enen-header-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.enen-header-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffe699 0%, #ffaa2b 100%);
+  border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+}
+
+.enen-header-avatar img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+}
+
+.enen-header-text h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+  color: #ffde6a;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.enen-header-text p {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  color: #bce4ff;
+  font-weight: 700;
+}
+
+.enen-widget-close-btn {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 18px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.enen-widget-close-btn:hover {
+  background: #ef4444;
+  border-color: #fca5a5;
+  transform: scale(1.1);
+}
+
+/* THẺ TRẠNG THÁI PHÒNG HIỆN TẠI (CONTEXT BANNER) */
+.enen-context-banner {
+  background: rgba(8, 38, 82, 0.65);
+  border-bottom: 1px solid rgba(78, 208, 255, 0.25);
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #aae0ff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.enen-context-banner .status-pill {
+  color: #34d399;
+  font-weight: 900;
+}
+
+/* VÙNG DANH SÁCH TIN NHẮN (CHAT BODY) */
+.enen-chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 14px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+}
+
+.enen-chat-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.enen-chat-body::-webkit-scrollbar-thumb {
+  background: #1b4982;
+  border-radius: 3px;
+}
+
+/* DÒNG TIN NHẮN */
+.enen-msg-row {
+  display: flex;
+  gap: 8px;
+  max-width: 88%;
+}
+
+.enen-msg-row.bot {
+  align-self: flex-start;
+}
+
+.enen-msg-row.user {
+  align-self: flex-end;
+  flex-direction: row-reverse;
+}
+
+.enen-msg-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1e5898;
+  border: 1.5px solid #6ed7ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.enen-msg-avatar img {
+  width: 90%;
+  height: 90%;
+  object-fit: contain;
+}
+
+.enen-msg-bubble {
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.enen-msg-row.bot .enen-msg-bubble {
+  background: linear-gradient(135deg, #133a70 0%, #0f2c58 100%);
+  border: 1.5px solid #3ebcf5;
+  color: #f1f8ff;
+  border-top-left-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.enen-msg-row.user .enen-msg-bubble {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border: 1.5px solid #7dd3fc;
+  color: #ffffff;
+  border-top-right-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.enen-msg-bubble strong {
+  color: #ffe47a;
+}
+
+.enen-hint-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(254, 240, 138, 0.15);
+  border: 1px solid #fde047;
+  color: #fef08a;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+/* HIỆU ỨNG TYPING (AI ĐANG SUY NGHĨ) */
+.enen-typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+}
+
+.enen-typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #73d7ff;
+  animation: enen-typing-bounce 1.4s infinite ease-in-out both;
+}
+
+.enen-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.enen-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes enen-typing-bounce {
+  0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* THANH GỢI Ý NHANH (QUICK ACTION PILLS) */
+.enen-quick-actions {
+  padding: 6px 12px 10px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.enen-quick-actions::-webkit-scrollbar {
+  display: none;
+}
+
+.enen-quick-btn {
+  background: rgba(18, 64, 126, 0.85);
+  border: 1.5px solid #4ac5ff;
+  color: #e0f2fe;
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.enen-quick-btn:hover {
+  background: #0284c7;
+  border-color: #ffe685;
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(2, 132, 199, 0.4);
+}
+
+.enen-quick-btn:active {
+  transform: translateY(0);
+}
+
+/* THANH NHẬP LIỆU (INPUT BAR) */
+.enen-input-bar {
+  background: #07193b;
+  border-top: 1.5px solid #1e508f;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.enen-chat-input {
+  flex: 1;
+  background: rgba(13, 40, 80, 0.85);
+  border: 2px solid #2872bc;
+  border-radius: 20px;
+  padding: 8px 14px;
+  color: #ffffff;
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.enen-chat-input:focus {
+  border-color: #60d2ff;
+  box-shadow: 0 0 10px rgba(96, 210, 255, 0.35);
+}
+
+.enen-chat-input::placeholder {
+  color: #79a6d2;
+}
+
+.enen-send-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
+  border: 2px solid #bae6fd;
+  color: #ffffff;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s, filter 0.15s;
+  flex-shrink: 0;
+}
+
+.enen-send-btn:hover {
+  transform: scale(1.08);
+  filter: brightness(1.15);
+}
+
+.enen-send-btn:active {
+  transform: scale(0.95);
+}
+
+/* RESPONSIVE TRÊN MÀN HÌNH NHỎ */
+@media (max-width: 600px) {
+  #enen-buddy-widget {
+    bottom: 12px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    height: 75vh;
+  }
+  .enen-fab-circle {
+    width: 58px;
+    height: 58px;
+  }
+  .enen-fab-img {
+    width: 44px;
+    height: 44px;
+  }
+}
+
